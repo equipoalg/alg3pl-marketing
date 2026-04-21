@@ -1,0 +1,14 @@
+{
+  "name": "ALG3PL Intelligence",
+  "short_name": "ALG3PL",
+  "description": "Marketing Intelligence Platform",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#F7F8FA",
+  "theme_color": "#00243D",
+  "icons": [
+    {"src": "/favicon.ico", "sizes": "any", "type": "image/x-icon"}
+  ],
+  "orientation": "portrait-primary",
+  "scope": "/"
+}

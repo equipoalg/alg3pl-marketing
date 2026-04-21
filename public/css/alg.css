@@ -1,0 +1,794 @@
+/*
+ * ALG3PL Design System — Claude Design · Financiero
+ * Formal · Elegante · Moderno · Minimalista · Fino
+ * Geist Sans + Geist Mono · Hueso + Tinta + Oliva
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap");
+
+/* ══════════════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════════════ */
+:root {
+    /* Surfaces */
+    --alg-bg:          #F7F5F0;
+    --alg-bg-alt:      #F1EEE7;
+    --alg-surface:     #FBFAF6;
+
+    /* Text (near-black ink scale) */
+    --alg-ink:         #0E0E0C;
+    --alg-ink-2:       #3A3A36;
+    --alg-ink-3:       #6B6B64;
+    --alg-ink-4:       #9A9A92;
+
+    /* Borders — hairline only */
+    --alg-line:        #E4E0D6;
+    --alg-line-2:      #D7D3C7;
+
+    /* Accent — deep olive */
+    --alg-accent:      oklch(45% 0.05 130);
+    --alg-accent-soft: oklch(45% 0.05 130 / 0.10);
+
+    /* Semantic */
+    --alg-pos:         oklch(48% 0.08 145);   /* muted green */
+    --alg-neg:         oklch(48% 0.12 30);    /* muted red/orange */
+    --alg-warn:        #8a6d00;
+
+    /* Typography */
+    --alg-font:        "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --alg-mono:        "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    /* Font sizes */
+    --alg-fs-micro:    10px;
+    --alg-fs-xs:       11px;
+    --alg-fs-sm:       12px;
+    --alg-fs-base:     13px;
+    --alg-fs-md:       14px;
+
+    /* Geometry — sharp, not rounded */
+    --alg-radius:      2px;
+    --alg-radius-lg:   4px;
+
+    /* Shadows — none (hairline borders do the work) */
+    --alg-shadow-sm:   none;
+    --alg-shadow-md:   none;
+    --alg-shadow-lg:   none;
+
+    /* Motion */
+    --alg-ease:        120ms ease;
+    --alg-ease-fast:   120ms ease;
+}
+
+
+/* ══════════════════════════════════════════════════
+   GLOBAL
+══════════════════════════════════════════════════ */
+body,
+.fi-body {
+    font-family: var(--alg-font) !important;
+    background:  var(--alg-bg) !important;
+    color:       var(--alg-ink) !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    font-feature-settings: "ss01", "cv11" !important;
+    letter-spacing: -0.005em !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   TOPBAR — bone bg, hairline bottom
+══════════════════════════════════════════════════ */
+.fi-topbar {
+    background:       var(--alg-bg) !important;
+    border-bottom:    1px solid var(--alg-line) !important;
+    backdrop-filter:  none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow:       none !important;
+}
+.fi-topbar nav {
+    gap: 8px !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR — bone bg, hairline right
+══════════════════════════════════════════════════ */
+.fi-sidebar {
+    background:    var(--alg-bg) !important;
+    border-right:  1px solid var(--alg-line) !important;
+    box-shadow:    none !important;
+}
+.fi-sidebar-nav-groups {
+    padding: 8px 0 !important;
+}
+
+/* Group labels — mono micro uppercase */
+.fi-sidebar-group-label {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.14em !important;
+    color:          var(--alg-ink-4) !important;
+    padding:        18px 22px 6px !important;
+}
+
+/* Nav items */
+.fi-sidebar-item-button {
+    border-radius:  0 !important;
+    padding:        7px 22px !important;
+    transition:     color var(--alg-ease), background var(--alg-ease) !important;
+    color:          var(--alg-ink-2) !important;
+    font-size:      var(--alg-fs-base) !important;
+    position:       relative !important;
+}
+.fi-sidebar-item-button:hover {
+    background: var(--alg-bg-alt) !important;
+    color:      var(--alg-ink) !important;
+}
+/* Active: left 2px accent line — no bg fill */
+.fi-sidebar-item-button.fi-active {
+    background:  transparent !important;
+    color:       var(--alg-ink) !important;
+    font-weight: 500 !important;
+}
+.fi-sidebar-item-button.fi-active::before {
+    content:    "" !important;
+    position:   absolute !important;
+    left:       0 !important;
+    top:        0 !important;
+    bottom:     0 !important;
+    width:      2px !important;
+    background: var(--alg-ink) !important;
+}
+.fi-sidebar-item-icon {
+    color: var(--alg-ink-4) !important;
+}
+.fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
+.fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+    color: var(--alg-ink) !important;
+}
+
+/* Nav badges — mono micro, hairline border */
+.fi-sidebar-item-badge {
+    font-family:    var(--alg-mono) !important;
+    font-size:      9px !important;
+    font-weight:    400 !important;
+    padding:        2px 5px !important;
+    border-radius:  0 !important;
+    border:         1px solid var(--alg-line-2) !important;
+    background:     transparent !important;
+    color:          var(--alg-ink-3) !important;
+    letter-spacing: 0.06em !important;
+    animation:      none !important;
+}
+
+/* Brand section */
+.fi-sidebar-header {
+    border-bottom:  1px solid var(--alg-line) !important;
+    padding-bottom: 18px !important;
+}
+
+/* Sidebar footer  */
+.fi-sidebar footer,
+.fi-sidebar-footer {
+    border-top:     1px solid var(--alg-line) !important;
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    color:          var(--alg-ink-4) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   PAGE HEADER — eyebrow + h1 + hairline
+══════════════════════════════════════════════════ */
+.fi-page-header {
+    padding-bottom: 18px !important;
+    border-bottom:  1px solid var(--alg-line) !important;
+    margin-bottom:  0 !important;
+}
+.fi-page-header-heading {
+    font-size:      28px !important;
+    font-weight:    400 !important;
+    letter-spacing: -0.02em !important;
+    color:          var(--alg-ink) !important;
+}
+.fi-page-header-subheading {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-xs) !important;
+    color:          var(--alg-ink-3) !important;
+    letter-spacing: 0.04em !important;
+}
+/* Breadcrumbs — mono micro */
+.fi-breadcrumbs {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-xs) !important;
+    color:          var(--alg-ink-3) !important;
+    letter-spacing: 0.04em !important;
+}
+.fi-breadcrumbs a {
+    color: var(--alg-ink-3) !important;
+    transition: color var(--alg-ease) !important;
+}
+.fi-breadcrumbs a:hover {
+    color: var(--alg-ink) !important;
+}
+.fi-breadcrumbs-separator {
+    color: var(--alg-ink-4) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   STAT CARDS (KPI row) — no cards, hairline grid
+══════════════════════════════════════════════════ */
+.fi-wi-stats-overview-stat {
+    background:    transparent !important;
+    border:        none !important;
+    border-right:  1px solid var(--alg-line) !important;
+    border-radius: 0 !important;
+    box-shadow:    none !important;
+    padding:       22px !important;
+    animation:     none !important;
+    transform:     none !important;
+}
+.fi-wi-stats-overview-stat::before,
+.fi-wi-stats-overview-stat::after {
+    display: none !important;
+}
+.fi-wi-stats-overview-stat:last-child {
+    border-right: none !important;
+}
+/* Outer wrapper — hairline top + bottom */
+.fi-wi-stats-overview {
+    border-top:    1px solid var(--alg-line) !important;
+    border-bottom: 1px solid var(--alg-line) !important;
+    border-radius: 0 !important;
+    background:    transparent !important;
+    box-shadow:    none !important;
+    border-left:   none !important;
+    border-right:  none !important;
+}
+
+/* KPI number — 44px, weight 400, tabular */
+.fi-wi-stats-overview-stat-value {
+    font-size:            44px !important;
+    font-weight:          400 !important;
+    letter-spacing:       -0.03em !important;
+    line-height:          1 !important;
+    color:                var(--alg-ink) !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" !important;
+    animation:            none !important;
+}
+
+/* Label — mono micro uppercase */
+.fi-wi-stats-overview-stat-label {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.16em !important;
+    color:          var(--alg-ink-4) !important;
+    margin-bottom:  6px !important;
+}
+
+/* Description / delta */
+.fi-wi-stats-overview-stat-description {
+    font-family:  var(--alg-mono) !important;
+    font-size:    var(--alg-fs-xs) !important;
+    color:        var(--alg-ink-3) !important;
+    letter-spacing: 0 !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   WIDGET PANELS — flat, hairline borders
+══════════════════════════════════════════════════ */
+.fi-wi > div > div,
+.fi-wi > div,
+.fi-section,
+.fi-wi-chart {
+    background:    var(--alg-surface) !important;
+    border:        1px solid var(--alg-line) !important;
+    border-radius: 0 !important;
+    box-shadow:    none !important;
+}
+.fi-wi-chart:hover,
+.fi-wi > div:hover {
+    box-shadow: none !important;
+}
+
+/* Widget grid gap */
+.fi-widgets {
+    gap: 1px !important;
+}
+
+/* Section heading */
+.fi-section-header-heading {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.14em !important;
+    color:          var(--alg-ink-4) !important;
+}
+.fi-section-header-description {
+    font-family:  var(--alg-mono) !important;
+    font-size:    var(--alg-fs-xs) !important;
+    color:        var(--alg-ink-3) !important;
+    letter-spacing: 0.04em !important;
+}
+.fi-section-header {
+    cursor:        pointer !important;
+    border-radius: 0 !important;
+    padding:       14px 22px !important;
+    border-bottom: 1px solid var(--alg-line) !important;
+    transition:    background var(--alg-ease) !important;
+}
+.fi-section-header:hover {
+    background: var(--alg-bg-alt) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   TABLES — generous rows, hairline separators
+══════════════════════════════════════════════════ */
+.fi-ta-header-cell-label {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.14em !important;
+    color:          var(--alg-ink-4) !important;
+}
+.fi-ta-cell {
+    font-size:      var(--alg-fs-sm) !important;
+    color:          var(--alg-ink-2) !important;
+    padding-top:    14px !important;
+    padding-bottom: 14px !important;
+    border-bottom:  1px solid var(--alg-line) !important;
+}
+.fi-ta-row {
+    transition: background var(--alg-ease) !important;
+}
+.fi-ta-row:hover > td,
+.fi-ta-row:hover > .fi-ta-cell {
+    background: var(--alg-bg-alt) !important;
+}
+.fi-wi-table {
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line) !important;
+    box-shadow:    none !important;
+}
+/* Table header row */
+.fi-ta-header-row {
+    border-bottom: 1px solid var(--alg-line) !important;
+}
+/* Numbers — tabular mono */
+.fi-ta-cell .font-mono,
+.fi-ta-cell [class*="tabular"],
+.fi-ta-cell [class*="numeric"] {
+    font-family:          var(--alg-mono) !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   BADGES — muted, hairline, mono, NO animation
+══════════════════════════════════════════════════ */
+.fi-badge {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    400 !important;
+    letter-spacing: 0.06em !important;
+    padding:        2px 6px !important;
+    border-radius:  0 !important;
+    border:         1px solid var(--alg-line-2) !important;
+    background:     transparent !important;
+    color:          var(--alg-ink-3) !important;
+    animation:      none !important;
+}
+/* Success / danger / warning — muted tones */
+.fi-badge-color-success {
+    color:        var(--alg-pos) !important;
+    border-color: color-mix(in oklab, var(--alg-pos) 40%, var(--alg-line-2)) !important;
+    animation:    none !important;
+}
+.fi-badge-color-danger {
+    color:        var(--alg-neg) !important;
+    border-color: color-mix(in oklab, var(--alg-neg) 40%, var(--alg-line-2)) !important;
+    animation:    none !important;
+}
+.fi-badge-color-warning {
+    color:        var(--alg-warn) !important;
+    border-color: #d7c98a !important;
+    animation:    none !important;
+}
+.fi-badge-color-info {
+    color:        var(--alg-ink-2) !important;
+    border-color: var(--alg-line-2) !important;
+    animation:    none !important;
+}
+.fi-badge-color-primary {
+    color:        var(--alg-accent) !important;
+    border-color: var(--alg-accent-soft) !important;
+    background:   transparent !important;
+    animation:    none !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   BUTTONS — flat, sharp, no lift
+══════════════════════════════════════════════════ */
+.fi-btn {
+    border-radius: 0 !important;
+    font-family:   var(--alg-font) !important;
+    font-size:     var(--alg-fs-sm) !important;
+    font-weight:   500 !important;
+    transition:    opacity var(--alg-ease), background var(--alg-ease) !important;
+}
+.fi-btn:hover {
+    transform:  none !important;
+    box-shadow: none !important;
+    opacity:    0.86 !important;
+}
+.fi-btn:active {
+    transform:  none !important;
+    opacity:    0.72 !important;
+}
+/* Primary — ink fill */
+.fi-btn-color-primary {
+    background: var(--alg-ink) !important;
+    color:      var(--alg-bg) !important;
+    border:     1px solid var(--alg-ink) !important;
+}
+/* Secondary / gray — ghost */
+.fi-btn-color-gray {
+    background:   transparent !important;
+    color:        var(--alg-ink) !important;
+    border:       1px solid var(--alg-line-2) !important;
+}
+.fi-btn-color-gray:hover {
+    background: var(--alg-bg-alt) !important;
+    opacity:    1 !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   FORMS — clean inputs, hairline borders
+══════════════════════════════════════════════════ */
+.fi-input-wrp {
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line) !important;
+    background:    var(--alg-surface) !important;
+    transition:    border-color var(--alg-ease) !important;
+}
+.fi-input-wrp:focus-within {
+    border-color: var(--alg-ink) !important;
+    box-shadow:   none !important;
+}
+.fi-select-wrp {
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line) !important;
+}
+.fi-select-wrp:focus-within {
+    border-color: var(--alg-ink) !important;
+    box-shadow:   none !important;
+}
+.fi-input,
+.fi-select {
+    font-family: var(--alg-font) !important;
+    font-size:   var(--alg-fs-sm) !important;
+    color:       var(--alg-ink) !important;
+}
+.fi-label {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    color:          var(--alg-ink-3) !important;
+}
+
+.fi-section-content-ctn {
+    transition: max-height 0.25s ease-out, opacity 0.2s ease !important;
+    overflow:   hidden !important;
+}
+.fi-section:focus-within {
+    border-color: var(--alg-line-2) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   GLOBAL SEARCH — mono, hairline
+══════════════════════════════════════════════════ */
+.fi-global-search-input {
+    background:    var(--alg-surface) !important;
+    border:        1px solid var(--alg-line) !important;
+    border-radius: 0 !important;
+    font-family:   var(--alg-mono) !important;
+    font-size:     var(--alg-fs-xs) !important;
+    color:         var(--alg-ink-3) !important;
+}
+.fi-global-search-input:focus-within {
+    border-color: var(--alg-ink) !important;
+    box-shadow:   none !important;
+    background:   var(--alg-bg) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   USER MENU — flat
+══════════════════════════════════════════════════ */
+.fi-user-menu > button {
+    background:    var(--alg-bg-alt) !important;
+    border:        1px solid var(--alg-line) !important;
+    border-radius: 0 !important;
+    padding:       4px 10px 4px 4px !important;
+    transition:    border-color var(--alg-ease) !important;
+}
+.fi-user-menu > button:hover {
+    border-color: var(--alg-line-2) !important;
+}
+/* User avatar initials */
+.fi-avatar {
+    border-radius:  0 !important;
+    background:     var(--alg-ink) !important;
+    color:          var(--alg-bg) !important;
+    font-family:    var(--alg-mono) !important;
+    font-size:      10px !important;
+    font-weight:    500 !important;
+    letter-spacing: 0.05em !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   DROPDOWN MENUS — flat, hairline
+══════════════════════════════════════════════════ */
+.fi-dropdown-list {
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line-2) !important;
+    background:    var(--alg-surface) !important;
+    box-shadow:    0 1px 4px rgba(0,0,0,0.04) !important;
+}
+.fi-dropdown-list-item {
+    border-radius: 0 !important;
+    font-size:     var(--alg-fs-sm) !important;
+}
+.fi-dropdown-list-item:hover {
+    background: var(--alg-bg-alt) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   MODAL — clean backdrop
+══════════════════════════════════════════════════ */
+.fi-modal-close-overlay {
+    backdrop-filter:  blur(4px) !important;
+    background:       rgba(14,14,12,0.35) !important;
+}
+.fi-modal-window {
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line-2) !important;
+    background:    var(--alg-surface) !important;
+    box-shadow:    0 8px 32px rgba(0,0,0,0.08) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   NOTIFICATIONS — subtle fade, no bounce
+══════════════════════════════════════════════════ */
+.fi-notification {
+    animation:     alg-fade-in 0.2s ease-out both !important;
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line-2) !important;
+    background:    var(--alg-surface) !important;
+    box-shadow:    0 4px 16px rgba(0,0,0,0.06) !important;
+}
+.fi-notification-title {
+    font-weight: 500 !important;
+    font-size:   var(--alg-fs-sm) !important;
+}
+.fi-notification-body {
+    font-size: var(--alg-fs-xs) !important;
+    color:     var(--alg-ink-3) !important;
+}
+@keyframes alg-fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ══════════════════════════════════════════════════
+   EMPTY STATES — minimal
+══════════════════════════════════════════════════ */
+.fi-ta-empty-state {
+    padding: 48px 24px !important;
+}
+.fi-ta-empty-state::before {
+    display: none !important;
+}
+.fi-ta-empty-state-icon {
+    animation: none !important;
+    color:     var(--alg-ink-4) !important;
+}
+.fi-ta-empty-state-heading {
+    font-size:   var(--alg-fs-md) !important;
+    font-weight: 500 !important;
+    color:       var(--alg-ink) !important;
+}
+.fi-ta-empty-state-description {
+    font-family: var(--alg-mono) !important;
+    font-size:   var(--alg-fs-xs) !important;
+    color:       var(--alg-ink-3) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   PAGINATION — flat mono
+══════════════════════════════════════════════════ */
+.fi-pagination {
+    font-family: var(--alg-mono) !important;
+    font-size:   var(--alg-fs-xs) !important;
+}
+.fi-pagination-item {
+    border-radius: 0 !important;
+    border:        1px solid var(--alg-line) !important;
+}
+.fi-pagination-item-active {
+    background: var(--alg-ink) !important;
+    color:      var(--alg-bg) !important;
+    border:     none !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   LOADING — simple fade
+══════════════════════════════════════════════════ */
+.fi-loading-indicator {
+    background:      rgba(247,245,240,0.7) !important;
+    backdrop-filter: blur(2px) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   PAGE — subtle fade in
+══════════════════════════════════════════════════ */
+.fi-page {
+    animation: alg-fade-in 0.2s ease-out both !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   SCROLLBAR — minimal hairline
+══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background:    var(--alg-line-2);
+    border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--alg-ink-4);
+}
+
+
+/* ══════════════════════════════════════════════════
+   TABS — segmented control style
+══════════════════════════════════════════════════ */
+.fi-tabs {
+    border-bottom: 1px solid var(--alg-line) !important;
+}
+.fi-tabs-tab {
+    border-radius:  0 !important;
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-xs) !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color:          var(--alg-ink-3) !important;
+    padding:        10px 16px !important;
+    border-bottom:  2px solid transparent !important;
+    transition:     color var(--alg-ease), border-color var(--alg-ease) !important;
+}
+.fi-tabs-tab:hover {
+    color:      var(--alg-ink) !important;
+    background: transparent !important;
+}
+.fi-tabs-tab-active {
+    color:        var(--alg-ink) !important;
+    border-bottom: 2px solid var(--alg-ink) !important;
+    font-weight:  500 !important;
+    background:   transparent !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   TOGGLE / CHECKBOX — accent olive
+══════════════════════════════════════════════════ */
+.fi-toggle-button[aria-checked="true"] {
+    background: var(--alg-accent) !important;
+}
+.fi-checkbox-input:checked {
+    background:   var(--alg-ink) !important;
+    border-color: var(--alg-ink) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   ACTIONS / ACTION BUTTONS — compact
+══════════════════════════════════════════════════ */
+.fi-ta-col-action .fi-btn,
+.fi-ac-action-group-btn {
+    border-radius: 0 !important;
+    font-size:     var(--alg-fs-xs) !important;
+    padding:       5px 10px !important;
+}
+
+/* Action bar */
+.fi-ta-actions {
+    gap: 6px !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   FILTERS — mono labels
+══════════════════════════════════════════════════ */
+.fi-filter-form-field-label {
+    font-family:    var(--alg-mono) !important;
+    font-size:      var(--alg-fs-micro) !important;
+    font-weight:    500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    color:          var(--alg-ink-4) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   DARK MODE — inverted ink/bone
+   (Filament adds `.dark` class to <html>)
+══════════════════════════════════════════════════ */
+.dark {
+    --alg-bg:          #0E0E0C;
+    --alg-bg-alt:      #1A1A16;
+    --alg-surface:     #131310;
+    --alg-ink:         #F7F5F0;
+    --alg-ink-2:       #C8C6BF;
+    --alg-ink-3:       #7A7A72;
+    --alg-ink-4:       #4A4A45;
+    --alg-line:        #2A2A26;
+    --alg-line-2:      #363630;
+    --alg-accent:      oklch(62% 0.07 130);
+    --alg-accent-soft: oklch(62% 0.07 130 / 0.12);
+}
+.dark body,
+.dark .fi-body {
+    background: var(--alg-bg) !important;
+    color:      var(--alg-ink) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   KILL ALL ANIMATIONS — no pulse, no shimmer, no blink
+══════════════════════════════════════════════════ */
+@keyframes alg-count-in    { from { opacity: 1; } to { opacity: 1; } }
+@keyframes alg-wi-in       { from { opacity: 1; } to { opacity: 1; } }
+@keyframes alg-shimmer     { from {} to {} }
+@keyframes alg-shimmer-fast { from {} to {} }
+@keyframes alg-badge-pulse { from {} to {} }
+@keyframes alg-badge-blink { from {} to {} }
+@keyframes alg-empty-pulse { from {} to {} }
+@keyframes alg-empty-float { from {} to {} }
+@keyframes alg-page-in     { from { opacity: 1; } to { opacity: 1; } }
+@keyframes alg-toast-in    { from { opacity: 1; } to { opacity: 1; } }
+@keyframes pulse           { from {} to {} }
+@keyframes ping            { from {} to {} }
+@keyframes bounce          { from {} to {} }
+
+/* Kill Filament's own animations */
+.fi-wi-stats-overview-stat,
+.fi-badge,
+.fi-btn,
+.fi-ta-empty-state-icon,
+.fi-notification {
+    animation-name: none !important;
+}
