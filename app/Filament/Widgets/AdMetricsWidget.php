@@ -11,7 +11,7 @@ class AdMetricsWidget extends Widget
 {
     protected static ?int $sort = 8;
     protected int|string|array $columnSpan = 'full';
-    protected static string $view = 'filament.widgets.ad-metrics';
+    protected string $view = 'filament.widgets.ad-metrics';
 
     public ?string $countryFilter = '';
 
