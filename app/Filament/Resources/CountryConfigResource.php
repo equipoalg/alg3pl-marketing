@@ -19,9 +19,9 @@ class CountryConfigResource extends Resource
 
     protected static ?string $model = CountryConfig::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static string | \UnitEnum | null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Country Settings';
 

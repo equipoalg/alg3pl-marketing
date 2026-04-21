@@ -18,9 +18,9 @@ class ScoringRuleResource extends Resource
 
     protected static ?string $model = ScoringRule::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static string | \UnitEnum | null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'Scoring Rules';
 
