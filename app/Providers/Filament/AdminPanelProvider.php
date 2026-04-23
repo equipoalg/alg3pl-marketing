@@ -60,6 +60,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::TOPBAR_START,
                 fn (): string => \Blade::render('<livewire:country-switcher />'),
             )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn (): string => view('filament.login-helper')->render(),
+            )
             ->navigationGroups([
                 'Control Tower',
                 'CRM',

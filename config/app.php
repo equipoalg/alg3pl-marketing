@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Login Helper (dev convenience)
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, shows clickable credential buttons under the /admin login
+    | form that auto-fill email + password. ALWAYS disable in production
+    | (SHOW_LOGIN_HELPER=false). Never commit real credentials to .env.example.
+    |
+    */
+
+    'show_login_helper' => env('SHOW_LOGIN_HELPER', false),
+    'admin_email' => env('ADMIN_EMAIL'),
+    'admin_password' => env('ADMIN_PASSWORD'),
+
 ];
