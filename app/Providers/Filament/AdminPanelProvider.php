@@ -62,7 +62,14 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => view('filament.login-helper')->render(),
+                function (): string {
+                    try {
+                        return view('filament.login-helper')->render();
+                    } catch (\Throwable $e) {
+                        report($e);
+                        return '';
+                    }
+                },
             )
             ->navigationGroups([
                 'Control Tower',
