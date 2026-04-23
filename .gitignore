@@ -31,3 +31,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Diagnostics & deploy scripts - NEVER commit to public/
+/public/_*.php
+/public/deploy*.php
+/public/fix-*.php
+/public/diag*.php

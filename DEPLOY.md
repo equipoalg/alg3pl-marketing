@@ -1,27 +1,75 @@
-# ALG3PL Marketing Platform — cPanel Deployment Guide
+# ALG3PL Marketing Platform — Deploy Guide
 
-## 1. cPanel Subdomain Setup
-- Login to cPanel → Subdomains
-- Create: `marketing.alg3pl.com` pointing to `/public_html/marketing`
-- Document Root: `/home/[user]/marketing/public`
+> **Host:** BanaHosting cPanel (shared) · **Access:** cPanel Terminal (no SSH) · **PHP:** 8.3 (ea-php83) · **DB:** MySQL (cPanel)
+>
+> **Primary URL:** https://marketing.alg3pl.com/admin
 
-## 2. Upload Files
-Upload the entire project (excluding `vendor/` and `node_modules/`) to:
-`/home/[user]/marketing/`
+---
 
-Then SSH in and run:
+## Quick Reference — Daily Deploy
+
+### On your Mac (local)
 ```bash
-cd /home/[user]/marketing
-composer install --no-dev --optimize-autoloader
+git add .
+git commit -m "descripción corta del cambio"
+git push origin main
 ```
 
-## 3. MySQL Database
-In cPanel → MySQL Databases:
-- Create database: `alg3pl_marketing`
-- Create user + assign all privileges
+### On the server (cPanel → Terminal)
+```bash
+cd /home/vdkzvusa/marketing.alg3pl.com
+git pull origin main
+/opt/cpanel/ea-php83/root/usr/bin/php artisan config:clear
+/opt/cpanel/ea-php83/root/usr/bin/php artisan cache:clear
+/opt/cpanel/ea-php83/root/usr/bin/php artisan view:clear
+/opt/cpanel/ea-php83/root/usr/bin/php artisan filament:optimize
+```
 
-## 4. Configure .env
-Edit `.env` with production values:
+### When the commit changes `composer.json`
+Add after `git pull`:
+```bash
+/opt/cpanel/ea-php83/root/usr/bin/composer install --no-dev --optimize-autoloader
+```
+
+### When the commit adds migrations
+Add at the end:
+```bash
+/opt/cpanel/ea-php83/root/usr/bin/php artisan migrate --force
+```
+
+### Verify
+Open https://marketing.alg3pl.com/admin in an incognito window. Should load the login screen (or dashboard if cookie-authenticated).
+
+---
+
+## First-Time Setup (new install)
+
+### 1. cPanel subdomain
+- cPanel → Subdomains → create `marketing.alg3pl.com`
+- Document Root: `/home/vdkzvusa/marketing.alg3pl.com/public`
+
+### 2. Clone the repo
+In cPanel Terminal:
+```bash
+cd /home/vdkzvusa
+rm -rf marketing.alg3pl.com   # wipe default Apache files
+git clone https://github.com/equipoalg/alg3pl-marketing.git marketing.alg3pl.com
+cd marketing.alg3pl.com
+```
+
+### 3. Install dependencies
+```bash
+/opt/cpanel/ea-php83/root/usr/bin/composer install --no-dev --optimize-autoloader
+```
+
+### 4. MySQL database
+cPanel → MySQL Databases:
+- Create database (e.g. `vdkzvusa_alg3pl`)
+- Create user + grant all privileges
+- Note credentials for `.env`
+
+### 5. Configure `.env`
+Copy `.env.example` to `.env` and fill:
 ```env
 APP_ENV=production
 APP_DEBUG=false
@@ -29,54 +77,127 @@ APP_URL=https://marketing.alg3pl.com
 
 DB_CONNECTION=mysql
 DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=alg3pl_marketing
-DB_USERNAME=[cpanel_db_user]
-DB_PASSWORD=[password]
+DB_DATABASE=vdkzvusa_alg3pl
+DB_USERNAME=vdkzvusa_xxx
+DB_PASSWORD=xxx
 
-# Fill in Google API credentials
-GOOGLE_APPLICATION_CREDENTIALS=/home/[user]/marketing/storage/google-service-account.json
-ANTHROPIC_API_KEY=[your_key]
+MAIL_MAILER=smtp
+MAIL_HOST=mail.alg3pl.com
+MAIL_PORT=465
+MAIL_ENCRYPTION=ssl
+MAIL_USERNAME=marketing@alg3pl.com
+MAIL_PASSWORD=xxx
+MAIL_FROM_ADDRESS=marketing@alg3pl.com
+
+# Integrations (fill as needed)
+GOOGLE_APPLICATION_CREDENTIALS=/home/vdkzvusa/marketing.alg3pl.com/storage/google-credentials.json
+META_APP_ID=
+META_PAGE_ACCESS_TOKEN=
+WHATSAPP_API_TOKEN=
+ANTHROPIC_API_KEY=
 ```
 
-## 5. Google Service Account
-- Go to Google Cloud Console → IAM → Service Accounts
-- Create account, download JSON key
-- Upload to: `/home/[user]/marketing/storage/google-service-account.json`
-- Grant access to: GA4 Data API + Search Console API
-
-## 6. Run Migrations & Seed
+Generate APP_KEY:
 ```bash
-php artisan migrate --force
-php artisan db:seed --class=CountrySeeder
-php artisan make:filament-user  # Create admin account
+/opt/cpanel/ea-php83/root/usr/bin/php artisan key:generate
 ```
 
-## 7. Optimize for Production
+### 6. Run migrations + seed
 ```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan filament:cache-components
+/opt/cpanel/ea-php83/root/usr/bin/php artisan migrate --force
+/opt/cpanel/ea-php83/root/usr/bin/php artisan db:seed --class=CountrySeeder
 ```
 
-## 8. Cron Job (cPanel)
-Add to cPanel → Cron Jobs (every minute):
-```
-* * * * * /usr/local/bin/php /home/[user]/marketing/artisan schedule:run >> /dev/null 2>&1
-```
-
-## 9. Queue Worker
-If cPanel supports background processes or supervisord:
+### 7. Create admin user
+Interactive:
 ```bash
-php artisan queue:work --sleep=3 --tries=3
-```
-Otherwise, use a cron every 5 minutes:
-```
-*/5 * * * * /usr/local/bin/php /home/[user]/marketing/artisan queue:work --once >> /dev/null 2>&1
+/opt/cpanel/ea-php83/root/usr/bin/php artisan make:filament-user
 ```
 
-## 10. Admin Panel URL
-`https://marketing.alg3pl.com/admin`
+Or scripted (edit email/password first):
+```bash
+/opt/cpanel/ea-php83/root/usr/bin/php artisan tinker --execute="\
+\$u = \App\Models\User::firstOrNew(['email' => 'roberto@diaztercero.com']);\
+\$u->name = 'Roberto Diaz';\
+\$u->password = \Hash::make('REPLACE_WITH_STRONG_PASSWORD');\
+\$u->is_super_admin = true;\
+\$u->role = 'super_admin';\
+\$u->save();\
+echo 'User ID: ' . \$u->id . PHP_EOL;"
+```
 
-Login with the account created in step 6.
+### 8. Optimize for production
+```bash
+/opt/cpanel/ea-php83/root/usr/bin/php artisan config:cache
+/opt/cpanel/ea-php83/root/usr/bin/php artisan route:cache
+/opt/cpanel/ea-php83/root/usr/bin/php artisan view:cache
+/opt/cpanel/ea-php83/root/usr/bin/php artisan filament:optimize
+```
+
+### 9. Scheduler cron (cPanel → Cron Jobs)
+Run every minute:
+```
+* * * * * /opt/cpanel/ea-php83/root/usr/bin/php /home/vdkzvusa/marketing.alg3pl.com/artisan schedule:run >> /dev/null 2>&1
+```
+
+### 10. Queue worker (cPanel → Cron Jobs)
+Every 5 minutes (shared hosting, no daemon):
+```
+*/5 * * * * /opt/cpanel/ea-php83/root/usr/bin/php /home/vdkzvusa/marketing.alg3pl.com/artisan queue:work --once --timeout=120 >> /dev/null 2>&1
+```
+
+---
+
+## Troubleshooting
+
+### 500 error on /admin
+1. Check PHP version used by handler:
+   - cPanel → MultiPHP Manager → confirm `marketing.alg3pl.com` is on PHP 8.3
+   - If recently changed, `touch public/.htaccess` to force worker recycle
+2. Tail the log:
+   ```bash
+   tail -100 /home/vdkzvusa/marketing.alg3pl.com/storage/logs/laravel.log
+   ```
+3. Clear caches:
+   ```bash
+   /opt/cpanel/ea-php83/root/usr/bin/php artisan config:clear
+   /opt/cpanel/ea-php83/root/usr/bin/php artisan cache:clear
+   /opt/cpanel/ea-php83/root/usr/bin/php artisan view:clear
+   ```
+
+### PHP version verification
+One-shot check — upload `storage/diagnostics/_ping.php` to `public/` temporarily, hit the URL, then delete:
+```bash
+cp storage/diagnostics/_ping.php public/_ping.php
+# browser: https://marketing.alg3pl.com/_ping.php
+rm public/_ping.php
+```
+
+### "Credenciales incorrectas" at /admin login
+The admin user doesn't exist or password is wrong. Re-run step 7 (create admin user) with a new password.
+
+### Git pull reports local changes
+If you edited files directly on server and need to discard them:
+```bash
+git stash
+git pull origin main
+```
+Or, to FORCE overwrite local with remote:
+```bash
+git reset --hard origin/main
+git pull origin main
+```
+**Do this carefully** — it destroys uncommitted changes.
+
+### Credentials file missing
+`.env` and `storage/google-credentials.json` are gitignored. They must exist on server but never in the repo. Recreate locally from `.env.example` if needed.
+
+---
+
+## Safety Rules
+
+- **NEVER** commit `.env`, `storage/google-credentials.json`, `*.key`, `*.pem`, `auth.json`
+- **NEVER** commit files to `public/` that start with `_` or `deploy` or `fix-` or `diag` (they are gitignored)
+- **NEVER** force-push to `main` without explicit need
+- **ALWAYS** test locally before pushing (at minimum: `php artisan config:clear && php artisan serve`)
+- **ALWAYS** clear caches after deploy (see Quick Reference)
