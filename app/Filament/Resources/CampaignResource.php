@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CampaignResource\Pages;
 use App\Models\Campaign;
 use App\Models\Country;
+use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -97,6 +99,33 @@ class CampaignResource extends Resource
                         'social' => 'Social Media',
                         'seo' => 'SEO Content',
                     ]),
+            ])
+            ->recordActions([
+                Action::make('sendEmail')
+                    ->label('Enviar emails')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('info')
+                    ->visible(fn (Campaign $record) => $record->type === 'email')
+                    ->requiresConfirmation()
+                    ->modalHeading('Enviar campaña por email')
+                    ->modalDescription(fn (Campaign $record) => 'Esto encolará un job por cada lead elegible (email válido, no unsubscribed, status != lost) en el país de la campaña. Audiencia estimada: ' . $record->resolveEmailAudience()->count() . ' leads.')
+                    ->modalSubmitActionLabel('Enviar ahora')
+                    ->action(function (Campaign $record) {
+                        try {
+                            $result = $record->dispatchEmail();
+                            Notification::make()
+                                ->title('Campaña encolada')
+                                ->body("Se encolaron {$result['queued']} emails para envío.")
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('No se pudo enviar')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ]);
     }
 
