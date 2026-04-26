@@ -20,7 +20,13 @@ class ClientResource extends Resource
 
     public static function getNavigationIcon(): string { return 'heroicon-o-building-office-2'; }
     public static function getNavigationGroup(): string { return 'CRM'; }
-    public static function getNavigationSort(): int { return 0; }
+    public static function getNavigationSort(): int { return 1; }
+    public static function getNavigationLabel(): string { return 'Cuentas'; }
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::count();
+        return $count > 0 ? (string) $count : null;
+    }
 
     public static function form(Schema $schema): Schema
     {

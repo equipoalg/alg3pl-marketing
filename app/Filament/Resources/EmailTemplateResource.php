@@ -32,6 +32,11 @@ class EmailTemplateResource extends Resource
         return 3;
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return 'Email Templates';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

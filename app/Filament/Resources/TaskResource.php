@@ -28,12 +28,17 @@ class TaskResource extends Resource
 
     public static function getNavigationGroup(): string
     {
-        return 'Control Tower';
+        return 'CRM';
     }
 
     public static function getNavigationSort(): int
     {
-        return 2;
+        return 4;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Seguimiento';
     }
 
     public static function getNavigationBadge(): ?string

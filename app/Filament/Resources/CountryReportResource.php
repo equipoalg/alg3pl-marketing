@@ -31,12 +31,12 @@ class CountryReportResource extends Resource
 
     public static function getNavigationSort(): int
     {
-        return 3;
+        return 2;
     }
 
     public static function getNavigationLabel(): string
     {
-        return 'Country Reports';
+        return 'Reportes';
     }
 
     public static function form(Schema $schema): Schema

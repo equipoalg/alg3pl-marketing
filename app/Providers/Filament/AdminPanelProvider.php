@@ -72,7 +72,7 @@ class AdminPanelProvider extends PanelProvider
                 },
             )
             ->navigationGroups([
-                'Control Tower',
+                'Marketing search',
                 'CRM',
                 'Marketing',
                 'Analytics',

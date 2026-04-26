@@ -21,17 +21,22 @@ class SegmentResource extends Resource
 
     public static function getNavigationIcon(): string
     {
-        return 'heroicon-o-user-circle';
+        return 'heroicon-o-table-cells';
     }
 
     public static function getNavigationGroup(): string
     {
-        return 'CRM';
+        return 'Marketing search';
     }
 
     public static function getNavigationSort(): int
     {
-        return 4;
+        return 2;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Tabla';
     }
 
     public static function form(Schema $schema): Schema

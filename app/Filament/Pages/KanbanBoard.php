@@ -24,7 +24,7 @@ class KanbanBoard extends Page
 
     public static function getNavigationGroup(): string
     {
-        return 'Control Tower';
+        return 'Marketing search';
     }
 
     public static function getNavigationSort(): int

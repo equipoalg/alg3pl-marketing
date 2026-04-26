@@ -18,7 +18,7 @@ class SmartlinkResource extends Resource
 
     public static function getNavigationIcon(): string
     {
-        return 'heroicon-o-link';
+        return 'heroicon-o-paper-airplane';
     }
 
     public static function getNavigationGroup(): string
@@ -29,6 +29,11 @@ class SmartlinkResource extends Resource
     public static function getNavigationSort(): int
     {
         return 4;
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Envíos';
     }
 
     public static function form(Schema $schema): Schema

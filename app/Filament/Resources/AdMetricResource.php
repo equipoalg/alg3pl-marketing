@@ -17,9 +17,10 @@ class AdMetricResource extends Resource
 {
     protected static ?string $model = AdMetric::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar-square';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-arrow-trending-up';
     protected static string | \UnitEnum | null $navigationGroup = 'Analytics';
-    protected static ?int    $navigationSort  = 5;
+    protected static ?int    $navigationSort  = 1;
+    protected static ?string $navigationLabel = 'Tráfico';
     protected static ?string $modelLabel      = 'Métrica Publicitaria';
     protected static ?string $pluralModelLabel = 'Métricas Publicitarias';
 

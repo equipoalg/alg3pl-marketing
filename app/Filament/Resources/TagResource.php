@@ -30,6 +30,11 @@ class TagResource extends Resource
         return 3;
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return 'Tags';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
