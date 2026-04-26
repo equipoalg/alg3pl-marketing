@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Country;
 use App\Models\Lead;
+use App\Services\Lead\LeadAssignmentService;
 use App\Services\Lead\LeadScoringService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,8 +26,11 @@ class WebhookController extends Controller
      *
      * Country is auto-detected from the Referer header or "site_url" field.
      */
-    public function fluentForms(Request $request, LeadScoringService $scoring): JsonResponse
-    {
+    public function fluentForms(
+        Request $request,
+        LeadScoringService $scoring,
+        LeadAssignmentService $assigner
+    ): JsonResponse {
         // Verify webhook secret
         $secret = config('services.webhook.fluent_forms_secret');
         if ($secret && $request->header('X-Webhook-Secret') !== $secret) {
@@ -73,6 +77,10 @@ class WebhookController extends Controller
 
         $lead = $scoring->recalculate($lead);
 
+        // Auto-assign to the right rep based on country config + lead score.
+        // Hot leads (score>=70) → primary_manager; others → round-robin assignees.
+        $assignee = $assigner->assign($lead);
+
         try {
             AuditLog::record('webhook:fluent_forms', $lead);
         } catch (\Throwable) {
@@ -84,6 +92,7 @@ class WebhookController extends Controller
             'lead_id' => $lead->id,
             'country' => $country->code,
             'score' => $lead->score,
+            'assigned_to' => $assignee?->email,
         ], 201);
     }
 
