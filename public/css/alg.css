@@ -7,26 +7,26 @@
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
 
 /* ══════════════════════════════════════════════════
-   DESIGN TOKENS — Slate + ALG Navy
+   DESIGN TOKENS — Pure White + Cool Slate Neutrals
 ══════════════════════════════════════════════════ */
 :root {
-    /* Surfaces — slate warm */
-    --alg-bg:           #FAFAF9;
+    /* Surfaces — pure white, neutral cool greys for alt/hover */
+    --alg-bg:           #FFFFFF;
     --alg-surface:      #FFFFFF;
-    --alg-bg-alt:       #F5F5F4;
-    --alg-surface-2:    #F5F5F4;
-    --alg-surface-3:    #EEEDEB;
+    --alg-bg-alt:       #F8FAFC;
+    --alg-surface-2:    #F8FAFC;
+    --alg-surface-3:    #F1F5F9;
 
-    /* Borders */
-    --alg-line:         #E7E5E4;
-    --alg-line-2:       #D6D3D1;
+    /* Borders — cool slate */
+    --alg-line:         #E2E8F0;
+    --alg-line-2:       #CBD5E1;
 
-    /* Ink scale */
-    --alg-ink:          #0C0A09;
-    --alg-ink-2:        #292524;
-    --alg-ink-3:        #57534E;
-    --alg-ink-4:        #78716C;
-    --alg-ink-5:        #A8A29E;
+    /* Ink scale — cool slate */
+    --alg-ink:          #0F172A;
+    --alg-ink-2:        #334155;
+    --alg-ink-3:        #64748B;
+    --alg-ink-4:        #94A3B8;
+    --alg-ink-5:        #CBD5E1;
 
     /* Accent — ALG navy */
     --alg-accent:       #1E3A8A;

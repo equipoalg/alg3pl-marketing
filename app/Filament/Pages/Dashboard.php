@@ -325,8 +325,8 @@ class Dashboard extends Page
     public function getPipelineData(): array
     {
         $stages = [
-            ['id' => 'new',         'label' => 'Nuevo',        'color' => '#A8A29E'],
-            ['id' => 'contacted',   'label' => 'Contactado',   'color' => '#78716C'],
+            ['id' => 'new',         'label' => 'Nuevo',        'color' => '#CBD5E1'],
+            ['id' => 'contacted',   'label' => 'Contactado',   'color' => '#94A3B8'],
             ['id' => 'qualified',   'label' => 'Calificado',   'color' => '#1E3A8A'],
             ['id' => 'proposal',    'label' => 'Propuesta',    'color' => '#1E3A8A'],
             ['id' => 'negotiation', 'label' => 'Negociación',  'color' => '#2563EB'],
