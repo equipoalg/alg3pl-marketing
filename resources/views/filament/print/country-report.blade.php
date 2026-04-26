@@ -10,7 +10,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: #ffffff;
-            color: #1A1D21;
+            color: #0C0A09;
             font-size: 13px;
             line-height: 1.5;
         }
@@ -19,7 +19,7 @@
         .print-bar {
             position: fixed;
             top: 0; left: 0; right: 0;
-            background: #00243D;
+            background: #1E3A8A;
             color: #fff;
             padding: 10px 24px;
             display: flex;
@@ -40,7 +40,7 @@
         }
         .btn-print {
             background: #ffffff;
-            color: #00243D;
+            color: #1E3A8A;
             border: none;
             padding: 8px 18px;
             border-radius: 6px;
@@ -77,7 +77,7 @@
             align-items: flex-start;
             justify-content: space-between;
             padding-bottom: 24px;
-            border-bottom: 2px solid #00243D;
+            border-bottom: 2px solid #1E3A8A;
             margin-bottom: 28px;
         }
         .report-logo {
@@ -88,7 +88,7 @@
         .logo-mark {
             width: 44px;
             height: 44px;
-            background: #00243D;
+            background: #1E3A8A;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -102,7 +102,7 @@
         .logo-text .company {
             font-size: 18px;
             font-weight: 700;
-            color: #00243D;
+            color: #1E3A8A;
             line-height: 1.2;
         }
         .logo-text .tagline {
@@ -118,7 +118,7 @@
         .report-meta .report-title {
             font-size: 20px;
             font-weight: 700;
-            color: #00243D;
+            color: #1E3A8A;
             line-height: 1.2;
         }
         .report-meta .report-sub {
@@ -146,8 +146,8 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #00243D;
-            border-bottom: 1px solid #E2E5EA;
+            color: #1E3A8A;
+            border-bottom: 1px solid #E7E5E4;
             padding-bottom: 8px;
             margin-bottom: 16px;
             margin-top: 28px;
@@ -155,8 +155,8 @@
 
         /* ---- SUMMARY ---- */
         .summary-box {
-            background: #F7F8FA;
-            border-left: 4px solid #00243D;
+            background: #FAFAF9;
+            border-left: 4px solid #1E3A8A;
             border-radius: 0 6px 6px 0;
             padding: 14px 18px;
             font-size: 13px;
@@ -172,8 +172,8 @@
             margin-bottom: 4px;
         }
         .kpi-card {
-            background: #F7F8FA;
-            border: 1px solid #E2E5EA;
+            background: #FAFAF9;
+            border: 1px solid #E7E5E4;
             border-radius: 8px;
             padding: 14px 16px;
         }
@@ -188,7 +188,7 @@
         .kpi-card .kpi-value {
             font-size: 22px;
             font-weight: 700;
-            color: #00243D;
+            color: #1E3A8A;
             line-height: 1;
         }
 
@@ -199,7 +199,7 @@
             font-size: 13px;
         }
         .data-table th {
-            background: #00243D;
+            background: #1E3A8A;
             color: #fff;
             text-align: left;
             padding: 9px 12px;
@@ -212,7 +212,7 @@
         .data-table th:last-child { border-radius: 0 6px 0 0; }
         .data-table td {
             padding: 10px 12px;
-            border-bottom: 1px solid #E2E5EA;
+            border-bottom: 1px solid #E7E5E4;
             color: #374151;
             vertical-align: top;
         }
@@ -220,7 +220,7 @@
             border-bottom: none;
         }
         .data-table tr:nth-child(even) td {
-            background: #F7F8FA;
+            background: #FAFAF9;
         }
         .impact-badge {
             display: inline-block;
@@ -237,7 +237,7 @@
         .report-footer {
             margin-top: 40px;
             padding-top: 16px;
-            border-top: 1px solid #E2E5EA;
+            border-top: 1px solid #E7E5E4;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -337,7 +337,7 @@
         <tbody>
             @foreach($record->findings as $finding)
             <tr>
-                <td style="font-weight:600;color:#1A1D21;">{{ $finding['title'] ?? '—' }}</td>
+                <td style="font-weight:600;color:#0C0A09;">{{ $finding['title'] ?? '—' }}</td>
                 <td>{{ $finding['detail'] ?? '—' }}</td>
             </tr>
             @endforeach
@@ -359,7 +359,7 @@
         <tbody>
             @foreach($record->opportunities as $opp)
             <tr>
-                <td style="font-weight:600;color:#1A1D21;">{{ $opp['title'] ?? '—' }}</td>
+                <td style="font-weight:600;color:#0C0A09;">{{ $opp['title'] ?? '—' }}</td>
                 <td>{{ $opp['detail'] ?? '—' }}</td>
                 <td>
                     @php
