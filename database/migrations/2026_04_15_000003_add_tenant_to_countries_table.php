@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Idempotent: skip if a previous migration already added tenant_id.
+        if (Schema::hasColumn('countries', 'tenant_id')) {
+            return;
+        }
+
         Schema::table('countries', function (Blueprint $table) {
             // Nullable FK to tenants for future multi-tenant activation.
             // TenantScope middleware is NOT yet active — see App\Http\Middleware\TenantScope
@@ -19,6 +24,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('countries', 'tenant_id')) {
+            return;
+        }
+
         Schema::table('countries', function (Blueprint $table) {
             $table->dropForeign(['tenant_id']);
             $table->dropColumn('tenant_id');
