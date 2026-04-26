@@ -746,67 +746,68 @@ body[data-alg-variant="b"] .fi-sidebar-header {
 
 /* ══════════════════════════════════════════════════
    SIDEBAR — Custom brand/workspace/footer overrides
-   Hide Filament's default brand img + brand text (they show as
-   "ALG3PL logo" alt text and duplicate our SIDEBAR_LOGO_BEFORE injection).
+
+   Filament hides .fi-sidebar-header by default (it puts the brand in
+   the topbar via .fi-topbar-logo-ctn). The Claude Design has the brand
+   IN THE SIDEBAR, so we force the header visible AND hide the topbar
+   brand.
 ══════════════════════════════════════════════════ */
-.fi-sidebar-header {
-    padding:         16px 16px 14px !important;
+/* Force the sidebar header visible (Filament hides it by default) */
+.fi-sidebar-header,
+.fi-sidebar-header-ctn {
+    display:         flex !important;
     flex-direction:  column !important;
     align-items:     stretch !important;
+    padding:         16px 16px 14px !important;
     gap:             0 !important;
 }
 .fi-sidebar-header > a,
 .fi-sidebar-header > a > * {
     text-decoration: none !important;
 }
-/* Kill Filament's default brand link entirely. The actual structure is:
-   .fi-sidebar-header
-     → [our SIDEBAR_LOGO_BEFORE injection]
-     → .fi-sidebar-header-logo-ctn > a  ← THIS is the default brand link.
-   So we hide the whole .fi-sidebar-header-logo-ctn. */
+/* Kill Filament's default brand link inside .fi-sidebar-header-logo-ctn */
 .fi-sidebar-header-logo-ctn,
 .fi-sidebar-header img,
 .fi-sidebar-header .fi-logo {
     display:         none !important;
 }
-/* Filament's collapse-toggle button (chevron) lives in the header too — keep it
-   so users can still collapse the sidebar, but make sure it doesn't take width */
-.fi-sidebar-header > button {
-    margin-left:     auto !important;
+/* Kill Filament's TOPBAR brand link (also shows the same broken brand) */
+.fi-topbar-logo-ctn,
+.fi-topbar .fi-logo,
+.fi-topbar img[alt*="ALG3PL"],
+.fi-topbar img[alt*="logo"] {
+    display:         none !important;
 }
 
-/* Workspace switcher — country switcher inside our pill needs to be tiny */
+/* Workspace switcher pill — embedded country-switcher should ONLY show
+   a small chevron (the country code/badges live inside the pill text already) */
 .alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button {
     background:      transparent !important;
     border:          none !important;
     padding:         0 !important;
     color:           #94A3B8 !important;
+    min-width:       0 !important;
+    width:           auto !important;
 }
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > span:not(:last-child) {
+/* Hide ALL the embedded button's contents (flag, code, count, badge)
+   — they duplicate the pill text we already render */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > span {
     display:         none !important;
 }
-/* Show only the chevron-down at the end of the embedded country-switcher */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher svg {
-    width:           12px !important;
-    height:          12px !important;
+/* Render a single chevron-down via ::after pseudo-element on the trigger */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button::after {
+    content:         "▾" !important;
+    color:           #94A3B8 !important;
+    font-size:       10px !important;
 }
-
-/* SIDEBAR FOOTER — hide Filament's default theme switcher / language switcher
-   so only our custom user-block shows. */
-.fi-sidebar-footer > *:not([class*="alg-sidebar-footer"]),
-.fi-sidebar-footer .fi-theme-switcher,
-.fi-sidebar-footer .fi-dropdown {
+/* Hide any inline svg the country-switcher renders (we use ::after instead) */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > svg {
     display:         none !important;
 }
-.fi-sidebar-footer {
-    padding:         0 !important;
-    border-top:      1px solid var(--alg-line) !important;
-}
 
-/* Variant B: also hide Filament's default footer extras */
-body[data-alg-variant="b"] .fi-sidebar-footer {
-    border-top:      1px solid rgba(255,255,255,0.06) !important;
-}
+/* SIDEBAR FOOTER — Filament's SIDEBAR_FOOTER hook puts content directly
+   inside .fi-sidebar (not inside a wrapper). Our footer-a/b are direct
+   children of .fi-sidebar. No extra theme-switcher cleanup needed. */
 
 
 /* ══════════════════════════════════════════════════

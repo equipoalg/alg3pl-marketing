@@ -45,7 +45,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font('Geist')
             ->assets([
-                Css::make('alg-design-system', asset('css/alg.css')),
+                // Cache-bust the design CSS via mtime so browser fetches the
+                // latest after every deploy/edit (no manual hard-refresh needed).
+                Css::make(
+                    'alg-design-system',
+                    asset('css/alg.css') . '?v=' . (file_exists(public_path('css/alg.css')) ? filemtime(public_path('css/alg.css')) : time())
+                ),
             ])
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
