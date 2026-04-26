@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('ALG3PL')
+            ->brandLogo(fn (): string => view('filament.sidebar.brand')->render())
             ->darkMode(false)
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
@@ -41,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
             ])
-            ->font('Inter')
+            ->font('Geist')
             ->assets([
                 Css::make('alg-design-system', asset('css/alg.css')),
             ])
@@ -63,6 +64,14 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
                 fn (): string => view('filament.topbar-end')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_NAV_START,
+                fn (): string => view('filament.sidebar.workspace')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_FOOTER,
+                fn (): string => view('filament.sidebar.footer')->render(),
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
