@@ -1,64 +1,76 @@
+{{--
+  Dashboard ALG · Shell
+  Renders the page header (title + range tabs + variant toggle) and
+  includes the chosen variant partial. Source design: claude.ai/design
+  bundle (Iz0SYnOaqUPIiur-PIu8pA) — A "classic refined" / B "editorial".
+--}}
 <x-filament-panels::page>
 
-{{-- REPORT HEADER --}}
-<div style="background:#FFFFFF;border:1px solid #D6D3D1;margin-bottom:16px;overflow:hidden;">
-    {{-- Top bar --}}
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid #E7E5E4;">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:22px;height:22px;border:1px solid #0C0A09;display:grid;place-items:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;color:#0C0A09;">A</div>
-            <div style="display:flex;align-items:baseline;gap:10px;">
-                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.16em;color:#57534E;">ALG3PL · Intelligence</span>
-                <span style="color:#D6D3D1;">/</span>
-                <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:500;color:#0C0A09;letter-spacing:-0.01em;">
-                    @if($selectedCountry) {{ $selectedCountry->name }} @else Panorama global @endif
+{{-- PAGE HEADER --}}
+<div style="padding: 4px 0 20px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+        <div style="min-width: 0;">
+            <h1 style="margin: 0; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #0C0A09;">
+                @if($selectedCountry){{ $selectedCountry->name }}@else Panorama global @endif
+            </h1>
+            <p style="margin: 6px 0 0; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 13px; color: #78716C; max-width: 560px; line-height: 1.5;">
+                Vista resumen del CRM y desempeño de marketing —
+                @switch($timeRange)
+                    @case('7d') últimos 7 días @break
+                    @case('90d') últimos 90 días @break
+                    @case('ytd') este año @break
+                    @default últimos 30 días
+                @endswitch ·
+                <span style="color: {{ $freshness === 'fresh' ? '#166534' : ($freshness === 'recent' ? '#92400E' : '#9F1239') }};">
+                    sincronizado {{ $lastSync }}
                 </span>
-            </div>
+            </p>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid #E7E5E4;background:#FAFAF9;">
-                <span style="width:5px;height:5px;background:{{ $freshness === 'fresh' ? '#1E3A8A' : ($freshness === 'recent' ? '#92400E' : '#9F1239') }};"></span>
-                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#57534E;letter-spacing:.04em;">{{ $lastSync }}</span>
-            </div>
-            <a href="/admin/leads/create" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#0C0A09;color:#FAFAF9;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;letter-spacing:-0.005em;transition:opacity 120ms ease;" onmouseover="this.style.opacity='.84'" onmouseout="this.style.opacity='1'">
-                + Nuevo lead
-            </a>
-        </div>
-    </div>
 
-    {{-- Slicer bar --}}
-    <div style="display:flex;align-items:center;padding:0;border-bottom:1px solid #E7E5E4;overflow-x:auto;">
-        <div style="display:flex;align-items:center;padding:0 18px;border-right:1px solid #E7E5E4;height:42px;gap:2px;flex-shrink:0;">
-            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:#57534E;margin-right:10px;">Período</span>
-            @foreach(['7d'=>'7 días','30d'=>'30 días','90d'=>'90 días','ytd'=>'Este año'] as $val=>$lbl)
-            <button wire:click="setTimeRange('{{ $val }}')" style="padding:5px 12px;border:1px solid {{ $this->timeRange === $val ? '#0C0A09' : 'transparent' }};cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:{{ $this->timeRange === $val ? '500' : '400' }};background:{{ $this->timeRange === $val ? '#0C0A09' : 'transparent' }};color:{{ $this->timeRange === $val ? '#FAFAF9' : '#292524' }};transition:all 120ms ease;letter-spacing:-0.005em;">{{ $lbl }}</button>
-            @endforeach
-        </div>
-        <div style="display:flex;align-items:center;padding:0 18px;height:42px;gap:10px;flex-shrink:0;">
-            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:#57534E;">País</span>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            {{-- Variant toggle --}}
+            <div style="display: inline-flex; border: 1px solid #E7E5E4; border-radius: 6px; padding: 2px; background: #FFFFFF;">
+                @foreach(['a' => 'A · Clásica', 'b' => 'B · Editorial'] as $v => $lbl)
+                <button wire:click="setVariant('{{ $v }}')" type="button" style="padding: 5px 11px; border: 0; border-radius: 4px; cursor: pointer; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 12px; font-weight: {{ $variant === $v ? '500' : '400' }}; color: {{ $variant === $v ? '#0C0A09' : '#78716C' }}; background: {{ $variant === $v ? '#F5F5F4' : 'transparent' }}; transition: all 150ms ease-out;">{{ $lbl }}</button>
+                @endforeach
+            </div>
+
+            {{-- Range tabs --}}
+            <div style="display: inline-flex; border: 1px solid #E7E5E4; border-radius: 6px; padding: 2px; background: #FFFFFF;">
+                @foreach(['7d' => '7 días', '30d' => '30 días', '90d' => '90 días', 'ytd' => 'Año'] as $val => $lbl)
+                <button wire:click="setTimeRange('{{ $val }}')" type="button" style="padding: 5px 11px; border: 0; border-radius: 4px; cursor: pointer; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 12px; font-weight: {{ $timeRange === $val ? '500' : '400' }}; color: {{ $timeRange === $val ? '#0C0A09' : '#78716C' }}; background: {{ $timeRange === $val ? '#F5F5F4' : 'transparent' }}; transition: all 150ms ease-out;">{{ $lbl }}</button>
+                @endforeach
+            </div>
+
+            {{-- Country switcher --}}
             <livewire:country-switcher />
-        </div>
-        <div style="flex:1;"></div>
-        <div style="display:flex;align-items:center;padding:0 18px;height:42px;gap:4px;border-left:1px solid #E7E5E4;flex-shrink:0;">
-            <a href="/admin/leads" style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#57534E;text-decoration:none;padding:5px 10px;letter-spacing:.04em;text-transform:uppercase;transition:color 120ms ease;" onmouseover="this.style.color='#0C0A09'" onmouseout="this.style.color='#57534E'">Leads</a>
-            <a href="/admin" style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#57534E;text-decoration:none;padding:5px 10px;letter-spacing:.04em;text-transform:uppercase;transition:color 120ms ease;" onmouseover="this.style.color='#0C0A09'" onmouseout="this.style.color='#57534E'">Dashboard</a>
+
+            {{-- Primary CTA --}}
+            <a href="/admin/leads/create" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; background: #0C0A09; color: #FFFFFF; border-radius: 6px; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 12.5px; font-weight: 500; text-decoration: none; letter-spacing: -0.005em; transition: opacity 150ms ease-out;" onmouseover="this.style.opacity='.86'" onmouseout="this.style.opacity='1'">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Nuevo lead
+            </a>
         </div>
     </div>
 </div>
 
-{{-- WIDGETS --}}
-<div style="position:relative;">
-    <div wire:loading.flex wire:target="setTimeRange, select" style="position:absolute;inset:0;z-index:10;background:rgba(247,245,240,0.8);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;background:#FFFFFF;border:1px solid #D6D3D1;">
-            <svg style="width:14px;height:14px;color:#0C0A09;animation:alg-spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 60"/></svg>
-            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#292524;letter-spacing:.06em;text-transform:uppercase;">Actualizando</span>
+{{-- LOADING OVERLAY --}}
+<div style="position: relative;">
+    <div wire:loading.flex wire:target="setTimeRange, setVariant, select" style="position: absolute; inset: 0; z-index: 10; background: rgba(250, 250, 249, 0.85); backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #FFFFFF; border: 1px solid #E7E5E4; border-radius: 6px;">
+            <svg style="width: 14px; height: 14px; color: #1E3A8A; animation: alg-spin 1s linear infinite;" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 60"/>
+            </svg>
+            <span style="font-family: ui-monospace,'SF Mono',Menlo,monospace; font-size: 11px; color: #292524; letter-spacing: 0.06em; text-transform: uppercase;">Actualizando</span>
         </div>
     </div>
 
-    <x-filament-widgets::widgets
-        :widgets="$this->getContentWidgets()"
-        :columns="$this->getHeaderWidgetsColumns()"
-        :data="$this->getHeaderWidgetsData()"
-    />
+    {{-- VARIANT BODY --}}
+    @if($variant === 'b')
+        @include('filament.pages.dashboard-b', compact('kpis', 'recentLeads'))
+    @else
+        @include('filament.pages.dashboard-a', compact('kpis', 'recentLeads'))
+    @endif
 </div>
 
 <style>
