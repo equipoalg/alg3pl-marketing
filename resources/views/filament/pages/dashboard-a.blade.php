@@ -13,38 +13,8 @@
     ];
 @endphp
 
-{{-- KPI HAIRLINE GRID (4 cols, exact match dashboard-a.jsx KpiGrid) --}}
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E2E8F0;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
-    @foreach($kpis as $kpi)
-    @php
-        $sparkData = $kpiSparklines[$kpi['id']] ?? [];
-        $sparkColor = in_array($kpi['id'], ['leads', 'tasa']) ? '#2563EB' : '#64748B';
-    @endphp
-    <a href="{{ $kpiLinks[$kpi['id']] ?? '/admin' }}" style="background:#FFFFFF;padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px;min-height:124px;text-decoration:none;color:inherit;cursor:pointer;transition:background 150ms ease-out;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#FFFFFF'">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">{{ $kpi['label'] }}</span>
-            <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 9v5M10 6.5v0.5"/></svg>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:10px;">
-            <span style="font-family:'Geist Mono',ui-monospace,'JetBrains Mono','SF Mono',monospace;font-size:30px;font-weight:500;letter-spacing:-0.025em;color:#0F172A;line-height:1;font-variant-numeric:tabular-nums;">{{ is_numeric($kpi['value']) ? number_format($kpi['value']) : $kpi['value'] }}</span>
-            @if($kpi['delta'] != 0)
-            <span style="font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;gap:2px;color:{{ $kpi['delta'] > 0 ? '#166534' : '#9F1239' }};">
-                <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    @if($kpi['delta'] > 0) <path d="M10 16V4M5 9l5-5 5 5"/> @else <path d="M10 4v12M5 11l5 5 5-5"/> @endif
-                </svg>
-                <span style="font-family:'Geist Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;">{{ abs($kpi['delta']) }}%</span>
-            </span>
-            @endif
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;">
-            <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:#94A3B8;">{{ $kpi['sub'] }}</span>
-            <div style="opacity:0.85;">{!! DashboardCharts::sparklineSvg($sparkData, $sparkColor, 72, 24) !!}</div>
-        </div>
-    </a>
-    @endforeach
-</div>
-
 {{-- ROW 1: TrafficCard (1.55fr) + FuentesCard (1fr) --}}
+{{-- (KPI grid omitted in Variant A per print design — KPIs live in topbar / B hero) --}}
 <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:16px;">
 
     {{-- TrafficCard --}}

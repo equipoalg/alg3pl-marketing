@@ -670,6 +670,60 @@ body,
 
 
 /* ══════════════════════════════════════════════════
+   VARIANT B — Compact dark icon-rail sidebar
+   Activated by <script>body.dataset.algVariant='b'</script> in dashboard
+══════════════════════════════════════════════════ */
+body[data-alg-variant="b"] .fi-sidebar {
+    width:           56px !important;
+    background:      #0F172A !important;
+    border-right:    1px solid rgba(255,255,255,0.06) !important;
+    transition:      width 150ms ease-out, background 150ms ease-out !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-header,
+body[data-alg-variant="b"] .fi-sidebar footer,
+body[data-alg-variant="b"] .fi-sidebar-footer {
+    border-color:    rgba(255,255,255,0.06) !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-header > * {
+    color:           #FFFFFF !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-group-label,
+body[data-alg-variant="b"] .fi-sidebar-item-button > span:not(.fi-sidebar-item-icon),
+body[data-alg-variant="b"] .fi-sidebar-item-badge,
+body[data-alg-variant="b"] .fi-sidebar-item-button .fi-sidebar-item-label {
+    display:         none !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-button {
+    width:           36px !important;
+    height:          36px !important;
+    margin:          4px auto !important;
+    padding:         0 !important;
+    display:         grid !important;
+    place-items:     center !important;
+    background:      transparent !important;
+    border-radius:   7px !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-button:hover {
+    background:      rgba(255,255,255,0.06) !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-button.fi-active {
+    background:      rgba(255,255,255,0.10) !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-button.fi-active::before {
+    display:         none !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-icon {
+    color:           rgba(255,255,255,0.55) !important;
+    width:           17px !important;
+    height:          17px !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
+body[data-alg-variant="b"] .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+    color:           #FFFFFF !important;
+}
+
+
+/* ══════════════════════════════════════════════════
    FADE-IN ON LOAD (subtle)
 ══════════════════════════════════════════════════ */
 @keyframes alg-fade-in {
