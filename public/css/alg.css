@@ -746,21 +746,64 @@ body[data-alg-variant="b"] .fi-sidebar-header {
 
 /* ══════════════════════════════════════════════════
    SIDEBAR — Custom brand/workspace/footer overrides
-   (Filament default header padding clashes with our custom blocks)
+   Hide Filament's default brand img + brand text (they show as
+   "ALG3PL logo" alt text and duplicate our SIDEBAR_LOGO_BEFORE injection).
 ══════════════════════════════════════════════════ */
 .fi-sidebar-header {
     padding:         16px 16px 14px !important;
+    flex-direction:  column !important;
+    align-items:     stretch !important;
+    gap:             0 !important;
 }
-.fi-sidebar-header > a {
+.fi-sidebar-header > a,
+.fi-sidebar-header > a > * {
     text-decoration: none !important;
 }
-.alg-sidebar-workspace .fi-country-switcher button {
-    width:           100% !important;
-    justify-content: space-between !important;
-    background:      var(--alg-bg-alt) !important;
-    border:          1px solid var(--alg-line) !important;
-    border-radius:   6px !important;
-    padding:         7px 10px !important;
+/* Kill Filament's default <img alt="brandName"> + brandName <span> */
+.fi-sidebar-header img,
+.fi-sidebar-header > a > span,
+.fi-sidebar-header > a > div:not([class*="alg"]) {
+    display:         none !important;
+}
+.fi-sidebar-header > a {
+    display:         block !important;
+}
+/* The whole <a> wrapping SIDEBAR_LOGO_BEFORE content should not be a link */
+.fi-sidebar-header > a {
+    pointer-events:  none !important;
+}
+
+/* Workspace switcher — country switcher inside our pill needs to be tiny */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button {
+    background:      transparent !important;
+    border:          none !important;
+    padding:         0 !important;
+    color:           #94A3B8 !important;
+}
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > span:not(:last-child) {
+    display:         none !important;
+}
+/* Show only the chevron-down at the end of the embedded country-switcher */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher svg {
+    width:           12px !important;
+    height:          12px !important;
+}
+
+/* SIDEBAR FOOTER — hide Filament's default theme switcher / language switcher
+   so only our custom user-block shows. */
+.fi-sidebar-footer > *:not([class*="alg-sidebar-footer"]),
+.fi-sidebar-footer .fi-theme-switcher,
+.fi-sidebar-footer .fi-dropdown {
+    display:         none !important;
+}
+.fi-sidebar-footer {
+    padding:         0 !important;
+    border-top:      1px solid var(--alg-line) !important;
+}
+
+/* Variant B: also hide Filament's default footer extras */
+body[data-alg-variant="b"] .fi-sidebar-footer {
+    border-top:      1px solid rgba(255,255,255,0.06) !important;
 }
 
 

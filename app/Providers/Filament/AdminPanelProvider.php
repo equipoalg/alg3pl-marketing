@@ -30,7 +30,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('ALG3PL')
-            ->brandLogo(fn (): string => view('filament.sidebar.brand')->render())
+            // Brand block injected via SIDEBAR_LOGO_BEFORE hook below;
+            // Filament's default text-logo is hidden via CSS (.fi-sidebar-header > a > span).
             ->darkMode(false)
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
@@ -64,6 +65,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
                 fn (): string => view('filament.topbar-end')->render(),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_LOGO_BEFORE,
+                fn (): string => view('filament.sidebar.brand')->render(),
             )
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_NAV_START,
