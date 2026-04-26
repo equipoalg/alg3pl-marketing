@@ -9,6 +9,7 @@ use App\Models\Lead;
 use App\Models\Tag;
 use App\Services\Email\BounceHandlerService;
 use App\Services\Lead\LeadScoringService;
+use App\Services\WhatsApp\WhatsAppService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -139,17 +140,43 @@ class ProcessFunnelStep implements ShouldQueue
     {
         if (!$lead?->phone) return;
 
-        // Create WhatsApp message record
-        \App\Models\WhatsAppMessage::create([
-            'lead_id' => $lead->id,
-            'direction' => 'out',
-            'message' => $config['message'] ?? '',
+        // Replace {nombre}, {empresa}, {email}, {pais} so funnel authors can
+        // write personalized templates the same way email steps do.
+        $body = str_replace(
+            ['{nombre}', '{empresa}', '{email}', '{pais}'],
+            [$lead->name, $lead->company ?? '', $lead->email, $lead->country?->name ?? ''],
+            $config['message'] ?? ''
+        );
+
+        // Persist the outbound record FIRST so the lead UI shows it even if
+        // the API call fails (status flips from pending → sent/failed below).
+        $record = \App\Models\WhatsAppMessage::create([
+            'lead_id'       => $lead->id,
+            'direction'     => 'out',
+            'message'       => $body,
             'template_name' => $config['template'] ?? null,
-            'phone_number' => $lead->phone,
-            'status' => 'pending',
+            'phone_number'  => $lead->phone,
+            'status'        => 'pending',
         ]);
 
-        // TODO: integrate with WhatsApp Cloud API for actual sending
+        // Wire to WhatsApp Cloud API. Template > free-form when both provided.
+        $whatsapp = app(WhatsAppService::class);
+        $result = !empty($config['template'])
+            ? $whatsapp->sendTemplate($lead->phone, $config['template'], $config['template_params'] ?? [])
+            : $whatsapp->sendMessage($lead->phone, $body);
+
+        $record->update([
+            'status'  => $result['success'] ? 'sent' : 'failed',
+            'sent_at' => $result['success'] ? now() : null,
+        ]);
+
+        if (!$result['success']) {
+            Log::warning('Funnel WhatsApp step failed', [
+                'lead_id' => $lead->id,
+                'phone'   => $lead->phone,
+                'error'   => $result['error'],
+            ]);
+        }
     }
 
     private function assignScore(?Lead $lead, array $config): void
