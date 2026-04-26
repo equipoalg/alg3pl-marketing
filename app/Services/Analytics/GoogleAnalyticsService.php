@@ -111,4 +111,40 @@ class GoogleAnalyticsService
 
         return $results;
     }
+
+    /**
+     * Sync a date range for a single country (inclusive on both ends).
+     * Loops syncDailyData per day; safe to re-run (uses updateOrCreate).
+     */
+    public function syncDateRange(Country $country, string $startDate, string $endDate): array
+    {
+        $results = [];
+        $start = \Carbon\Carbon::parse($startDate);
+        $end = \Carbon\Carbon::parse($endDate);
+
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $iso = $d->format('Y-m-d');
+            try {
+                $this->syncDailyData($country, $iso);
+                $results[$iso] = 'success';
+            } catch (\Throwable $e) {
+                $results[$iso] = "error: {$e->getMessage()}";
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Sync a date range across all active countries.
+     * Returns shape: ['country_code' => ['date' => 'success'|'error: ...']]
+     */
+    public function syncAllCountriesRange(string $startDate, string $endDate): array
+    {
+        $results = [];
+        foreach (Country::active()->get() as $country) {
+            $results[$country->code] = $this->syncDateRange($country, $startDate, $endDate);
+        }
+        return $results;
+    }
 }

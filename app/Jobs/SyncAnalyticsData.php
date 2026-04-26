@@ -33,11 +33,11 @@ class SyncAnalyticsData implements ShouldQueue
             $country = Country::find($this->countryId);
             if ($country) {
                 Log::info("Syncing GA4 for {$country->code}: {$startDate} to {$endDate}");
-                $analytics->syncDailyData($country, $startDate, $endDate);
+                $analytics->syncDateRange($country, $startDate, $endDate);
             }
         } else {
             Log::info("Syncing GA4 for all countries: {$startDate} to {$endDate}");
-            $analytics->syncAllCountries($startDate, $endDate);
+            $analytics->syncAllCountriesRange($startDate, $endDate);
         }
     }
 
