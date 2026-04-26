@@ -759,18 +759,20 @@ body[data-alg-variant="b"] .fi-sidebar-header {
 .fi-sidebar-header > a > * {
     text-decoration: none !important;
 }
-/* Kill Filament's default <img alt="brandName"> + brandName <span> */
+/* Kill Filament's default brand link entirely. The actual structure is:
+   .fi-sidebar-header
+     → [our SIDEBAR_LOGO_BEFORE injection]
+     → .fi-sidebar-header-logo-ctn > a  ← THIS is the default brand link.
+   So we hide the whole .fi-sidebar-header-logo-ctn. */
+.fi-sidebar-header-logo-ctn,
 .fi-sidebar-header img,
-.fi-sidebar-header > a > span,
-.fi-sidebar-header > a > div:not([class*="alg"]) {
+.fi-sidebar-header .fi-logo {
     display:         none !important;
 }
-.fi-sidebar-header > a {
-    display:         block !important;
-}
-/* The whole <a> wrapping SIDEBAR_LOGO_BEFORE content should not be a link */
-.fi-sidebar-header > a {
-    pointer-events:  none !important;
+/* Filament's collapse-toggle button (chevron) lives in the header too — keep it
+   so users can still collapse the sidebar, but make sure it doesn't take width */
+.fi-sidebar-header > button {
+    margin-left:     auto !important;
 }
 
 /* Workspace switcher — country switcher inside our pill needs to be tiny */
