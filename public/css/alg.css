@@ -799,10 +799,31 @@ body[data-alg-variant="b"] .fi-sidebar-header {
     content:         "▾" !important;
     color:           #94A3B8 !important;
     font-size:       10px !important;
+    line-height:     1 !important;
 }
 /* Hide any inline svg the country-switcher renders (we use ::after instead) */
 .alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > svg {
     display:         none !important;
+}
+/* Country-switcher's <nav> has a gap that creates extra space — strip it */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher nav {
+    gap:             0 !important;
+    padding:         0 !important;
+    min-height:      0 !important;
+}
+/* Make sure the dropdown panel positions ABSOLUTELY (not pushing layout) */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher [x-show="open"],
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher div[style*="position:absolute"] {
+    position:        absolute !important;
+    z-index:         100 !important;
+    top:             100% !important;
+    right:           0 !important;
+    margin-top:      4px !important;
+}
+/* When the country dropdown is closed, ensure no empty space remains */
+.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher {
+    position:        relative !important;
+    line-height:     1 !important;
 }
 
 /* SIDEBAR FOOTER — Filament's SIDEBAR_FOOTER hook puts content directly
