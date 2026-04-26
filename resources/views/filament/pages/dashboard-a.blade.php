@@ -4,13 +4,21 @@
   Activity+Tasks → AdMetrics. Reuses existing Filament widgets.
 --}}
 
-{{-- KPI HAIRLINE GRID (4 cols) --}}
+{{-- KPI HAIRLINE GRID (4 cols) — clickable cards --}}
+@php
+    $kpiLinks = [
+        'leads'    => '/admin/leads',
+        'cuentas'  => '/admin/leads',
+        'campanas' => '/admin/campaigns',
+        'tasa'     => '/admin/leads',
+    ];
+@endphp
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #E7E5E4; border: 1px solid #E7E5E4; border-radius: 8px; overflow: hidden; margin-bottom: 16px;">
     @foreach($kpis as $kpi)
-    <div style="background: #FFFFFF; padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 124px;">
+    <a href="{{ $kpiLinks[$kpi['id']] ?? '/admin' }}" style="background: #FFFFFF; padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 124px; text-decoration: none; color: inherit; cursor: pointer; transition: background 150ms ease-out;" onmouseover="this.style.background='#FAFAF9'" onmouseout="this.style.background='#FFFFFF'">
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <span style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11.5px; color: #78716C; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500;">{{ $kpi['label'] }}</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.5" style="opacity: 0.7;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
         </div>
         <div style="display: flex; align-items: baseline; gap: 10px;">
             <span style="font-family: 'Geist Mono',ui-monospace,'JetBrains Mono','SF Mono',monospace; font-size: 30px; font-weight: 500; letter-spacing: -0.025em; color: #0C0A09; line-height: 1; font-variant-numeric: tabular-nums;">
@@ -26,7 +34,7 @@
         <div style="margin-top: auto; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11.5px; color: #78716C;">
             {{ $kpi['sub'] }}
         </div>
-    </div>
+    </a>
     @endforeach
 </div>
 
@@ -93,7 +101,7 @@
                 [$bg, $fg, $stageLabel] = $stageColors[$lead->status] ?? ['#F5F5F4', '#78716C', ucfirst($lead->status ?? 'Nuevo')];
                 $initials = strtoupper(substr($lead->name ?? 'NN', 0, 1) . substr(strrchr($lead->name ?? '', ' ') ?: '', 1, 1));
             @endphp
-            <div style="display: grid; grid-template-columns: 32px 1fr auto auto auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #E7E5E4;">
+            <a href="/admin/leads/{{ $lead->id }}/edit" style="display: grid; grid-template-columns: 32px 1fr auto auto auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #E7E5E4; text-decoration: none; color: inherit; transition: background 150ms ease-out; margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 4px;" onmouseover="this.style.background='#FAFAF9'" onmouseout="this.style.background='transparent'">
                 <div style="width: 30px; height: 30px; border-radius: 50%; background: #F5F5F4; display: grid; place-items: center; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11px; font-weight: 600; color: #292524;">{{ $initials ?: 'NN' }}</div>
                 <div style="min-width: 0;">
                     <div style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 13px; font-weight: 500; color: #0C0A09; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $lead->name ?: 'Sin nombre' }}</div>
@@ -107,7 +115,7 @@
                 </div>
                 <span style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11px; padding: 3px 8px; border-radius: 3px; background: {{ $bg }}; color: {{ $fg }}; font-weight: 500;">{{ $stageLabel }}</span>
                 <span style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11px; color: #A8A29E;">{{ $lead->created_at?->diffForHumans() ?: '—' }}</span>
-            </div>
+            </a>
             @empty
             <div style="padding: 32px 0; text-align: center; color: #78716C;">
                 <div style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 13px; margin-bottom: 4px;">Sin leads en este período.</div>

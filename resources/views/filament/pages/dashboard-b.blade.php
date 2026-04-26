@@ -47,10 +47,18 @@
         </a>
     </div>
 
-    {{-- Hero KPI strip --}}
+    {{-- Hero KPI strip — clickable --}}
+    @php
+        $kpiLinksB = [
+            'leads'    => '/admin/leads',
+            'cuentas'  => '/admin/leads',
+            'campanas' => '/admin/campaigns',
+            'tasa'     => '/admin/leads',
+        ];
+    @endphp
     <div style="display: grid; grid-template-columns: repeat({{ count($kpis) }}, 1fr); gap: 0;">
         @foreach($kpis as $i => $kpi)
-        <div style="padding: 16px 24px 0; {{ $i > 0 ? 'border-left: 1px solid #E7E5E4;' : '' }} display: flex; flex-direction: column; gap: 4px;">
+        <a href="{{ $kpiLinksB[$kpi['id']] ?? '/admin' }}" style="padding: 16px 24px 12px; {{ $i > 0 ? 'border-left: 1px solid #E7E5E4;' : '' }} display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: inherit; transition: background 150ms ease-out; border-radius: 4px;" onmouseover="this.style.background='#FAFAF9'" onmouseout="this.style.background='transparent'">
             <span style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 10.5px; color: #78716C; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">{{ $kpi['label'] }}</span>
             <span style="font-family: 'Geist Mono',ui-monospace,'JetBrains Mono','SF Mono',monospace; font-size: 28px; font-weight: 500; letter-spacing: -0.025em; color: #0C0A09; line-height: 1; font-variant-numeric: tabular-nums;">
                 {{ is_numeric($kpi['value']) ? number_format($kpi['value']) : $kpi['value'] }}
@@ -62,7 +70,7 @@
             @else
             <span style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11.5px; color: #78716C;">—</span>
             @endif
-        </div>
+        </a>
         @endforeach
     </div>
 </section>
@@ -102,13 +110,13 @@
     <div style="display: grid; grid-template-columns: repeat({{ count($pipelineStages) }}, 1fr); gap: 8px;">
         @foreach($pipelineStages as $stage)
         @php $count = $stageCounts->get($stage['key'], 0); $pct = $totalPipeline > 0 ? round(($count / $totalPipeline) * 100) : 0; @endphp
-        <div style="padding: 12px 14px; border: 1px solid #E7E5E4; border-radius: 6px; background: #FFFFFF; border-top: 2px solid {{ $stage['color'] }}; display: flex; flex-direction: column; gap: 6px;">
+        <a href="/admin/leads?tableFilters[status][value]={{ $stage['key'] }}" style="padding: 12px 14px; border: 1px solid #E7E5E4; border-radius: 6px; background: #FFFFFF; border-top: 2px solid {{ $stage['color'] }}; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; transition: all 150ms ease-out;" onmouseover="this.style.background='#FAFAF9'; this.style.borderColor='#CBD0D8'; this.style.borderTopColor='{{ $stage['color'] }}';" onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E4'; this.style.borderTopColor='{{ $stage['color'] }}';">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <span style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11.5px; color: #57534E; font-weight: 500;">{{ $stage['label'] }}</span>
                 <span style="font-family: 'Geist Mono',ui-monospace,monospace; font-size: 10px; color: #A8A29E;">{{ $pct }}%</span>
             </div>
             <div style="font-family: 'Geist Mono',ui-monospace,'JetBrains Mono','SF Mono',monospace; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; color: #0C0A09; font-variant-numeric: tabular-nums;">{{ $count }}</div>
-        </div>
+        </a>
         @endforeach
     </div>
 </section>
@@ -160,7 +168,7 @@
                 ];
                 [$bg, $fg] = $stageColors[$lead->status] ?? ['#F5F5F4', '#78716C'];
             @endphp
-            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 12px 0; border-bottom: 1px solid #E7E5E4; align-items: center;">
+            <a href="/admin/leads/{{ $lead->id }}/edit" style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 12px 8px; border-bottom: 1px solid #E7E5E4; align-items: center; text-decoration: none; color: inherit; margin: 0 -8px; border-radius: 4px; transition: background 150ms ease-out;" onmouseover="this.style.background='#FAFAF9'" onmouseout="this.style.background='transparent'">
                 <div style="min-width: 0;">
                     <div style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 13px; font-weight: 500; color: #0C0A09;">{{ $lead->name ?: 'Sin nombre' }}</div>
                     <div style="font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 11.5px; color: #78716C; margin-top: 2px;">
@@ -173,7 +181,7 @@
                 <div style="font-family: 'Geist Mono',ui-monospace,monospace; font-size: 13px; font-weight: 500; color: #0C0A09; text-align: right; min-width: 64px; font-variant-numeric: tabular-nums;">
                     @if($lead->estimated_value)${{ number_format($lead->estimated_value) }}@else—@endif
                 </div>
-            </div>
+            </a>
             @empty
             <div style="padding: 28px 0; text-align: center; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 13px; color: #78716C;">Sin leads aún</div>
             @endforelse

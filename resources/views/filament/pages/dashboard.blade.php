@@ -54,6 +54,25 @@
     </div>
 </div>
 
+{{-- QUICK LINKS — clickable shortcuts to high-frequency operations --}}
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;">
+    @php
+        $quickLinks = [
+            ['label' => 'Todos los leads', 'href' => '/admin/leads',       'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
+            ['label' => 'Crear lead',      'href' => '/admin/leads/create','icon' => 'M12 5v14M5 12h14'],
+            ['label' => 'Kanban',          'href' => '/admin/kanban',      'icon' => 'M3 5h4v14H3V5zm7 0h4v9h-4V5zm7 0h4v6h-4V5z'],
+            ['label' => 'Campañas',        'href' => '/admin/campaigns',   'icon' => 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z'],
+            ['label' => 'Tareas',          'href' => '/admin/tasks',       'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
+        ];
+    @endphp
+    @foreach($quickLinks as $link)
+    <a href="{{ $link['href'] }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #E7E5E4; border-radius: 6px; background: #FFFFFF; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 12px; font-weight: 500; color: #292524; text-decoration: none; transition: all 150ms ease-out;" onmouseover="this.style.borderColor='#1E3A8A'; this.style.color='#1E3A8A'; this.style.background='#EFF3FB';" onmouseout="this.style.borderColor='#E7E5E4'; this.style.color='#292524'; this.style.background='#FFFFFF';">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $link['icon'] }}"/></svg>
+        {{ $link['label'] }}
+    </a>
+    @endforeach
+</div>
+
 {{-- LOADING OVERLAY --}}
 <div style="position: relative;">
     <div wire:loading.flex wire:target="setTimeRange, setVariant, select" style="position: absolute; inset: 0; z-index: 10; background: rgba(250, 250, 249, 0.85); backdrop-filter: blur(2px); align-items: center; justify-content: center;">
