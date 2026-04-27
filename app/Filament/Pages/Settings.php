@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Panel;
 use Filament\Support\Enums\Width;
 
 /**
@@ -44,7 +45,7 @@ class Settings extends Page
         return 99;
     }
 
-    public static function getSlug(): string
+    public static function getSlug(?Panel $panel = null): string
     {
         return 'settings';
     }
