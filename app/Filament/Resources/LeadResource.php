@@ -48,6 +48,16 @@ class LeadResource extends Resource
         return 'Leads';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'lead';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Leads';
+    }
+
     public static function getNavigationBadge(): ?string
     {
         $count = static::getModel()::count();

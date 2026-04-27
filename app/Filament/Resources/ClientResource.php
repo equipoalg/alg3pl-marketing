@@ -22,6 +22,8 @@ class ClientResource extends Resource
     public static function getNavigationGroup(): string { return 'CRM'; }
     public static function getNavigationSort(): int { return 1; }
     public static function getNavigationLabel(): string { return 'Cuentas'; }
+    public static function getModelLabel(): string { return 'cuenta'; }
+    public static function getPluralModelLabel(): string { return 'Cuentas'; }
     public static function getNavigationBadge(): ?string
     {
         $count = static::getModel()::count();

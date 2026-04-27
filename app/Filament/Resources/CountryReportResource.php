@@ -39,6 +39,16 @@ class CountryReportResource extends Resource
         return 'Reportes';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'reporte';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Reportes';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -132,7 +142,7 @@ class CountryReportResource extends Resource
             ])
             ->recordAction('view_report')
             ->actions([
-                \Filament\Tables\Actions\Action::make('view_report')
+                \Filament\Actions\Action::make('view_report')
                     ->label('Ver')
                     ->icon('heroicon-o-eye')
                     ->color('gray')
@@ -141,7 +151,7 @@ class CountryReportResource extends Resource
                     ->modalContent(fn (CountryReport $record) => view('filament.modals.country-report', ['record' => $record]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
-                \Filament\Tables\Actions\Action::make('print')
+                \Filament\Actions\Action::make('print')
                     ->label('Imprimir / PDF')
                     ->icon('heroicon-o-printer')
                     ->color('info')

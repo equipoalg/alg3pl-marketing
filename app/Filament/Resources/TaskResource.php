@@ -41,6 +41,16 @@ class TaskResource extends Resource
         return 'Seguimiento';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'tarea';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Tareas';
+    }
+
     public static function getNavigationBadge(): ?string
     {
         $pending = Task::where('status', '!=', 'done')->count();

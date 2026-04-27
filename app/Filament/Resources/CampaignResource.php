@@ -39,6 +39,16 @@ class CampaignResource extends Resource
         return 'Campañas';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'campaña';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Campañas';
+    }
+
     public static function getNavigationBadge(): ?string
     {
         $count = Campaign::where('status', 'active')->count();

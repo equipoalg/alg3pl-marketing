@@ -1,32 +1,32 @@
 /*
- * ALG3PL Design System — Slate Monochrome + ALG Navy
+ * ALG3PL Design System — Stone Monochrome + ALG Navy
  * Source: Claude Design "Dashboard ALG · Variación A"
- * Editorial · Aireado · Geist · Slate warm grays · Navy accent
+ * Editorial · Aireado · Geist · Warm stone neutrals · Navy accent
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
 
 /* ══════════════════════════════════════════════════
-   DESIGN TOKENS — Pure White + Cool Slate Neutrals
+   DESIGN TOKENS — Warm Off-White + Stone Neutrals
 ══════════════════════════════════════════════════ */
 :root {
-    /* Surfaces — pure white, neutral cool greys for alt/hover */
-    --alg-bg:           #FFFFFF;
+    /* Surfaces — warm off-white page bg, pure white cards, stone for alt/hover */
+    --alg-bg:           #FAFAF9;
     --alg-surface:      #FFFFFF;
-    --alg-bg-alt:       #F8FAFC;
-    --alg-surface-2:    #F8FAFC;
-    --alg-surface-3:    #F1F5F9;
+    --alg-bg-alt:       #F5F5F4;
+    --alg-surface-2:    #F5F5F4;
+    --alg-surface-3:    #EEEDEB;
 
-    /* Borders — cool slate */
-    --alg-line:         #E2E8F0;
-    --alg-line-2:       #CBD5E1;
+    /* Borders — warm stone */
+    --alg-line:         #E7E5E4;
+    --alg-line-2:       #D6D3D1;
 
-    /* Ink scale — cool slate */
-    --alg-ink:          #0F172A;
-    --alg-ink-2:        #334155;
-    --alg-ink-3:        #64748B;
-    --alg-ink-4:        #94A3B8;
-    --alg-ink-5:        #CBD5E1;
+    /* Ink scale — warm stone */
+    --alg-ink:          #0C0A09;
+    --alg-ink-2:        #292524;
+    --alg-ink-3:        #57534E;
+    --alg-ink-4:        #78716C;
+    --alg-ink-5:        #A8A29E;
 
     /* Accent — ALG navy */
     --alg-accent:       #1E3A8A;
@@ -72,6 +72,31 @@
     /* Motion */
     --alg-ease:         150ms ease-out;
     --alg-ease-fast:    100ms ease-out;
+
+    /* Unprefixed aliases — used by the design's chrome (sidebar/topbar/cards)
+       so blade partials can reference --bg / --surface / --ink-1 etc. directly. */
+    --bg:           var(--alg-bg);
+    --surface:      var(--alg-surface);
+    --surface-2:    var(--alg-surface-2);
+    --surface-3:    var(--alg-surface-3);
+    --border:       var(--alg-line);
+    --border-strong:var(--alg-line-2);
+    --ink-1:        var(--alg-ink);
+    --ink-2:        var(--alg-ink-2);
+    --ink-3:        var(--alg-ink-3);
+    --ink-4:        var(--alg-ink-4);
+    --ink-5:        var(--alg-ink-5);
+    --accent:       var(--alg-accent);
+    --accent-2:     var(--alg-accent-2);
+    --accent-soft:  var(--alg-accent-soft);
+    --pos:          var(--alg-pos);
+    --pos-soft:     var(--alg-pos-soft);
+    --neg:          var(--alg-neg);
+    --neg-soft:     var(--alg-neg-soft);
+    --warn:         var(--alg-warn);
+    --warn-soft:    var(--alg-warn-soft);
+    --font-sans:    var(--alg-font);
+    --font-mono:    var(--alg-mono);
 }
 
 
@@ -324,20 +349,11 @@ body,
     line-height:    1.5 !important;
     margin-top:     6px !important;
 }
+/* Hide Filament's auto-breadcrumbs — the topbar already shows context-aware
+   breadcrumbs via the topbar-start render hook. Avoids visible duplication
+   like "Cliente > ALG Global > Cuentas" + "Clients > List" stacked. */
 .fi-breadcrumbs {
-    font-family:    var(--alg-font) !important;
-    font-size:      12.5px !important;
-    color:          var(--alg-ink-4) !important;
-}
-.fi-breadcrumbs a {
-    color: var(--alg-ink-4) !important;
-    transition: color var(--alg-ease) !important;
-}
-.fi-breadcrumbs a:hover {
-    color: var(--alg-ink) !important;
-}
-.fi-breadcrumbs-separator {
-    color: var(--alg-ink-5) !important;
+    display: none !important;
 }
 
 
@@ -752,7 +768,7 @@ body,
 ══════════════════════════════════════════════════ */
 body[data-alg-variant="b"] .fi-sidebar {
     width:           56px !important;
-    background:      #0F172A !important;
+    background:      #0C0A09 !important;
     border-right:    1px solid rgba(255,255,255,0.06) !important;
     transition:      width 150ms ease-out, background 150ms ease-out !important;
 }
@@ -878,7 +894,7 @@ body[data-alg-variant="b"] .fi-sidebar-header {
     background:      transparent !important;
     border:          none !important;
     padding:         0 !important;
-    color:           #94A3B8 !important;
+    color:           #78716C !important;
     min-width:       0 !important;
     width:           auto !important;
 }
@@ -890,7 +906,7 @@ body[data-alg-variant="b"] .fi-sidebar-header {
 /* Custom chevron via ::after on the trigger only */
 .alg-sidebar-workspace .fi-country-switcher > nav > button::after {
     content:         "▾" !important;
-    color:           #94A3B8 !important;
+    color:           #78716C !important;
     font-size:       10px !important;
     line-height:     1 !important;
 }

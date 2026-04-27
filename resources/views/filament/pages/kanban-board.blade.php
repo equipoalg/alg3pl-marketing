@@ -3,8 +3,8 @@
     $allTasks = collect();
     foreach ($columns as $col) $allTasks = $allTasks->merge($col['tasks']);
     $labelColors = ['red'=>'#9F1239','orange'=>'#92400E','yellow'=>'#B8860B','green'=>'#166534','blue'=>'#2563EB','purple'=>'#7C3AED','pink'=>'#BE185D','gray'=>'#6B7280'];
-    $pColors = ['P0'=>'#9F1239','P1'=>'#92400E','P2'=>'#2563EB','P3'=>'#64748B'];
-    $colColors = ['pending'=>'#64748B','in_progress'=>'#1E3A8A','blocked'=>'#9F1239','done'=>'#166534'];
+    $pColors = ['P0'=>'#9F1239','P1'=>'#92400E','P2'=>'#2563EB','P3'=>'#57534E'];
+    $colColors = ['pending'=>'#57534E','in_progress'=>'#1E3A8A','blocked'=>'#9F1239','done'=>'#166534'];
     $wipLimit = 5;
 @endphp
 
@@ -17,8 +17,8 @@
         $bPct = $totalTasks > 0 ? round($columns['blocked']['tasks']->count() / $totalTasks * 100) : 0;
         $dPct = $totalTasks > 0 ? 100 - $pPct - $iPct - $bPct : 0;
     @endphp
-    <div style="display:flex;height:4px;border-radius:4px;overflow:hidden;background:#E2E8F0;">
-        <div style="width:{{ $pPct }}%;background:#64748B;transition:width 0.4s ease-out;"></div>
+    <div style="display:flex;height:4px;border-radius:4px;overflow:hidden;background:#E7E5E4;">
+        <div style="width:{{ $pPct }}%;background:#57534E;transition:width 0.4s ease-out;"></div>
         <div style="width:{{ $iPct }}%;background:#1E3A8A;transition:width 0.4s ease-out;"></div>
         <div style="width:{{ $bPct }}%;background:#9F1239;transition:width 0.4s ease-out;"></div>
         <div style="width:{{ $dPct }}%;background:#166534;transition:width 0.4s ease-out;"></div>
@@ -26,15 +26,15 @@
 
     {{-- TOOLBAR --}}
     <div style="display:flex;align-items:center;gap:10px;padding:12px 0 8px;flex-wrap:wrap;">
-        <button wire:click="toggleMyTasks" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid {{ $myTasksOnly ? '#1E3A8A' : '#E2E8F0' }};cursor:pointer;background:{{ $myTasksOnly ? 'rgba(0,36,61,0.06)' : '#fff' }};color:{{ $myTasksOnly ? '#1E3A8A' : '#334155' }};transition:all 0.15s ease;">
+        <button wire:click="toggleMyTasks" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid {{ $myTasksOnly ? '#1E3A8A' : '#E7E5E4' }};cursor:pointer;background:{{ $myTasksOnly ? 'rgba(0,36,61,0.06)' : '#fff' }};color:{{ $myTasksOnly ? '#1E3A8A' : '#292524' }};transition:all 0.15s ease;">
             {{ $myTasksOnly ? 'Mis Tareas' : 'Todas' }}
         </button>
 
-        <button @click="compact = !compact" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;border:1px solid #E2E8F0;cursor:pointer;background:#fff;color:#334155;">
+        <button @click="compact = !compact" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;border:1px solid #E7E5E4;cursor:pointer;background:#fff;color:#292524;">
             <span x-text="compact ? 'Expandir' : 'Compacto'"></span>
         </button>
 
-        <span style="font-size:12px;color:#64748B;margin-left:auto;">{{ $totalTasks }} tareas</span>
+        <span style="font-size:12px;color:#57534E;margin-left:auto;">{{ $totalTasks }} tareas</span>
         <a href="/admin/tasks/create" style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;background:#1E3A8A;color:#fff;text-decoration:none;">
             + Nueva Tarea
         </a>
@@ -54,17 +54,17 @@
             @dragover.prevent="dragOver($event, '{{ $status }}')"
             @dragleave="dragLeave($event)"
             @drop="drop($event, '{{ $status }}')"
-            style="flex:1;min-width:250px;max-width:340px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;display:flex;flex-direction:column;transition:border-color 0.2s ease-out;box-shadow:0 1px 3px rgba(0,0,0,0.04);"
+            style="flex:1;min-width:250px;max-width:340px;background:#fff;border:1px solid #E7E5E4;border-radius:12px;display:flex;flex-direction:column;transition:border-color 0.2s ease-out;box-shadow:0 1px 3px rgba(0,0,0,0.04);"
             :style="dropTarget === '{{ $status }}' ? 'border-color:{{ $cc }};' : ''"
         >
             {{-- Column header --}}
             <div style="padding:14px 16px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #EDF0F4;">
                 <span style="width:8px;height:8px;border-radius:50%;background:{{ $cc }};"></span>
-                <span style="font-size:12px;font-weight:700;color:#0F172A;text-transform:uppercase;letter-spacing:0.05em;">{{ $col['label'] }}</span>
+                <span style="font-size:12px;font-weight:700;color:#0C0A09;text-transform:uppercase;letter-spacing:0.05em;">{{ $col['label'] }}</span>
                 @if($isWip)
                 <span style="font-size:10px;font-weight:700;color:#9F1239;background:#FEF2F2;padding:2px 7px;border-radius:4px;">WIP {{ $count }}/{{ $wipLimit }}</span>
                 @endif
-                <span style="font-size:12px;font-weight:700;color:#64748B;margin-left:auto;">{{ $count }}</span>
+                <span style="font-size:12px;font-weight:700;color:#57534E;margin-left:auto;">{{ $count }}</span>
             </div>
 
             {{-- Cards --}}
@@ -75,14 +75,14 @@
                     if ($task->due_date) {
                         $days = (int) now()->startOfDay()->diffInDays($task->due_date->startOfDay(), false);
                         $ddLabel = $days > 0 ? "en {$days}d" : ($days < 0 ? abs($days)."d atrás" : "hoy");
-                        $ddColor = ($days < 0 && $task->status !== 'done') ? '#9F1239' : ($days <= 3 ? '#92400E' : '#64748B');
+                        $ddColor = ($days < 0 && $task->status !== 'done') ? '#9F1239' : ($days <= 3 ? '#92400E' : '#57534E');
                         $dd = ['label' => $ddLabel, 'color' => $ddColor];
                     }
                     $cl = $task->checklist ?? [];
                     $clTotal = count($cl);
                     $clDone = collect($cl)->where('done', true)->count();
                     $taskLabels = $task->labels ?? [];
-                    $pc = $pColors[$task->priority] ?? '#64748B';
+                    $pc = $pColors[$task->priority] ?? '#57534E';
                 @endphp
                 <div
                     x-show="shouldShowCard({{ json_encode($taskLabels) }})"
@@ -92,7 +92,7 @@
                     @dragend="dragEnd()"
                     @click="selected = (selected === {{ $task->id }} ? null : {{ $task->id }})"
                     @dblclick="window.location.href='/admin/tasks/{{ $task->id }}/edit'"
-                    style="background:#fff;border:1px solid #E2E8F0;border-radius:8px;cursor:grab;transition:all 0.15s ease;position:relative;"
+                    style="background:#fff;border:1px solid #E7E5E4;border-radius:8px;cursor:grab;transition:all 0.15s ease;position:relative;"
                     :style="draggingId === {{ $task->id }} ? 'opacity:0.3;' : (selected === {{ $task->id }} ? 'border-color:#1E3A8A;box-shadow:0 0 0 1px #1E3A8A;' : '')"
                     onmouseover="if(!this.style.boxShadow)this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'"
                     onmouseout="if(!this.style.boxShadow.includes('00243D'))this.style.boxShadow=''"
@@ -100,7 +100,7 @@
                     {{-- COMPACT --}}
                     <div x-show="compact" style="padding:10px 12px;display:flex;align-items:center;gap:8px;">
                         <span style="width:6px;height:6px;border-radius:50%;background:{{ $pc }};flex-shrink:0;"></span>
-                        <span style="font-size:13px;font-weight:500;color:#0F172A;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $task->title }}</span>
+                        <span style="font-size:13px;font-weight:500;color:#0C0A09;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $task->title }}</span>
                         @if($dd)<span style="font-size:10px;color:{{ $dd['color'] }};">{{ $dd['label'] }}</span>@endif
                     </div>
 
@@ -109,42 +109,42 @@
                         {{-- Priority dot + labels --}}
                         <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;">
                             <span style="width:6px;height:6px;border-radius:50%;background:{{ $pc }};flex-shrink:0;"></span>
-                            <span style="font-size:10px;font-weight:600;color:#64748B;text-transform:uppercase;">{{ $task->priority }}</span>
+                            <span style="font-size:10px;font-weight:600;color:#57534E;text-transform:uppercase;">{{ $task->priority }}</span>
                             @foreach($taskLabels as $lbl)
-                                <span style="width:6px;height:6px;border-radius:50%;background:{{ $labelColors[$lbl] ?? '#64748B' }};"></span>
+                                <span style="width:6px;height:6px;border-radius:50%;background:{{ $labelColors[$lbl] ?? '#57534E' }};"></span>
                             @endforeach
-                            @if($task->country)<span style="margin-left:auto;font-size:10px;color:#CBD5E1;">{{ strtoupper($task->country->code) }}</span>@endif
+                            @if($task->country)<span style="margin-left:auto;font-size:10px;color:#A8A29E;">{{ strtoupper($task->country->code) }}</span>@endif
                         </div>
 
                         {{-- Title --}}
-                        <p style="font-size:14px;font-weight:600;color:#0F172A;margin:0 0 8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $task->title }}</p>
+                        <p style="font-size:14px;font-weight:600;color:#0C0A09;margin:0 0 8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $task->title }}</p>
 
                         {{-- Expandable detail on select --}}
                         <div x-show="selected === {{ $task->id }}" x-transition.opacity.duration.200ms style="margin-bottom:10px;">
                             @if($task->description)
-                            <p style="font-size:13px;color:#334155;line-height:1.5;margin:0 0 8px;">{{ Str::limit($task->description, 120) }}</p>
+                            <p style="font-size:13px;color:#292524;line-height:1.5;margin:0 0 8px;">{{ Str::limit($task->description, 120) }}</p>
                             @endif
                             <div style="display:flex;gap:6px;">
                                 <button wire:click="markDone({{ $task->id }})" style="font-size:11px;padding:4px 10px;border-radius:6px;background:#ECFDF5;color:#166534;border:none;cursor:pointer;font-weight:600;">Completar</button>
-                                <a href="/admin/tasks/{{ $task->id }}/edit" style="font-size:11px;padding:4px 10px;border-radius:6px;background:#F8FAFC;color:#334155;text-decoration:none;font-weight:600;">Editar</a>
-                                <button wire:click="duplicateTask({{ $task->id }})" style="font-size:11px;padding:4px 10px;border-radius:6px;background:#F8FAFC;color:#64748B;border:none;cursor:pointer;">Duplicar</button>
+                                <a href="/admin/tasks/{{ $task->id }}/edit" style="font-size:11px;padding:4px 10px;border-radius:6px;background:#F5F5F4;color:#292524;text-decoration:none;font-weight:600;">Editar</a>
+                                <button wire:click="duplicateTask({{ $task->id }})" style="font-size:11px;padding:4px 10px;border-radius:6px;background:#F5F5F4;color:#57534E;border:none;cursor:pointer;">Duplicar</button>
                             </div>
                         </div>
 
                         {{-- Checklist --}}
                         @if($clTotal > 0)
                         <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-                            <div style="flex:1;height:2px;background:#E2E8F0;border-radius:2px;overflow:hidden;">
+                            <div style="flex:1;height:2px;background:#E7E5E4;border-radius:2px;overflow:hidden;">
                                 <div style="height:100%;width:{{ round($clDone/$clTotal*100) }}%;background:{{ $clDone === $clTotal ? '#166534' : '#1E3A8A' }};border-radius:2px;"></div>
                             </div>
-                            <span style="font-size:10px;color:#64748B;">{{ $clDone }}/{{ $clTotal }}</span>
+                            <span style="font-size:10px;color:#57534E;">{{ $clDone }}/{{ $clTotal }}</span>
                         </div>
                         @endif
 
                         {{-- Footer: assignee + due --}}
                         <div style="display:flex;align-items:center;justify-content:space-between;">
                             @if($task->assignee)
-                            <span style="font-size:11px;color:#64748B;">{{ Str::before($task->assignee, '@') }}</span>
+                            <span style="font-size:11px;color:#57534E;">{{ Str::before($task->assignee, '@') }}</span>
                             @else <span></span> @endif
                             @if($dd)
                             <span style="font-size:11px;font-weight:500;color:{{ $dd['color'] }};">{{ $dd['label'] }}</span>
@@ -154,14 +154,14 @@
                 </div>
                 @empty
                 <div style="padding:32px 16px;text-align:center;">
-                    <p style="font-size:13px;color:#CBD5E1;">Sin tareas</p>
+                    <p style="font-size:13px;color:#A8A29E;">Sin tareas</p>
                 </div>
                 @endforelse
             </div>
 
             {{-- QUICK ADD --}}
             <div style="padding:8px;" x-data="{ adding: false, newTitle: '' }">
-                <div x-show="!adding" @click="adding = true; $nextTick(() => $refs.qi{{ $loop->index }}.focus())" style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;color:#CBD5E1;border:1px dashed #E2E8F0;text-align:center;transition:all 0.15s;" onmouseover="this.style.borderColor='#64748B';this.style.color='#334155'" onmouseout="this.style.borderColor='#E2E8F0';this.style.color='#CBD5E1'">
+                <div x-show="!adding" @click="adding = true; $nextTick(() => $refs.qi{{ $loop->index }}.focus())" style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;color:#A8A29E;border:1px dashed #E7E5E4;text-align:center;transition:all 0.15s;" onmouseover="this.style.borderColor='#57534E';this.style.color='#292524'" onmouseout="this.style.borderColor='#E7E5E4';this.style.color='#A8A29E'">
                     + Agregar tarea
                 </div>
                 <div x-show="adding" x-transition.opacity>
@@ -170,9 +170,9 @@
                         @keydown.escape="adding=false;newTitle=''"
                         @blur="if(!newTitle)adding=false"
                         placeholder="Titulo y Enter..."
-                        style="width:100%;padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;color:#0F172A;background:#fff;border:1px solid #E2E8F0;outline:none;"
+                        style="width:100%;padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;color:#0C0A09;background:#fff;border:1px solid #E7E5E4;outline:none;"
                         onfocus="this.style.borderColor='#1E3A8A'"
-                        onblur="this.style.borderColor='#E2E8F0'"
+                        onblur="this.style.borderColor='#E7E5E4'"
                     >
                 </div>
             </div>
@@ -181,17 +181,17 @@
     </div>
 
     {{-- SHORTCUTS --}}
-    <div style="display:flex;gap:16px;padding:6px 0;font-size:11px;color:#CBD5E1;">
+    <div style="display:flex;gap:16px;padding:6px 0;font-size:11px;color:#A8A29E;">
         @foreach(['N'=>'Nueva','D'=>'Completar','←→'=>'Mover','Dbl-click'=>'Editar'] as $k => $v)
-        <span><kbd style="padding:1px 5px;border-radius:3px;background:#F8FAFC;border:1px solid #E2E8F0;font-size:10px;font-family:monospace;color:#64748B;">{{ $k }}</kbd> {{ $v }}</span>
+        <span><kbd style="padding:1px 5px;border-radius:3px;background:#F5F5F4;border:1px solid #E7E5E4;font-size:10px;font-family:monospace;color:#57534E;">{{ $k }}</kbd> {{ $v }}</span>
         @endforeach
     </div>
 </div>
 
 <style>
-.kanban-col{scrollbar-width:thin;scrollbar-color:#E2E8F0 transparent}
+.kanban-col{scrollbar-width:thin;scrollbar-color:#E7E5E4 transparent}
 .kanban-col::-webkit-scrollbar{width:4px}
-.kanban-col::-webkit-scrollbar-thumb{background:#E2E8F0;border-radius:2px}
+.kanban-col::-webkit-scrollbar-thumb{background:#E7E5E4;border-radius:2px}
 </style>
 
 <script>

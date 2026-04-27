@@ -10,7 +10,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: #ffffff;
-            color: #0F172A;
+            color: #0C0A09;
             font-size: 13px;
             line-height: 1.5;
         }
@@ -147,7 +147,7 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: #1E3A8A;
-            border-bottom: 1px solid #E2E8F0;
+            border-bottom: 1px solid #E7E5E4;
             padding-bottom: 8px;
             margin-bottom: 16px;
             margin-top: 28px;
@@ -173,7 +173,7 @@
         }
         .kpi-card {
             background: #FFFFFF;
-            border: 1px solid #E2E8F0;
+            border: 1px solid #E7E5E4;
             border-radius: 8px;
             padding: 14px 16px;
         }
@@ -212,7 +212,7 @@
         .data-table th:last-child { border-radius: 0 6px 0 0; }
         .data-table td {
             padding: 10px 12px;
-            border-bottom: 1px solid #E2E8F0;
+            border-bottom: 1px solid #E7E5E4;
             color: #374151;
             vertical-align: top;
         }
@@ -237,7 +237,7 @@
         .report-footer {
             margin-top: 40px;
             padding-top: 16px;
-            border-top: 1px solid #E2E8F0;
+            border-top: 1px solid #E7E5E4;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -337,7 +337,7 @@
         <tbody>
             @foreach($record->findings as $finding)
             <tr>
-                <td style="font-weight:600;color:#0F172A;">{{ $finding['title'] ?? '—' }}</td>
+                <td style="font-weight:600;color:#0C0A09;">{{ $finding['title'] ?? '—' }}</td>
                 <td>{{ $finding['detail'] ?? '—' }}</td>
             </tr>
             @endforeach
@@ -359,7 +359,7 @@
         <tbody>
             @foreach($record->opportunities as $opp)
             <tr>
-                <td style="font-weight:600;color:#0F172A;">{{ $opp['title'] ?? '—' }}</td>
+                <td style="font-weight:600;color:#0C0A09;">{{ $opp['title'] ?? '—' }}</td>
                 <td>{{ $opp['detail'] ?? '—' }}</td>
                 <td>
                     @php

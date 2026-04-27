@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AlgDashboardController;
+use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\CampaignArchiveController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\SmartlinkController;
@@ -8,6 +10,20 @@ use App\Http\Controllers\WebhookInboundController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+// Login alias so `auth` middleware redirects to Filament's login page.
+Route::get('/login', fn () => redirect('/admin/login'))->name('login');
+
+// ALG Dashboard — full-bleed view, bypasses Filament chrome (1:1 from Claude Design bundle).
+// Registered BEFORE Filament's panel boots so this URL takes precedence.
+Route::get('/admin/dashboard', [AlgDashboardController::class, 'show'])
+    ->middleware('auth')
+    ->name('alg.dashboard');
+
+// Workspace country switcher — sidebar dropdown posts here.
+Route::post('/admin/workspace/country', [WorkspaceController::class, 'setCountry'])
+    ->middleware('auth')
+    ->name('alg.workspace.country');
 
 // Landing page — redirige a /admin si ya está autenticado
 Route::get('/', function () {

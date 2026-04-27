@@ -7,6 +7,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Assets\Css;
@@ -56,32 +57,12 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::HEAD_START,
                 fn (): string => '
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#F7F5F0">
+<meta name="theme-color" content="#FAFAF9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ALG3PL">
 <script>if(\'serviceWorker\' in navigator) navigator.serviceWorker.register(\'/sw.js\');</script>
 ',
-            )
-            ->renderHook(
-                PanelsRenderHook::TOPBAR_START,
-                fn (): string => view('filament.topbar-start')->render(),
-            )
-            ->renderHook(
-                PanelsRenderHook::TOPBAR_END,
-                fn (): string => view('filament.topbar-end')->render(),
-            )
-            ->renderHook(
-                PanelsRenderHook::SIDEBAR_LOGO_BEFORE,
-                fn (): string => view('filament.sidebar.brand')->render(),
-            )
-            ->renderHook(
-                PanelsRenderHook::SIDEBAR_NAV_START,
-                fn (): string => view('filament.sidebar.workspace')->render(),
-            )
-            ->renderHook(
-                PanelsRenderHook::SIDEBAR_FOOTER,
-                fn (): string => view('filament.sidebar.footer')->render(),
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
@@ -100,6 +81,15 @@ class AdminPanelProvider extends PanelProvider
                 'Marketing',
                 'Analytics',
                 'Settings',
+            ])
+            ->navigationItems([
+                // Dashboard lives at /admin/dashboard via a custom web route
+                // (not a Filament Page), so we add it here as a nav item.
+                NavigationItem::make('Dashboard')
+                    ->url('/admin/dashboard')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->isActiveWhen(fn () => request()->is('admin/dashboard'))
+                    ->sort(-2),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
