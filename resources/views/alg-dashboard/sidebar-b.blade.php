@@ -47,7 +47,7 @@
     {{-- Workspace switcher (Alpine dropdown, dark theme, only when expanded) --}}
     <div x-show="expanded" x-data="{ wsOpen: false }" x-transition.opacity style="padding:8px 10px;flex-shrink:0;position:relative;">
         <button
-            x-on:click="wsOpen = !wsOpen"
+            x-on:click.stop="wsOpen = !wsOpen"
             type="button"
             style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.10);font-size:12px;color:white;cursor:pointer;font-family:var(--font-sans);"
         >

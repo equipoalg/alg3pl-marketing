@@ -25,7 +25,7 @@
     {{-- Workspace switcher (Alpine dropdown) --}}
     <div x-data="{ open: false }" style="padding:10px 12px;position:relative;">
         <button
-            x-on:click="open = !open"
+            x-on:click.stop="open = !open"
             x-bind:aria-expanded="open"
             type="button"
             style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:6px;background:var(--surface-2);border:1px solid var(--border);font-size:12px;color:var(--ink-2);cursor:pointer;font-family:var(--font-sans);"
