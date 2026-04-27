@@ -880,13 +880,20 @@ body[data-alg-variant="b"] .fi-sidebar-item-button.fi-active::before {
     display:         none !important;
 }
 body[data-alg-variant="b"] .fi-sidebar-item-icon {
-    color:           rgba(255,255,255,0.55) !important;
+    color:           rgba(255,255,255,0.72) !important;
     width:           17px !important;
     height:          17px !important;
 }
 body[data-alg-variant="b"] .fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
 body[data-alg-variant="b"] .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
     color:           #FFFFFF !important;
+}
+/* Variant B button hover state on navy */
+body[data-alg-variant="b"] .fi-sidebar-item-button:hover {
+    background:      rgba(255,255,255,0.10) !important;
+}
+body[data-alg-variant="b"] .fi-sidebar-item-button.fi-active {
+    background:      rgba(255,255,255,0.14) !important;
 }
 /* Variant B: hide A-style footer, show B-style icon-rail footer */
 body[data-alg-variant="b"] .alg-sidebar-footer-a {
