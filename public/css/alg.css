@@ -335,11 +335,20 @@ body,
     border-bottom:  none !important;
     margin-bottom:  16px !important;
 }
-.fi-page-header-heading {
+.fi-page-header-heading,
+.fi-header-heading,
+h1.fi-header-heading {
     font-size:      22px !important;
     font-weight:    600 !important;
     letter-spacing: -0.02em !important;
     color:          var(--alg-ink) !important;
+    line-height:    1.2 !important;
+}
+.fi-header-subheading {
+    font-size:      13px !important;
+    color:          var(--alg-ink-4) !important;
+    margin-top:     4px !important;
+    letter-spacing: 0 !important;
 }
 .fi-page-header-subheading {
     font-family:    var(--alg-font) !important;
@@ -516,6 +525,60 @@ body,
     font-feature-settings: "tnum", "zero" !important;
 }
 
+/* Card-like wrapper for entire table — matches dashboard cards */
+.fi-ta,
+.fi-ta-ctn {
+    background:    var(--alg-surface) !important;
+    border:        1px solid var(--alg-line) !important;
+    border-radius: var(--alg-radius-lg) !important;
+    box-shadow:    none !important;
+    overflow:      hidden !important;
+}
+
+/* Empty state — sutil, no huge X icon dominante */
+.fi-ta-empty-state,
+.fi-empty-state {
+    padding:    40px 16px !important;
+    text-align: center !important;
+}
+.fi-ta-empty-state svg,
+.fi-empty-state-icon,
+.fi-empty-state svg.fi-size-md,
+.fi-empty-state svg.fi-size-lg {
+    width:       28px !important;
+    height:      28px !important;
+    color:       var(--alg-ink-5) !important;
+    opacity:     0.6 !important;
+}
+.fi-ta-empty-state .fi-ta-empty-state-icon-ctn,
+.fi-empty-state-icon-ctn {
+    background: transparent !important;
+    width:      auto !important;
+    height:     auto !important;
+    margin-bottom: 8px !important;
+}
+.fi-ta-empty-state-heading,
+.fi-empty-state-heading {
+    font-size:   13px !important;
+    font-weight: 500 !important;
+    color:       var(--alg-ink-3) !important;
+}
+.fi-ta-empty-state-description,
+.fi-empty-state-description {
+    font-size: 12px !important;
+    color:     var(--alg-ink-4) !important;
+    margin-top: 2px !important;
+}
+
+/* Filter "0" pill badge — subtle dot, not big circle */
+.fi-ta-filters-indicator {
+    background:   var(--alg-ink-1, var(--alg-ink)) !important;
+    color:        white !important;
+    font-size:    10px !important;
+    min-width:    16px !important;
+    height:       16px !important;
+}
+
 
 /* ══════════════════════════════════════════════════
    BADGES — compact, soft bg, matching ink
@@ -584,16 +647,27 @@ body,
     transform:  none !important;
     opacity:    0.78 !important;
 }
-/* Primary — ink fill */
-.fi-btn-color-primary {
-    background: var(--alg-ink) !important;
-    color:      #FFFFFF !important;
-    border:     1px solid var(--alg-ink) !important;
+/* Primary — ink fill (Filament v5 uses fi-color-primary + fi-bg-color-* utility classes,
+   the older fi-btn-color-primary still applies when present) */
+.fi-btn-color-primary,
+.fi-color-primary.fi-bg-color-600,
+a.fi-color-primary.fi-bg-color-600,
+button.fi-color-primary.fi-bg-color-600 {
+    background-color: var(--alg-ink) !important;
+    color:            #FFFFFF !important;
+    border-color:     var(--alg-ink) !important;
 }
-.fi-btn-color-primary:hover {
-    background: var(--alg-ink-2) !important;
-    border-color: var(--alg-ink-2) !important;
+.fi-btn-color-primary:hover,
+.fi-color-primary.fi-bg-color-600:hover,
+.fi-color-primary.hover\:fi-bg-color-500:hover {
+    background-color: var(--alg-ink-2) !important;
+    border-color:     var(--alg-ink-2) !important;
     opacity: 1 !important;
+}
+/* Tailwind utility variants Filament v5 emits inline (oklch blue). Catch them too. */
+[class*="fi-bg-color-500"][class*="fi-color-primary"],
+[class*="fi-bg-color-600"][class*="fi-color-primary"] {
+    background-color: var(--alg-ink) !important;
 }
 /* Secondary / gray — ghost */
 .fi-btn-color-gray {
