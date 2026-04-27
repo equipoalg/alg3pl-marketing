@@ -20,8 +20,8 @@
             localStorage.setItem('algSidebarBExpanded', this.expanded ? '1' : '0');
         }
     }"
-    x-bind:style="expanded ? 'width: 224px' : 'width: 56px'"
-    style="flex-shrink:0;background:var(--ink-1);color:white;display:flex;flex-direction:column;height:100%;transition:width 180ms ease;overflow:hidden;"
+    x-bind:style="{ width: expanded ? '224px' : '56px' }"
+    style="flex-shrink:0;background:var(--alg-accent);color:white;display:flex;flex-direction:column;height:100%;transition:width 180ms ease;overflow:hidden;"
 >
     {{-- Brand + expand toggle --}}
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px 10px;flex-shrink:0;">
