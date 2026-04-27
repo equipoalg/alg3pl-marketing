@@ -5,11 +5,15 @@
     renders inside the {{ $slot }}.
 --}}
 @php
-    use App\Support\DashboardMockData;
+    use App\Support\DashboardData;
 
     $livewire ??= null;
     $renderHookScopes = $livewire?->getRenderHookScopes();
-    $navSections = DashboardMockData::navSections();
+
+    // Sidebar nav with REAL counts filtered by country_filter — so /admin/clients,
+    // /admin/leads, etc. show the same numbers as /admin/dashboard.
+    $countryId = session('country_filter') ? (int) session('country_filter') : null;
+    $navSections = DashboardData::navSections($countryId);
 
     // Variant resolution: query param wins (and persists to session), then session, then 'a'.
     $variantQuery = request()->query('variant');
