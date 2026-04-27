@@ -17,6 +17,8 @@ use Filament\Tables\Filters\SelectFilter;
 
 class CampaignResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Campaign::class;
 
     public static function getNavigationIcon(): string
@@ -51,7 +53,8 @@ class CampaignResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = Campaign::where('status', 'active')->count();
+        // Active campaigns, scoped by the sidebar country filter (via the trait)
+        $count = static::getEloquentQuery()->where('status', 'active')->count();
         return $count > 0 ? (string) $count : null;
     }
 

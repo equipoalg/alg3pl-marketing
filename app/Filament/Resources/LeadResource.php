@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LeadResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Lead::class;
 
     public static function getNavigationIcon(): string
@@ -57,12 +59,6 @@ class LeadResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'Leads';
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        $count = static::getModel()::count();
-        return $count > 0 ? (string) $count : null;
     }
 
     /** Global search — Buscar ⌘K hits this */
@@ -327,5 +323,15 @@ class LeadResource extends Resource
             'create' => Pages\CreateLead::route('/create'),
             'edit' => Pages\EditLead::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Show the filtered count in the sidebar nav badge so it matches the
+     * dashboard hero card and the table list (otherwise users see e.g.
+     * "Leads 124" in the sidebar but only the country's subset in the table).
+     */
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getEloquentQuery()->count();
     }
 }

@@ -19,6 +19,8 @@ use Filament\Tables\Table;
 
 class TaskResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Task::class;
 
     public static function getNavigationIcon(): string
@@ -53,13 +55,15 @@ class TaskResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $pending = Task::where('status', '!=', 'done')->count();
+        // Pending tasks, scoped by the sidebar country filter (via the trait)
+        $pending = static::getEloquentQuery()->where('status', '!=', 'done')->count();
         return $pending > 0 ? (string) $pending : null;
     }
 
     public static function getNavigationBadgeColor(): ?string
     {
-        $overdue = Task::overdue()->count();
+        // Overdue tasks, scoped by the sidebar country filter
+        $overdue = static::getEloquentQuery()->whereDate('due_date', '<', now())->where('status', '!=', 'done')->count();
         return $overdue > 0 ? 'danger' : 'warning';
     }
 

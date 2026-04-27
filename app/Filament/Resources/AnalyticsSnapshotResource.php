@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class AnalyticsSnapshotResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = AnalyticsSnapshot::class;
 
     public static function getNavigationIcon(): string

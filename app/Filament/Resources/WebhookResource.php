@@ -14,6 +14,8 @@ use Filament\Tables\Table;
 
 class WebhookResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Webhook::class;
 
     public static function getNavigationIcon(): string

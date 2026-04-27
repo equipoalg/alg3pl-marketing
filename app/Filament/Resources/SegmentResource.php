@@ -17,6 +17,8 @@ use Filament\Tables\Table;
 
 class SegmentResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Segment::class;
 
     public static function getNavigationIcon(): string

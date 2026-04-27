@@ -17,6 +17,8 @@ use Filament\Tables\Table;
 
 class CountryReportResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = CountryReport::class;
 
     public static function getNavigationIcon(): string

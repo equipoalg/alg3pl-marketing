@@ -15,6 +15,8 @@ use Filament\Tables\Filters\SelectFilter;
 
 class EmailTemplateResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = EmailTemplate::class;
 
     public static function getNavigationIcon(): string

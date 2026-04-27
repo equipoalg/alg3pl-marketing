@@ -15,6 +15,8 @@ use Filament\Tables\Table;
 
 class AdMetricResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = AdMetric::class;
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-arrow-trending-up';

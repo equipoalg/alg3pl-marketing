@@ -14,6 +14,8 @@ use Filament\Tables\Table;
 
 class FunnelResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Funnel::class;
 
     public static function getNavigationIcon(): string { return 'heroicon-o-funnel'; }

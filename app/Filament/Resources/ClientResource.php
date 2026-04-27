@@ -16,6 +16,8 @@ use Filament\Tables\Filters\SelectFilter;
 
 class ClientResource extends Resource
 {
+    use \App\Filament\Concerns\ScopesByCountryFilter;
+
     protected static ?string $model = Client::class;
 
     public static function getNavigationIcon(): string { return 'heroicon-o-building-office-2'; }
@@ -26,7 +28,7 @@ class ClientResource extends Resource
     public static function getPluralModelLabel(): string { return 'Cuentas'; }
     public static function getNavigationBadge(): ?string
     {
-        $count = static::getModel()::count();
+        $count = static::getEloquentQuery()->count();
         return $count > 0 ? (string) $count : null;
     }
     /** Global search — Buscar ⌘K hits this */
