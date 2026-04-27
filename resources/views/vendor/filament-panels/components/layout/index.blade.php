@@ -15,13 +15,14 @@
     $countryId = session('country_filter') ? (int) session('country_filter') : null;
     $navSections = DashboardData::navSections($countryId);
 
-    // Variant resolution: query param wins (and persists to session), then session, then 'a'.
+    // Variant resolution: query param wins (and persists to session), then session, then user's saved preference, then 'b' (new default).
     $variantQuery = request()->query('variant');
     if (in_array($variantQuery, ['a', 'b'], true)) {
         session(['admin_variant' => $variantQuery]);
         $variant = $variantQuery;
     } else {
-        $variant = session('admin_variant', 'a');
+        $userPref = auth()->user()?->preferences['variant'] ?? null;
+        $variant = session('admin_variant', $userPref ?? 'b');
     }
 @endphp
 

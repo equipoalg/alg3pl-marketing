@@ -5,49 +5,44 @@
     <title>ALG Dashboard — {{ $variant === 'b' ? 'Editorial' : 'Panorama global' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    {{-- alg.css already @imports Geist+Geist Mono — no duplicate <link> needed (avoids font load timing diff vs Filament pages) --}}
+    <link rel="stylesheet" href="{{ asset('css/alg.css') . '?v=' . (file_exists(public_path('css/alg.css')) ? filemtime(public_path('css/alg.css')) : time()) }}">
 
     {{-- Alpine.js — needed for the country dropdown + sidebar B expand toggle --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
         /* Alpine cloak — hides x-show elements before Alpine initializes (flash prevention). */
         [x-cloak] { display: none !important; }
-    </style>
 
-    <style>
-        /* ═══ ALG Design Tokens — 1:1 from styles.css in the Claude Design bundle ═══ */
+        /* ═══ Aliases unprefixed → ALG tokens — kept for compatibility with existing inline styles in dashboard partials ═══ */
         :root {
-            --bg:          #FAFAF9;
-            --surface:     #FFFFFF;
-            --surface-2:   #F5F5F4;
-            --surface-3:   #EEEDEB;
-            --border:      #E7E5E4;
-            --border-strong: #D6D3D1;
-            --ink-1:       #0C0A09;
-            --ink-2:       #292524;
-            --ink-3:       #57534E;
-            --ink-4:       #78716C;
-            --ink-5:       #A8A29E;
-
-            --accent:      #1E3A8A;
-            --accent-2:    #2563EB;
-            --accent-soft: #EFF3FB;
-            --accent-ink:  #1E3A8A;
-
-            --pos:         #166534;
-            --pos-soft:    #ECFDF5;
-            --neg:         #9F1239;
-            --neg-soft:    #FEF2F2;
-            --warn:        #92400E;
-            --warn-soft:   #FEF3C7;
-
-            --font-sans:   "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-            --font-mono:   "Geist Mono", ui-monospace, "JetBrains Mono", "SF Mono", monospace;
+            --bg:            var(--alg-bg);
+            --surface:       var(--alg-surface);
+            --surface-2:     var(--alg-surface-2);
+            --surface-3:     var(--alg-surface-3);
+            --border:        var(--alg-line);
+            --border-strong: var(--alg-line-2);
+            --ink-1:         var(--alg-ink);
+            --ink-2:         var(--alg-ink-2);
+            --ink-3:         var(--alg-ink-3);
+            --ink-4:         var(--alg-ink-4);
+            --ink-5:         var(--alg-ink-5);
+            --accent:        var(--alg-accent);
+            --accent-2:      var(--alg-accent-2);
+            --accent-soft:   var(--alg-accent-soft);
+            --accent-ink:    var(--alg-accent-ink);
+            --pos:           var(--alg-pos);
+            --pos-soft:      var(--alg-pos-soft);
+            --neg:           var(--alg-neg);
+            --neg-soft:      var(--alg-neg-soft);
+            --warn:          var(--alg-warn);
+            --warn-soft:     var(--alg-warn-soft);
+            --font-sans:     var(--alg-font);
+            --font-mono:     var(--alg-mono);
         }
 
-        * { box-sizing: border-box; }
+        /* Box-sizing, scrollbar, fonts, scrollbar-gutter all live in alg.css now (single source of truth) */
         html, body, #root { height: 100%; margin: 0; padding: 0; }
         body {
             font-family: var(--font-sans);
@@ -62,24 +57,6 @@
 
         .num { font-family: var(--font-mono); font-feature-settings: "tnum", "zero"; letter-spacing: -0.01em; }
         .tnum { font-variant-numeric: tabular-nums; }
-
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; border: 2px solid var(--bg); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--ink-5); }
-
-        /* Floating variant toggle (top right corner) */
-        .variant-switch {
-            position: fixed; top: 16px; right: 16px; z-index: 100;
-            display: inline-flex; gap: 0; padding: 2px;
-            background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-            font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-        }
-        .variant-switch a {
-            padding: 4px 10px; border-radius: 4px; text-decoration: none;
-            color: var(--ink-4); letter-spacing: 0.04em;
-        }
-        .variant-switch a.active { background: var(--surface-2); color: var(--ink-1); }
     </style>
 </head>
 <body>
@@ -91,9 +68,7 @@
         @endif
     </div>
 
-    <div class="variant-switch" title="Cambiar layout">
-        <a href="?variant=a" class="{{ $variant === 'a' ? 'active' : '' }}">A</a>
-        <a href="?variant=b" class="{{ $variant === 'b' ? 'active' : '' }}">B</a>
-    </div>
+    {{-- Variant selector removed — preference now lives in /admin/settings.
+         Query string ?variant=a or ?variant=b is still honored for QA/debug. --}}
 </body>
 </html>

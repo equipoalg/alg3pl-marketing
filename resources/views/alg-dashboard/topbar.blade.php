@@ -37,12 +37,9 @@
     }
     $countryLabel = $currentCountry ? strtoupper($currentCountry->code) : 'SV';
 
-    // Variant — used to render the A/B toggle. Comes from layout override or controller.
-    $variant = $variant ?? session('admin_variant', 'a');
-    // Build URLs that preserve the current path + flip variant.
-    $currentQs = request()->query();
-    $aUrl = '?' . http_build_query(array_merge($currentQs, ['variant' => 'a']));
-    $bUrl = '?' . http_build_query(array_merge($currentQs, ['variant' => 'b']));
+    // Variant kept only for compatibility — the toggle is no longer rendered here.
+    // Users change layout density via /admin/settings (Apariencia section).
+    $variant = $variant ?? session('admin_variant', 'b');
 @endphp
 <div style="display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
     <div style="display:flex;align-items:center;gap:10px;">
@@ -53,11 +50,10 @@
         <span style="font-size:12.5px;color:var(--ink-1);font-weight:500;">{{ $label }}</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-        {{-- Variant A/B switcher — persists across pages via session --}}
-        <div style="display:inline-flex;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surface);font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.04em;">
-            <a href="{{ $aUrl }}" title="Layout clásico" style="text-decoration:none;padding:4px 9px;border-radius:4px;color:{{ $variant === 'a' ? 'var(--ink-1)' : 'var(--ink-4)' }};background:{{ $variant === 'a' ? 'var(--surface-2)' : 'transparent' }};">A</a>
-            <a href="{{ $bUrl }}" title="Layout editorial" style="text-decoration:none;padding:4px 9px;border-radius:4px;color:{{ $variant === 'b' ? 'var(--ink-1)' : 'var(--ink-4)' }};background:{{ $variant === 'b' ? 'var(--surface-2)' : 'transparent' }};">B</a>
-        </div>
+        {{-- Variant A/B switcher removed — preference now lives in /admin/settings --}}
+        <a href="/admin/settings" title="Opciones" style="text-decoration:none;width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--ink-3);">
+            @include('alg-dashboard.icon', ['name' => 'settings', 'size' => 15, 'stroke' => 'var(--ink-3)'])
+        </a>
         <button style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--ink-3);cursor:pointer;font-family:var(--font-sans);">
             @include('alg-dashboard.icon', ['name' => 'search', 'size' => 14, 'stroke' => 'var(--ink-3)'])
             <span>Buscar</span>

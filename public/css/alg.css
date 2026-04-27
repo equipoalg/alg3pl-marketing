@@ -1380,3 +1380,36 @@ td.fi-ta-actions-cell .fi-icon-btn:hover {
     color:          var(--alg-accent) !important;
     text-decoration: none !important;
 }
+
+/* ══════════════════════════════════════════════════
+   GLOBAL CHROME — eliminate layout jump dashboard ↔ Filament
+   These rules apply to BOTH the custom dashboard layout
+   (resources/views/alg-dashboard/index.blade.php) AND every Filament page,
+   ensuring identical scrollbar width, identical scrollbar-gutter behavior,
+   identical universal box-sizing, and identical font rendering across the
+   entire admin. Without these, navigating dashboard ↔ /admin/leads causes
+   a visual shift because the scrollbar reserves different width on each side.
+══════════════════════════════════════════════════ */
+
+/* Universal box-sizing — both layouts already had it but make it explicit/global */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Reserve scrollbar gutter so its presence/absence doesn't shift content.
+   `stable` reserves the gutter even when not needed (page short enough to not scroll).
+   This eliminates the horizontal jump between a short dashboard and a long table view. */
+html {
+    scrollbar-gutter: stable;
+}
+
+/* Custom scrollbar — match the dashboard's 10px style across every admin page */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--alg-line-2);
+    border-radius: 10px;
+    border: 2px solid var(--alg-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--alg-ink-5); }
+
+/* Firefox scrollbar (Chrome's prefix above doesn't apply) */
+html { scrollbar-width: thin; scrollbar-color: var(--alg-line-2) transparent; }

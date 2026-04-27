@@ -10,13 +10,14 @@ class AlgDashboardController extends Controller
 {
     public function show(Request $request)
     {
-        // Variant: query wins (and persists), then session, then 'a'.
+        // Variant: query wins (and persists), then session, then user's saved preference, then 'b' (new default).
         $qVariant = $request->query('variant');
         if (in_array($qVariant, ['a', 'b'], true)) {
             session(['admin_variant' => $qVariant]);
             $variant = $qVariant;
         } else {
-            $variant = session('admin_variant', 'a');
+            $userPref = $request->user()?->preferences['variant'] ?? null;
+            $variant = session('admin_variant', $userPref ?? 'b');
         }
 
         $chartType = in_array($request->query('chart'), ['line', 'area', 'bars'], true) ? $request->query('chart') : 'line';

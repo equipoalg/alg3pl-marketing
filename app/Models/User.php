@@ -20,6 +20,7 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'name', 'email', 'password', 'tenant_id',
         'country_id', 'role', 'is_super_admin',
+        'preferences',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -30,7 +31,27 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
+            'preferences' => 'array',
         ];
+    }
+
+    /**
+     * Read a single preference key with a default fallback.
+     * Example: $user->pref('variant', 'b') returns the saved layout variant or 'b'.
+     */
+    public function pref(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->preferences, $key, $default);
+    }
+
+    /**
+     * Merge new preferences into the JSON column without losing existing keys.
+     * Example: $user->setPrefs(['variant' => 'b', 'theme' => 'light']);
+     */
+    public function setPrefs(array $values): self
+    {
+        $this->preferences = array_merge($this->preferences ?? [], $values);
+        return $this;
     }
 
     public function canAccessPanel(Panel $panel): bool
