@@ -39,15 +39,14 @@
             </span>
         </button>
 
-        {{-- Dropdown panel — display:none inline as fallback if Alpine hasn't booted yet
-             (otherwise the panel flashes open before x-show takes control). --}}
+        {{-- Dropdown panel — x-cloak hides until Alpine initializes (CSS rule in layout). --}}
         <div
             x-show="open"
             x-on:click.outside="open = false"
             x-on:keydown.escape.window="open = false"
             x-transition.opacity.duration.150ms
-            x-bind:style="open ? null : 'display:none'"
-            style="display:none;position:absolute;top:calc(100% + 4px);left:12px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(12,10,9,0.08);z-index:50;padding:4px;"
+            x-cloak
+            style="position:absolute;top:calc(100% + 4px);left:12px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(12,10,9,0.08);z-index:50;padding:4px;"
         >
             <form action="{{ route('alg.workspace.country') }}" method="POST" style="display:flex;flex-direction:column;gap:1px;">
                 @csrf

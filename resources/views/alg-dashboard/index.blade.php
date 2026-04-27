@@ -11,6 +11,10 @@
 
     {{-- Alpine.js — needed for the country dropdown + sidebar B expand toggle --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        /* Alpine cloak — hides x-show elements before Alpine initializes (flash prevention). */
+        [x-cloak] { display: none !important; }
+    </style>
 
     <style>
         /* ═══ ALG Design Tokens — 1:1 from styles.css in the Claude Design bundle ═══ */
