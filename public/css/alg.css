@@ -837,22 +837,28 @@ button.fi-color-primary.fi-bg-color-600 {
 
 
 /* ══════════════════════════════════════════════════
-   VARIANT B — Compact dark icon-rail sidebar
+   VARIANT B — Compact ALG-navy icon-rail sidebar
    Activated by <script>body.dataset.algVariant='b'</script> in dashboard
 ══════════════════════════════════════════════════ */
 body[data-alg-variant="b"] .fi-sidebar {
     width:           56px !important;
-    background:      #0C0A09 !important;
-    border-right:    1px solid rgba(255,255,255,0.06) !important;
+    background:      var(--alg-accent) !important;   /* ALG navy #1E3A8A — visible vs white page */
+    border-right:    1px solid rgba(255,255,255,0.10) !important;
     transition:      width 150ms ease-out, background 150ms ease-out !important;
 }
 body[data-alg-variant="b"] .fi-sidebar-header,
 body[data-alg-variant="b"] .fi-sidebar footer,
 body[data-alg-variant="b"] .fi-sidebar-footer {
-    border-color:    rgba(255,255,255,0.06) !important;
+    border-color:    rgba(255,255,255,0.10) !important;
 }
-body[data-alg-variant="b"] .fi-sidebar-header > * {
+body[data-alg-variant="b"] .fi-sidebar-header > *,
+body[data-alg-variant="b"] .fi-sidebar-header * {
     color:           #FFFFFF !important;
+}
+/* Brand "A" logo box: white bg + navy text (inverted vs variant A) */
+body[data-alg-variant="b"] .fi-sidebar-header > div > div:first-child {
+    background:      #FFFFFF !important;
+    color:           var(--alg-accent) !important;
 }
 body[data-alg-variant="b"] .fi-sidebar-group-label,
 body[data-alg-variant="b"] .fi-sidebar-item-button > span:not(.fi-sidebar-item-icon),
