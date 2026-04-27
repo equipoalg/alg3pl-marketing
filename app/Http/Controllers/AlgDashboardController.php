@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\DashboardMockData;
+use App\Models\Country;
+use App\Support\DashboardData;
 use Illuminate\Http\Request;
 
 class AlgDashboardController extends Controller
@@ -21,8 +22,11 @@ class AlgDashboardController extends Controller
         $chartType = in_array($request->query('chart'), ['line', 'area', 'bars'], true) ? $request->query('chart') : 'line';
         $timeRange = in_array($request->query('range'), ['7d', '30d', '90d', 'ytd'], true) ? $request->query('range') : '30d';
 
+        // Country filter from session (set via WorkspaceController). Null = all countries.
+        $countryId = session('country_filter') ? (int) session('country_filter') : null;
+
         return view('alg-dashboard.index', [
-            'data'      => DashboardMockData::all(),
+            'data'      => DashboardData::all($countryId, $timeRange),
             'variant'   => $variant,
             'chartType' => $chartType,
             'timeRange' => $timeRange,

@@ -9,6 +9,9 @@ class CountryConfig extends Model
 {
     protected $fillable = [
         'country_id',
+        'ga4_property_id',
+        'gsc_site_url',
+        'site_url',
         'monthly_lead_goal',
         'primary_manager',
         'webhook_assignees',
