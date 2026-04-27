@@ -65,8 +65,8 @@
             x-on:click.outside="wsOpen = false"
             x-on:keydown.escape.window="wsOpen = false"
             x-transition.opacity.duration.150ms
-            x-cloak
-            style="position:absolute;top:calc(100% + 4px);left:10px;right:10px;background:#1C1917;border:1px solid rgba(255,255,255,0.10);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;padding:4px;"
+            x-bind:style="wsOpen ? null : 'display:none'"
+            style="display:none;position:absolute;top:calc(100% + 4px);left:10px;right:10px;background:#1C1917;border:1px solid rgba(255,255,255,0.10);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;padding:4px;"
         >
             <form action="{{ route('alg.workspace.country') }}" method="POST" style="display:flex;flex-direction:column;gap:1px;">
                 @csrf
