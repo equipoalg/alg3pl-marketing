@@ -162,11 +162,13 @@ body,
 
 
 /* ══════════════════════════════════════════════════
-   SIDEBAR — white, hairline right, navy active accent
+   SIDEBAR — ALG navy bg always (Variant A wide + Variant B compact)
+   Per user feedback: needs to read as a clearly-distinct column
+   against the white page, not blend in.
 ══════════════════════════════════════════════════ */
 .fi-sidebar {
-    background:    var(--alg-surface) !important;
-    border-right:  1px solid var(--alg-line) !important;
+    background:    var(--alg-accent) !important;            /* ALG navy #1E3A8A */
+    border-right:  1px solid rgba(255,255,255,0.10) !important;
     box-shadow:    none !important;
     width:         224px !important;
 }
@@ -199,29 +201,28 @@ body,
     font-weight:    600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
-    color:          var(--alg-ink-3) !important;
+    color:          rgba(255,255,255,0.55) !important;     /* navy bg → readable white */
     padding:        10px 10px 2px !important;
     margin:         0 !important;
     height:         auto !important;
     min-height:     0 !important;
     line-height:    1.3 !important;
 }
-/* Hide group collapse chevron buttons or shrink them inline */
 .fi-sidebar-group-label-button > svg,
 .fi-sidebar-group > button > svg {
     width:          12px !important;
     height:         12px !important;
-    color:          var(--alg-ink-5) !important;
+    color:          rgba(255,255,255,0.55) !important;
 }
 
-/* Nav items — Filament class is .fi-sidebar-item-btn (NOT -item-button) */
+/* Nav items — light text on navy bg */
 .fi-sidebar-item-btn,
 .fi-sidebar-item-button {
     border-radius:  5px !important;
     padding:        5px 10px !important;
     margin:         0 !important;
     transition:     color var(--alg-ease), background var(--alg-ease) !important;
-    color:          var(--alg-ink-3) !important;
+    color:          rgba(255,255,255,0.78) !important;     /* readable on navy */
     font-size:      13px !important;
     font-weight:    400 !important;
     position:       relative !important;
@@ -233,15 +234,15 @@ body,
 }
 .fi-sidebar-item-btn:hover,
 .fi-sidebar-item-button:hover {
-    background: var(--alg-surface-2) !important;
-    color:      var(--alg-ink) !important;
+    background: rgba(255,255,255,0.10) !important;
+    color:      #FFFFFF !important;
 }
-/* Active: navy left bar (2px) + soft bg */
+/* Active: white left bar + brighter bg + white text */
 .fi-sidebar-item.fi-active .fi-sidebar-item-btn,
 .fi-sidebar-item-btn.fi-active,
 .fi-sidebar-item-button.fi-active {
-    background:  var(--alg-surface-2) !important;
-    color:       var(--alg-ink) !important;
+    background:  rgba(255,255,255,0.14) !important;
+    color:       #FFFFFF !important;
     font-weight: 500 !important;
 }
 .fi-sidebar-item.fi-active .fi-sidebar-item-btn::before,
@@ -249,12 +250,11 @@ body,
 .fi-sidebar-item-button.fi-active::before {
     content:    "" !important;
     position:   absolute !important;
-    /* Anchor to nav padding edge (8px) so the bar aligns with sidebar's left border */
     left:       0 !important;
     top:        4px !important;
     bottom:     4px !important;
     width:      2px !important;
-    background: var(--alg-accent) !important;
+    background: #FFFFFF !important;                   /* white bar on navy */
     border-radius: 0 2px 2px 0 !important;
 }
 /* Sidebar footer: stick to bottom even when nav is short */
@@ -267,7 +267,7 @@ body,
     margin-top:     auto !important;
 }
 .fi-sidebar-item-icon {
-    color: var(--alg-ink-4) !important;
+    color: rgba(255,255,255,0.65) !important;
     width: 15px !important;
     height: 15px !important;
     flex-shrink: 0 !important;
@@ -276,7 +276,7 @@ body,
 .fi-sidebar-item-btn:hover .fi-sidebar-item-icon,
 .fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
 .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
-    color: var(--alg-ink) !important;
+    color: #FFFFFF !important;
 }
 /* Items as <li> shouldn't add bullet or padding */
 .fi-sidebar-item {
@@ -285,7 +285,7 @@ body,
     margin:         0 !important;
 }
 
-/* Nav badges (counts) */
+/* Nav badges (counts) — semi-transparent white on navy */
 .fi-sidebar-item-badge {
     font-family:    var(--alg-mono) !important;
     font-size:      11px !important;
@@ -294,33 +294,55 @@ body,
     border-radius:  0 !important;
     border:         none !important;
     background:     transparent !important;
-    color:          var(--alg-ink-5) !important;
+    color:          rgba(255,255,255,0.55) !important;
     letter-spacing: 0 !important;
     animation:      none !important;
     font-variant-numeric: tabular-nums !important;
 }
 
-/* Brand section */
+/* Brand section — separator now white-tinted on navy */
 .fi-sidebar-header {
-    border-bottom:  1px solid var(--alg-line) !important;
+    border-bottom:  1px solid rgba(255,255,255,0.10) !important;
     padding:        16px 16px 14px !important;
 }
-.fi-sidebar-header .fi-logo,
-.fi-sidebar-header [class*="brand"] {
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.01em !important;
-    color: var(--alg-ink) !important;
+/* Brand block injected via SIDEBAR_LOGO_BEFORE: invert the "A" logo +
+   force white text for "ALG3PL" + lighter subtitle */
+.fi-sidebar-header > div > div:first-child {
+    background:    #FFFFFF !important;
+    color:         var(--alg-accent) !important;
+}
+.fi-sidebar-header > div > div:nth-child(2) > span:first-child {
+    color:         #FFFFFF !important;
+}
+.fi-sidebar-header > div > div:nth-child(2) > span:nth-child(2) {
+    color:         rgba(255,255,255,0.65) !important;
 }
 
-/* Sidebar footer  */
+/* Sidebar footer (navy bg variant) */
 .fi-sidebar footer,
 .fi-sidebar-footer {
-    border-top:     1px solid var(--alg-line) !important;
+    border-top:     1px solid rgba(255,255,255,0.10) !important;
     font-family:    var(--alg-font) !important;
     font-size:      var(--alg-fs-xs) !important;
-    color:          var(--alg-ink-4) !important;
+    color:          rgba(255,255,255,0.65) !important;
     padding:        10px !important;
+}
+/* User footer block (.alg-sidebar-footer-a) — invert all text/icons */
+.alg-sidebar-footer-a {
+    border-top:      1px solid rgba(255,255,255,0.10) !important;
+}
+.alg-sidebar-footer-a > div:first-child {
+    background:      rgba(255,255,255,0.14) !important;
+    color:           #FFFFFF !important;
+}
+.alg-sidebar-footer-a > div:nth-child(2) > div:first-child {
+    color:           #FFFFFF !important;
+}
+.alg-sidebar-footer-a > div:nth-child(2) > div:nth-child(2) {
+    color:           rgba(255,255,255,0.55) !important;
+}
+.alg-sidebar-footer-a > a {
+    color:           rgba(255,255,255,0.65) !important;
 }
 
 
@@ -981,7 +1003,7 @@ body[data-alg-variant="b"] .fi-sidebar-header {
     background:      transparent !important;
     border:          none !important;
     padding:         0 !important;
-    color:           #78716C !important;
+    color:           rgba(255,255,255,0.65) !important;
     min-width:       0 !important;
     width:           auto !important;
 }
@@ -990,12 +1012,24 @@ body[data-alg-variant="b"] .fi-sidebar-header {
 .alg-sidebar-workspace .fi-country-switcher > nav > button > svg {
     display:         none !important;
 }
-/* Custom chevron via ::after on the trigger only */
+/* Custom chevron via ::after on the trigger only — light on navy */
 .alg-sidebar-workspace .fi-country-switcher > nav > button::after {
     content:         "▾" !important;
-    color:           #78716C !important;
+    color:           rgba(255,255,255,0.65) !important;
     font-size:       10px !important;
     line-height:     1 !important;
+}
+/* Pill itself: semi-transparent white box on navy, white text */
+.alg-sidebar-workspace .alg-sidebar-workspace-pill {
+    background:      rgba(255,255,255,0.10) !important;
+    border-color:    rgba(255,255,255,0.16) !important;
+    color:           #FFFFFF !important;
+}
+.alg-sidebar-workspace .alg-sidebar-workspace-pill > span > svg {
+    stroke:          rgba(255,255,255,0.65) !important;
+}
+.alg-sidebar-workspace .alg-sidebar-workspace-pill > span > span {
+    color:           #FFFFFF !important;
 }
 
 /* Dropdown panel — anchored to the WHOLE PILL (not the 6px chevron).
