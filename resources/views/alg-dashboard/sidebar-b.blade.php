@@ -13,6 +13,7 @@
     $workspaceLabel = $currentCountry ? 'ALG ' . strtoupper($currentCountry->code) : 'ALG Global';
 @endphp
 <aside
+    class="alg-sidebar-b"
     x-data="{
         expanded: localStorage.getItem('algSidebarBExpanded') === '1',
         toggle() {

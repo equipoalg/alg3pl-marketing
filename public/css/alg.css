@@ -1460,3 +1460,18 @@ html {
 
 /* Firefox scrollbar (Chrome's prefix above doesn't apply) */
 html { scrollbar-width: thin; scrollbar-color: var(--alg-line-2) transparent; }
+
+
+/* ══════════════════════════════════════════════════
+   ALG SIDEBAR B — force navy bg
+   The custom <aside class="alg-sidebar-b"> has its background set via inline
+   style="background:var(--alg-accent)", but Alpine's x-bind:style can wipe
+   the inline attribute under some lifecycles. This CSS rule guarantees the
+   navy stays applied regardless of Alpine's bindings.
+   We deliberately do NOT use .fi-sidebar here because that selector also
+   forces width:224px which would break the 56px↔224px expand/collapse.
+══════════════════════════════════════════════════ */
+.alg-sidebar-b {
+    background: var(--alg-accent) !important;
+    color:      #FFFFFF !important;
+}
