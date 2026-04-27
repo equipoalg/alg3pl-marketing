@@ -39,12 +39,13 @@
             </span>
         </button>
 
-        {{-- Dropdown panel — x-cloak hides until Alpine initializes (CSS rule in layout). --}}
+        {{-- Dropdown panel — x-cloak hides until Alpine initializes (CSS rule in layout).
+             NOTE: no x-transition here — buggy interaction with x-show in Alpine 3.15
+             when display:none + opacity transition mix; we rely on plain show/hide. --}}
         <div
             x-show="open"
             x-on:click.outside="open = false"
             x-on:keydown.escape.window="open = false"
-            x-transition.opacity.duration.150ms
             x-cloak
             style="position:absolute;top:calc(100% + 4px);left:12px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(12,10,9,0.08);z-index:50;padding:4px;"
         >
