@@ -1475,3 +1475,19 @@ html { scrollbar-width: thin; scrollbar-color: var(--alg-line-2) transparent; }
     background: var(--alg-accent) !important;
     color:      #FFFFFF !important;
 }
+
+
+/* ══════════════════════════════════════════════════
+   .fi-header — hide redundant breadcrumb (topbar already shows it)
+   Without this, .fi-header is 26px on pages without breadcrumbs (kanban) but
+   62px on pages with breadcrumbs (leads), causing an 18px vertical jump
+   between Filament pages. The global topbar already shows the same crumb,
+   so the duplicate inside .fi-header is purely visual noise.
+══════════════════════════════════════════════════ */
+.fi-header .fi-breadcrumbs,
+.fi-header-breadcrumbs {
+    display: none !important;
+}
+.fi-header.fi-header-has-breadcrumbs {
+    min-height: auto !important;
+}

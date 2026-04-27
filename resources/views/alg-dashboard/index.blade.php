@@ -72,13 +72,29 @@
         .variant-switch a.active { background: var(--surface-2); color: var(--ink-1); }
     </style>
 </head>
-<body>
-    <div id="root">
+<body class="alg-body">
+    {{-- Same flex shell as Filament's layout/index.blade.php override.
+         This guarantees zero navigation jump between dashboard and Filament pages:
+         identical sidebar (224 or 56), identical topbar (52px), identical main padding (24/28). --}}
+    <div id="root" style="display:flex;height:100vh;background:var(--bg);overflow:hidden;">
+
         @if($variant === 'b')
-            @include('alg-dashboard.variant-b')
+            @include('alg-dashboard.sidebar-b', ['navSections' => $data['navSections'] ?? null])
         @else
-            @include('alg-dashboard.variant-a')
+            @include('alg-dashboard.sidebar-a', ['navSections' => $data['navSections'] ?? null])
         @endif
+
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;">
+            @include('alg-dashboard.topbar', ['variant' => $variant])
+            <main class="alg-main" style="flex:1;overflow:auto;padding:24px 28px;background:var(--bg);">
+                @if($variant === 'b')
+                    @include('alg-dashboard.variant-b-content')
+                @else
+                    @include('alg-dashboard.variant-a-content')
+                @endif
+            </main>
+        </div>
+
     </div>
 
     <div class="variant-switch" title="Cambiar layout">
