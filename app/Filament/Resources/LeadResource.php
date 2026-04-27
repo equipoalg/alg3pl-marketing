@@ -7,6 +7,7 @@ use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\Country;
 use App\Models\Tag;
+use App\Services\AI\LeadEnrichmentService;
 use App\Services\Lead\LeadScoringService;
 use App\Services\Quote\QuoteGeneratorService;
 use App\Services\WhatsApp\WhatsAppService;
@@ -226,6 +227,27 @@ class LeadResource extends Resource
                     ->action(function (Lead $record) {
                         app(LeadScoringService::class)->recalculate($record);
                         Notification::make()->title("Score: {$record->score}")->success()->send();
+                    }),
+                Action::make('enrich_ai')
+                    ->label('IA')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Enriquecer lead con Claude')
+                    ->modalDescription('Claude leerá los datos + notas del lead y devolverá: resumen, próxima acción concreta y prioridad. La acción se guarda en el timeline del lead.')
+                    ->modalSubmitActionLabel('Ejecutar')
+                    ->action(function (Lead $record) {
+                        $result = app(LeadEnrichmentService::class)->enrich($record);
+                        if (isset($result['error'])) {
+                            Notification::make()->title('Enriquecimiento falló')->body($result['error'])->danger()->send();
+                            return;
+                        }
+                        Notification::make()
+                            ->title('Lead enriquecido · prioridad ' . ($result['priority'] ?? 'medium'))
+                            ->body(($result['summary'] ?? '') . "\n→ " . ($result['next_action'] ?? ''))
+                            ->success()
+                            ->duration(8000)
+                            ->send();
                     }),
                 Action::make('generate_quote')
                     ->icon('heroicon-o-document-text')

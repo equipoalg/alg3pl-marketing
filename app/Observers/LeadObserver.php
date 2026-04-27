@@ -6,6 +6,7 @@ use App\Jobs\ScoreLeadJob;
 use App\Models\Lead;
 use App\Models\User;
 use App\Notifications\NewLeadAssigned;
+use App\Services\Notifications\SlackNotifier;
 use App\Services\Webhook\WebhookDispatcher;
 
 class LeadObserver
@@ -57,6 +58,12 @@ class LeadObserver
                 'old_score' => $oldScore,
                 'new_score' => $newScore,
             ]);
+
+            // Slack alert when crossing the HOT threshold (e.g. 79 → 85).
+            // Fires only on the *crossing* — not on every update of an already-hot lead.
+            if ($newScore >= SlackNotifier::HOT_LEAD_SCORE && $oldScore < SlackNotifier::HOT_LEAD_SCORE) {
+                app(SlackNotifier::class)->notifyHotLead($lead->fresh(['country', 'assignedUser']));
+            }
         }
 
         // Fire assignment webhook + in-app notification

@@ -29,10 +29,25 @@ return [
     ],
 
     'slack' => [
+        'webhook_url' => env('SLACK_WEBHOOK_URL'),
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model'   => env('ANTHROPIC_MODEL', 'claude-haiku-4-5'),
+    ],
+
+    'google_ads' => [
+        'developer_token'      => env('GOOGLE_ADS_DEVELOPER_TOKEN'),
+        'customer_id'          => env('GOOGLE_ADS_CUSTOMER_ID'),
+        'login_customer_id'    => env('GOOGLE_ADS_LOGIN_CUSTOMER_ID'),
+        'oauth_client_id'      => env('GOOGLE_ADS_OAUTH_CLIENT_ID'),
+        'oauth_client_secret'  => env('GOOGLE_ADS_OAUTH_CLIENT_SECRET'),
+        'refresh_token'        => env('GOOGLE_ADS_REFRESH_TOKEN'),
     ],
 
     'google' => [
