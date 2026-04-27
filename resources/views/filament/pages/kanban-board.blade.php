@@ -35,7 +35,7 @@
         </button>
 
         <span style="font-size:12px;color:#57534E;margin-left:auto;">{{ $totalTasks }} tareas</span>
-        <a href="/admin/tasks/create" style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;background:#1E3A8A;color:#fff;text-decoration:none;">
+        <a href="/admin/tasks/create" style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;background:#0C0A09;color:#fff;text-decoration:none;">
             + Nueva Tarea
         </a>
     </div>

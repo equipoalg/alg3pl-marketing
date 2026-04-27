@@ -10,7 +10,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
@@ -45,14 +44,6 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
             ])
             ->font('Geist')
-            ->assets([
-                // Cache-bust the design CSS via mtime so browser fetches the
-                // latest after every deploy/edit (no manual hard-refresh needed).
-                Css::make(
-                    'alg-design-system',
-                    asset('css/alg.css') . '?v=' . (file_exists(public_path('css/alg.css')) ? filemtime(public_path('css/alg.css')) : time())
-                ),
-            ])
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 fn (): string => '
@@ -63,6 +54,12 @@ class AdminPanelProvider extends PanelProvider
 <meta name="apple-mobile-web-app-title" content="ALG3PL">
 <script>if(\'serviceWorker\' in navigator) navigator.serviceWorker.register(\'/sw.js\');</script>
 ',
+            )
+            ->renderHook(
+                // Load AT THE END of <head> so we WIN cascade vs Filament's app.css
+                // (Filament loads its CSS via assets() before HEAD_END fires).
+                PanelsRenderHook::HEAD_END,
+                fn (): string => '<link rel="stylesheet" href="' . asset('css/alg.css') . '?v=' . (file_exists(public_path('css/alg.css')) ? filemtime(public_path('css/alg.css')) : time()) . '">',
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
