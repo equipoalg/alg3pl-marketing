@@ -827,9 +827,20 @@ body[data-alg-variant="b"] .fi-sidebar-header {
     display:         none !important;
 }
 
-/* Workspace switcher pill — embedded country-switcher should ONLY show
-   a small chevron (the country code/badges live inside the pill text already) */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button {
+/* Workspace switcher pill — country-switcher TRIGGER button only shows
+   a chevron; the DROPDOWN items must remain fully visible/readable. */
+.alg-sidebar-workspace .fi-country-switcher {
+    position:        relative !important;
+    line-height:     1 !important;
+}
+.alg-sidebar-workspace .fi-country-switcher > nav {
+    gap:             0 !important;
+    padding:         0 !important;
+    min-height:      0 !important;
+    position:        static !important;
+}
+/* Trigger button = direct child of nav (NOT the dropdown buttons inside nav > div) */
+.alg-sidebar-workspace .fi-country-switcher > nav > button {
     background:      transparent !important;
     border:          none !important;
     padding:         0 !important;
@@ -837,41 +848,63 @@ body[data-alg-variant="b"] .fi-sidebar-header {
     min-width:       0 !important;
     width:           auto !important;
 }
-/* Hide ALL the embedded button's contents (flag, code, count, badge)
-   — they duplicate the pill text we already render */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > span {
+/* Hide ONLY the trigger button's content (flag/code/count/+badge/svg) */
+.alg-sidebar-workspace .fi-country-switcher > nav > button > span,
+.alg-sidebar-workspace .fi-country-switcher > nav > button > svg {
     display:         none !important;
 }
-/* Render a single chevron-down via ::after pseudo-element on the trigger */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button::after {
+/* Custom chevron via ::after on the trigger only */
+.alg-sidebar-workspace .fi-country-switcher > nav > button::after {
     content:         "▾" !important;
     color:           #94A3B8 !important;
     font-size:       10px !important;
     line-height:     1 !important;
 }
-/* Hide any inline svg the country-switcher renders (we use ::after instead) */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher button > svg {
-    display:         none !important;
-}
-/* Country-switcher's <nav> has a gap that creates extra space — strip it */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher nav {
-    gap:             0 !important;
-    padding:         0 !important;
-    min-height:      0 !important;
-}
-/* Make sure the dropdown panel positions ABSOLUTELY (not pushing layout) */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher [x-show="open"],
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher div[style*="position:absolute"] {
+
+/* Dropdown panel — position absolute relative to .fi-country-switcher,
+   anchored to the right of the chevron, sized to look like a real menu */
+.alg-sidebar-workspace .fi-country-switcher > nav > div[x-show="open"] {
     position:        absolute !important;
     z-index:         100 !important;
-    top:             100% !important;
-    right:           0 !important;
-    margin-top:      4px !important;
+    top:             calc(100% + 6px) !important;
+    right:           -8px !important;
+    width:           220px !important;
+    background:      var(--alg-surface) !important;
+    border:          1px solid var(--alg-line) !important;
+    border-radius:   var(--alg-radius-lg) !important;
+    box-shadow:      var(--alg-shadow-lg) !important;
+    padding:         4px !important;
+    overflow:        hidden !important;
+    margin-top:      0 !important;
 }
-/* When the country dropdown is closed, ensure no empty space remains */
-.alg-sidebar-workspace .alg-workspace-trigger .fi-country-switcher {
-    position:        relative !important;
-    line-height:     1 !important;
+/* Dropdown buttons (Global + each country) — make them clean menu items */
+.alg-sidebar-workspace .fi-country-switcher > nav > div[x-show="open"] button {
+    display:         flex !important;
+    align-items:     center !important;
+    gap:             10px !important;
+    width:           100% !important;
+    padding:         8px 10px !important;
+    border:          none !important;
+    background:      transparent !important;
+    border-radius:   var(--alg-radius-sm) !important;
+    text-align:      left !important;
+    font-family:     var(--alg-font) !important;
+    font-size:       12px !important;
+    color:           var(--alg-ink-2) !important;
+    cursor:          pointer !important;
+    transition:      background var(--alg-ease) !important;
+}
+.alg-sidebar-workspace .fi-country-switcher > nav > div[x-show="open"] button:hover {
+    background:      var(--alg-bg-alt) !important;
+    color:           var(--alg-ink) !important;
+}
+/* Inside the dropdown buttons, ENSURE spans are visible (override the global hide) */
+.alg-sidebar-workspace .fi-country-switcher > nav > div[x-show="open"] button > span,
+.alg-sidebar-workspace .fi-country-switcher > nav > div[x-show="open"] button > svg {
+    display:         inline-block !important;
+}
+.alg-sidebar-workspace .fi-country-switcher > nav > div[x-show="open"] button > svg:last-child {
+    margin-left:     auto !important;
 }
 
 /* SIDEBAR FOOTER — Filament's SIDEBAR_FOOTER hook puts content directly
