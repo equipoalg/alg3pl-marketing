@@ -150,15 +150,15 @@ body,
     gap:            1px !important;
 }
 
-/* Group labels — compact uppercase */
+/* Group labels — compact uppercase, readable contrast */
 .fi-sidebar-group-label,
 .fi-sidebar-group-label-button {
     font-family:    var(--alg-font) !important;
-    font-size:      10px !important;
-    font-weight:    500 !important;
+    font-size:      10.5px !important;
+    font-weight:    600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
-    color:          var(--alg-ink-5) !important;
+    color:          var(--alg-ink-3) !important;
     padding:        10px 10px 2px !important;
     margin:         0 !important;
     height:         auto !important;
