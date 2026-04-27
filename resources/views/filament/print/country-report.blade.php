@@ -10,7 +10,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: #ffffff;
-            color: #0C0A09;
+            color: var(--alg-ink);
             font-size: 13px;
             line-height: 1.5;
         }
@@ -19,7 +19,7 @@
         .print-bar {
             position: fixed;
             top: 0; left: 0; right: 0;
-            background: #1E3A8A;
+            background: var(--alg-accent);
             color: #fff;
             padding: 10px 24px;
             display: flex;
@@ -40,7 +40,7 @@
         }
         .btn-print {
             background: #ffffff;
-            color: #1E3A8A;
+            color: var(--alg-accent);
             border: none;
             padding: 8px 18px;
             border-radius: 6px;
@@ -77,7 +77,7 @@
             align-items: flex-start;
             justify-content: space-between;
             padding-bottom: 24px;
-            border-bottom: 2px solid #1E3A8A;
+            border-bottom: 2px solid var(--alg-accent);
             margin-bottom: 28px;
         }
         .report-logo {
@@ -88,7 +88,7 @@
         .logo-mark {
             width: 44px;
             height: 44px;
-            background: #1E3A8A;
+            background: var(--alg-accent);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -102,12 +102,12 @@
         .logo-text .company {
             font-size: 18px;
             font-weight: 700;
-            color: #1E3A8A;
+            color: var(--alg-accent);
             line-height: 1.2;
         }
         .logo-text .tagline {
             font-size: 11px;
-            color: #6B7280;
+            color: var(--alg-ink-3);
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.08em;
@@ -118,12 +118,12 @@
         .report-meta .report-title {
             font-size: 20px;
             font-weight: 700;
-            color: #1E3A8A;
+            color: var(--alg-accent);
             line-height: 1.2;
         }
         .report-meta .report-sub {
             font-size: 12px;
-            color: #6B7280;
+            color: var(--alg-ink-3);
             margin-top: 4px;
         }
         .report-meta .badge {
@@ -137,7 +137,7 @@
             margin-top: 8px;
         }
         .badge-seo { background: #EFF6FF; color: #1D4ED8; }
-        .badge-marketing { background: #F0FDF4; color: #166534; }
+        .badge-marketing { background: #F0FDF4; color: var(--alg-pos); }
         .badge-sales { background: #FFF7ED; color: #9A3412; }
 
         /* ---- SECTION HEADINGS ---- */
@@ -146,8 +146,8 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #1E3A8A;
-            border-bottom: 1px solid #E7E5E4;
+            color: var(--alg-accent);
+            border-bottom: 1px solid var(--alg-line);
             padding-bottom: 8px;
             margin-bottom: 16px;
             margin-top: 28px;
@@ -156,7 +156,7 @@
         /* ---- SUMMARY ---- */
         .summary-box {
             background: #FFFFFF;
-            border-left: 4px solid #1E3A8A;
+            border-left: 4px solid var(--alg-accent);
             border-radius: 0 6px 6px 0;
             padding: 14px 18px;
             font-size: 13px;
@@ -173,14 +173,14 @@
         }
         .kpi-card {
             background: #FFFFFF;
-            border: 1px solid #E7E5E4;
+            border: 1px solid var(--alg-line);
             border-radius: 8px;
             padding: 14px 16px;
         }
         .kpi-card .kpi-label {
             font-size: 11px;
             font-weight: 600;
-            color: #6B7280;
+            color: var(--alg-ink-3);
             text-transform: uppercase;
             letter-spacing: 0.06em;
             margin-bottom: 6px;
@@ -188,7 +188,7 @@
         .kpi-card .kpi-value {
             font-size: 22px;
             font-weight: 700;
-            color: #1E3A8A;
+            color: var(--alg-accent);
             line-height: 1;
         }
 
@@ -199,7 +199,7 @@
             font-size: 13px;
         }
         .data-table th {
-            background: #1E3A8A;
+            background: var(--alg-accent);
             color: #fff;
             text-align: left;
             padding: 9px 12px;
@@ -212,7 +212,7 @@
         .data-table th:last-child { border-radius: 0 6px 0 0; }
         .data-table td {
             padding: 10px 12px;
-            border-bottom: 1px solid #E7E5E4;
+            border-bottom: 1px solid var(--alg-line);
             color: #374151;
             vertical-align: top;
         }
@@ -229,15 +229,15 @@
             font-size: 11px;
             font-weight: 600;
         }
-        .impact-high { background: #FEF2F2; color: #991B1B; }
-        .impact-medium { background: #FFFBEB; color: #92400E; }
-        .impact-low { background: #F0FDF4; color: #166534; }
+        .impact-high { background: var(--alg-neg-soft); color: #991B1B; }
+        .impact-medium { background: #FFFBEB; color: var(--alg-warn); }
+        .impact-low { background: #F0FDF4; color: var(--alg-pos); }
 
         /* ---- FOOTER ---- */
         .report-footer {
             margin-top: 40px;
             padding-top: 16px;
-            border-top: 1px solid #E7E5E4;
+            border-top: 1px solid var(--alg-line);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -301,7 +301,7 @@
                 {{ ['seo' => 'SEO & Analytics', 'marketing' => 'Marketing', 'sales' => 'Sales'][$record->type] ?? $record->type }}
             </span>
             @endif
-            <div style="font-size:11px;color:#9CA3AF;margin-top:6px;">Generado: {{ now()->format('d/m/Y H:i') }}</div>
+            <div style="font-size:11px;color:var(--alg-ink-3);margin-top:6px;">Generado: {{ now()->format('d/m/Y H:i') }}</div>
         </div>
     </div>
 
@@ -337,7 +337,7 @@
         <tbody>
             @foreach($record->findings as $finding)
             <tr>
-                <td style="font-weight:600;color:#0C0A09;">{{ $finding['title'] ?? '—' }}</td>
+                <td style="font-weight:600;color:var(--alg-ink);">{{ $finding['title'] ?? '—' }}</td>
                 <td>{{ $finding['detail'] ?? '—' }}</td>
             </tr>
             @endforeach
@@ -359,7 +359,7 @@
         <tbody>
             @foreach($record->opportunities as $opp)
             <tr>
-                <td style="font-weight:600;color:#0C0A09;">{{ $opp['title'] ?? '—' }}</td>
+                <td style="font-weight:600;color:var(--alg-ink);">{{ $opp['title'] ?? '—' }}</td>
                 <td>{{ $opp['detail'] ?? '—' }}</td>
                 <td>
                     @php

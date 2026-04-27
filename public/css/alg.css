@@ -1158,3 +1158,225 @@ body[data-alg-variant="b"] .fi-sidebar-header {
 .alg-stage-cold    { background: var(--alg-surface-2); color: var(--alg-ink-3); }
 .alg-stage-lost    { background: var(--alg-neg-soft); color: var(--alg-neg); }
 .alg-stage-warn    { background: var(--alg-warn-soft); color: var(--alg-warn); }
+
+
+/* ══════════════════════════════════════════════════
+   GAPS FILL — Filament v5 selectors not previously covered
+   (per Phase 2 of design system rollout)
+══════════════════════════════════════════════════ */
+
+/* Button group — segmented control (pill toggle) */
+.fi-btn-group {
+    display:        inline-flex !important;
+    border:         1px solid var(--alg-line) !important;
+    border-radius:  var(--alg-radius) !important;
+    padding:        2px !important;
+    background:     var(--alg-surface) !important;
+    box-shadow:     none !important;
+}
+.fi-btn-group .fi-btn-group-item,
+.fi-btn-group > .fi-btn {
+    padding:        5px 11px !important;
+    border:         0 !important;
+    border-radius:  4px !important;
+    font-size:      12px !important;
+    font-weight:    400 !important;
+    color:          var(--alg-ink-4) !important;
+    background:     transparent !important;
+    box-shadow:     none !important;
+}
+.fi-btn-group .fi-btn-group-item.fi-active,
+.fi-btn-group > .fi-btn.fi-active,
+.fi-btn-group [aria-pressed="true"] {
+    color:          var(--alg-ink) !important;
+    background:     var(--alg-surface-2) !important;
+    font-weight:    500 !important;
+}
+
+/* Modal chrome */
+.fi-modal-window,
+.fi-modal-content {
+    background:     var(--alg-surface) !important;
+    border:         1px solid var(--alg-line) !important;
+    border-radius:  var(--alg-radius-lg) !important;
+    box-shadow:     var(--alg-shadow-lg) !important;
+}
+.fi-modal-header {
+    padding:        20px 24px 12px !important;
+    border-bottom:  1px solid var(--alg-line) !important;
+}
+.fi-modal-heading {
+    font-family:    var(--alg-font) !important;
+    font-size:      15px !important;
+    font-weight:    600 !important;
+    letter-spacing: -0.01em !important;
+    color:          var(--alg-ink) !important;
+}
+.fi-modal-description,
+.fi-modal-subheading {
+    font-size:      12px !important;
+    color:          var(--alg-ink-4) !important;
+    margin-top:     2px !important;
+}
+.fi-modal-footer {
+    padding:        14px 24px !important;
+    border-top:     1px solid var(--alg-line) !important;
+    background:     var(--alg-surface) !important;
+}
+.fi-modal-close-btn,
+.fi-modal-close-button {
+    width:          28px !important;
+    height:         28px !important;
+    border-radius:  var(--alg-radius) !important;
+    border:         1px solid transparent !important;
+    background:     transparent !important;
+    color:          var(--alg-ink-4) !important;
+}
+.fi-modal-close-btn:hover,
+.fi-modal-close-button:hover {
+    background:     var(--alg-surface-2) !important;
+    color:          var(--alg-ink) !important;
+    border-color:   var(--alg-line) !important;
+}
+
+/* Sort icons in table headers */
+.fi-ta-col-sort-button svg,
+.fi-ta-header-cell-sort-btn svg {
+    color:          var(--alg-ink-5) !important;
+    width:          12px !important;
+    height:         12px !important;
+}
+.fi-ta-col-sort-button.fi-active svg,
+.fi-ta-header-cell-sort-btn.fi-active svg,
+.fi-ta-col-sort-button[aria-sort] svg {
+    color:          var(--alg-accent) !important;
+}
+
+/* Pagination */
+.fi-pagination,
+.fi-ta-pagination,
+nav[aria-label*="agination"] {
+    background:     transparent !important;
+    border:         0 !important;
+    padding:        12px 0 !important;
+}
+.fi-pagination-item,
+.fi-pagination button,
+nav[aria-label*="agination"] button,
+nav[aria-label*="agination"] a {
+    border-radius:  var(--alg-radius) !important;
+    border:         1px solid var(--alg-line) !important;
+    background:     var(--alg-surface) !important;
+    color:          var(--alg-ink-3) !important;
+    font-family:    var(--alg-font) !important;
+    font-size:      12px !important;
+    box-shadow:     none !important;
+}
+.fi-pagination-item:hover,
+.fi-pagination button:hover {
+    background:     var(--alg-surface-2) !important;
+    color:          var(--alg-ink) !important;
+}
+.fi-pagination-item.fi-active,
+.fi-pagination button[aria-current="page"],
+nav[aria-label*="agination"] [aria-current="page"] {
+    background:     var(--alg-ink) !important;
+    color:          #FFFFFF !important;
+    border-color:   var(--alg-ink) !important;
+}
+
+/* Form input placeholders */
+.fi-input::placeholder,
+.fi-select-input::placeholder,
+.fi-textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color:          var(--alg-ink-5) !important;
+    opacity:        1 !important;
+}
+
+/* Checkbox + radio (Filament v5 styled controls) */
+.fi-checkbox-input:checked,
+.fi-radio-input:checked,
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+    background-color: var(--alg-accent) !important;
+    border-color:     var(--alg-accent) !important;
+}
+.fi-checkbox-input:focus,
+.fi-radio-input:focus {
+    box-shadow: 0 0 0 3px var(--alg-accent-soft) !important;
+}
+
+/* Toggle (Filament v5) — accent on ink-1 track */
+.fi-toggle[aria-checked="true"] {
+    background:     var(--alg-ink) !important;
+}
+
+/* Loading indicators */
+.fi-loading-indicator,
+.fi-spinner,
+[role="progressbar"] {
+    color:          var(--alg-accent) !important;
+}
+
+/* Skeleton placeholders */
+[data-skeleton],
+.fi-skeleton {
+    background:     var(--alg-surface-2) !important;
+    border-radius:  var(--alg-radius) !important;
+    animation:      none !important;
+}
+
+/* Filter dropdown panels (Filament Tables filters) */
+.fi-ta-filters-form {
+    background:     var(--alg-surface) !important;
+    border:         1px solid var(--alg-line) !important;
+    border-radius:  var(--alg-radius-lg) !important;
+    box-shadow:     none !important;
+}
+.fi-ta-filters-form-content {
+    padding:        16px !important;
+}
+
+/* Action buttons inside table rows (Edit, Delete, custom) */
+.fi-ta-actions-ctn .fi-btn,
+.fi-ta-actions .fi-btn,
+td.fi-ta-actions-cell .fi-icon-btn {
+    background:     transparent !important;
+    color:          var(--alg-ink-3) !important;
+    border:         0 !important;
+}
+.fi-ta-actions-ctn .fi-btn:hover,
+td.fi-ta-actions-cell .fi-icon-btn:hover {
+    color:          var(--alg-ink) !important;
+    background:     var(--alg-surface-2) !important;
+}
+
+/* Toast / notifications */
+.fi-no-notification {
+    background:     var(--alg-surface) !important;
+    border:         1px solid var(--alg-line) !important;
+    border-radius:  var(--alg-radius-lg) !important;
+    box-shadow:     var(--alg-shadow-lg) !important;
+    color:          var(--alg-ink) !important;
+}
+
+/* Tabs (form tabs, page tabs) — already partially covered, ensure base */
+.fi-tabs {
+    border-bottom:  1px solid var(--alg-line) !important;
+    background:     transparent !important;
+}
+.fi-tabs-tab[aria-selected="true"],
+.fi-tabs-tab.fi-active {
+    color:          var(--alg-ink) !important;
+    border-bottom:  2px solid var(--alg-accent) !important;
+    font-weight:    500 !important;
+}
+
+/* Hide blue link underline default in form helper text */
+.fi-fo-field-wrp-hint a,
+.fi-fo-helper-text a {
+    color:          var(--alg-accent) !important;
+    text-decoration: none !important;
+}
