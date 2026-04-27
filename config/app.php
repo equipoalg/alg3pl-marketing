@@ -138,4 +138,14 @@ return [
     'admin_email' => env('ADMIN_EMAIL'),
     'admin_password' => env('ADMIN_PASSWORD'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Show Variant A/B Toggle on Dashboard
+    |--------------------------------------------------------------------------
+    | Controls whether the discrete A|B layout-switcher pill renders in the
+    | dashboard's page header. Off by default (design is single-variant);
+    | turn on per-request via ?variant_toggle=1 or globally via env.
+    */
+    'show_variant_toggle' => env('SHOW_VARIANT_TOGGLE', false),
+
 ];

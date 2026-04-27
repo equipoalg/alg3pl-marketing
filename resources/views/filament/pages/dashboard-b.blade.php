@@ -61,7 +61,8 @@
     @endphp
     <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
         @foreach($kpis as $i => $kpi)
-        <a href="{{ $kpiLinksB[$kpi['id']] ?? '/admin' }}" style="padding:0 28px;{{ $i > 0 ? 'border-left:1px solid #E2E8F0;' : '' }}display:flex;flex-direction:column;justify-content:flex-end;gap:4px;text-decoration:none;color:inherit;transition:background 150ms ease-out;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
+        {{-- Per design: hero KPIs have NO hover (only the dividers separate them) --}}
+        <a href="{{ $kpiLinksB[$kpi['id']] ?? '/admin' }}" style="padding:0 28px;{{ $i > 0 ? 'border-left:1px solid #E2E8F0;' : '' }}display:flex;flex-direction:column;justify-content:flex-end;gap:4px;text-decoration:none;color:inherit;">
             <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:10.5px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.08em;font-weight:500;">{{ $kpi['label'] }}</span>
             <span style="font-family:'Geist Mono',ui-monospace,monospace;font-size:30px;font-weight:500;letter-spacing:-0.025em;color:#0F172A;line-height:1;font-variant-numeric:tabular-nums;">{{ is_numeric($kpi['value']) ? number_format($kpi['value']) : $kpi['value'] }}</span>
             @if($kpi['delta'] != 0)

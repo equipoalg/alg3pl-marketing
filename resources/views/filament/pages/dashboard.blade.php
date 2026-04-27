@@ -10,8 +10,9 @@
 <div style="padding: 4px 0 20px; display: flex; flex-direction: column; gap: 14px;">
     <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
         <div style="min-width: 0;">
+            {{-- Per design: h1 is always "Panorama global". Country lives in the topbar breadcrumb. --}}
             <h1 style="margin: 0; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #0F172A;">
-                @if($selectedCountry){{ $selectedCountry->name }}@else Panorama global @endif
+                Panorama global
             </h1>
             <p style="margin: 6px 0 0; font-family: 'Geist',ui-sans-serif,system-ui,sans-serif; font-size: 13px; color: #94A3B8; max-width: 560px; line-height: 1.5;">
                 Vista resumen del CRM y desempeño de marketing —
@@ -47,12 +48,16 @@
                 Exportar
             </button>
 
-            {{-- Variant toggle — discrete pill on the far right --}}
+            {{-- Variant toggle: hidden by default (design has no toggle visible).
+                 Show only when explicitly enabled via ?variant_toggle=1 query param
+                 OR SHOW_VARIANT_TOGGLE=true env. Internal/dev convenience. --}}
+            @if(request()->boolean('variant_toggle') || config('app.show_variant_toggle'))
             <div style="display:inline-flex;border:1px solid #E2E8F0;border-radius:6px;padding:2px;background:#FFFFFF;margin-left:6px;" title="Cambiar layout">
                 @foreach(['a' => 'A', 'b' => 'B'] as $v => $lbl)
                 <button wire:click="setVariant('{{ $v }}')" type="button" style="padding:5px 9px;border:0;border-radius:4px;cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11px;font-weight:600;color:{{ $variant === $v ? '#0F172A' : '#94A3B8' }};background:{{ $variant === $v ? '#F8FAFC' : 'transparent' }};transition:all 150ms ease-out;letter-spacing:0.04em;">{{ $lbl }}</button>
                 @endforeach
             </div>
+            @endif
         </div>
     </div>
 </div>
@@ -62,7 +67,8 @@
 
 {{-- LOADING OVERLAY --}}
 <div style="position: relative;">
-    <div wire:loading.flex wire:target="setTimeRange, setVariant, select" style="position: absolute; inset: 0; z-index: 10; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+    {{-- Loading overlay shows instantly when changing range/variant/country --}}
+    <div wire:loading.delay.shortest.flex wire:target="setTimeRange, setVariant, select" style="position: absolute; inset: 0; z-index: 10; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(2px); align-items: center; justify-content: center;">
         <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px;">
             <svg style="width: 14px; height: 14px; color: #1E3A8A; animation: alg-spin 1s linear infinite;" fill="none" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="30 60"/>

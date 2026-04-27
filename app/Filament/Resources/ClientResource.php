@@ -27,6 +27,11 @@ class ClientResource extends Resource
         $count = static::getModel()::count();
         return $count > 0 ? (string) $count : null;
     }
+    /** Global search — Buscar ⌘K hits this */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email', 'phone'];
+    }
 
     public static function form(Schema $schema): Schema
     {

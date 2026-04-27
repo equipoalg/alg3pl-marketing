@@ -37,3 +37,5 @@ Thumbs.db
 /public/deploy*.php
 /public/fix-*.php
 /public/diag*.php
+/public/_design-ref/
+/public/_*

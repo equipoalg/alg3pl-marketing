@@ -104,7 +104,7 @@ body,
 
 
 /* ══════════════════════════════════════════════════
-   TOPBAR — bg, hairline bottom, no shadow
+   TOPBAR — bg, hairline bottom, no shadow, fixed 52px
 ══════════════════════════════════════════════════ */
 .fi-topbar {
     background:       var(--alg-bg) !important;
@@ -114,9 +114,25 @@ body,
     box-shadow:       none !important;
     height:           52px !important;
     min-height:       52px !important;
+    max-height:       52px !important;
+    padding:          0 28px !important;
 }
 .fi-topbar nav {
     gap: 8px !important;
+    height: 52px !important;
+    align-items: center !important;
+}
+/* Hide Filament's default user-menu (avatar dropdown) — our topbar-end
+   has its own bell + Nuevo lead, and the sidebar footer has the user info */
+.fi-topbar .fi-user-menu,
+.fi-topbar .fi-dropdown:has(.fi-avatar),
+.fi-topbar .fi-theme-switcher {
+    display: none !important;
+}
+/* Hide the global sidebar collapse toggle button (chevron) — no clean spot in design */
+.fi-topbar > button[x-on\\:click*="sidebar"],
+.fi-sidebar-header > button {
+    display: none !important;
 }
 
 
@@ -208,12 +224,22 @@ body,
 .fi-sidebar-item-button.fi-active::before {
     content:    "" !important;
     position:   absolute !important;
-    left:       -8px !important;
+    /* Anchor to nav padding edge (8px) so the bar aligns with sidebar's left border */
+    left:       0 !important;
     top:        4px !important;
     bottom:     4px !important;
     width:      2px !important;
     background: var(--alg-accent) !important;
-    border-radius: 1px !important;
+    border-radius: 0 2px 2px 0 !important;
+}
+/* Sidebar footer: stick to bottom even when nav is short */
+.fi-sidebar {
+    display:        flex !important;
+    flex-direction: column !important;
+}
+.fi-sidebar > .alg-sidebar-footer-a,
+.fi-sidebar > .alg-sidebar-footer-b {
+    margin-top:     auto !important;
 }
 .fi-sidebar-item-icon {
     color: var(--alg-ink-4) !important;
@@ -380,12 +406,13 @@ body,
 
 
 /* ══════════════════════════════════════════════════
-   WIDGET PANELS / SECTIONS — flat white cards
+   WIDGET PANELS / SECTIONS — flat white cards, ZERO shadows per design
 ══════════════════════════════════════════════════ */
 .fi-wi > div > div,
 .fi-wi > div,
 .fi-section,
-.fi-wi-chart {
+.fi-wi-chart,
+.fi-wi-stats-overview-stat {
     background:    var(--alg-surface) !important;
     border:        1px solid var(--alg-line) !important;
     border-radius: var(--alg-radius-lg) !important;
@@ -393,8 +420,10 @@ body,
     overflow:      hidden !important;
 }
 .fi-wi-chart:hover,
-.fi-wi > div:hover {
+.fi-wi > div:hover,
+.fi-wi-stats-overview-stat:hover {
     box-shadow: none !important;
+    transform:  none !important;
 }
 
 .fi-widgets {

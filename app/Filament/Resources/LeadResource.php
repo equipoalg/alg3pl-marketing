@@ -54,6 +54,22 @@ class LeadResource extends Resource
         return $count > 0 ? (string) $count : null;
     }
 
+    /** Global search — Buscar ⌘K hits this */
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email', 'company', 'phone'];
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return array_filter([
+            'Empresa' => $record->company,
+            'Email'   => $record->email,
+            'País'    => $record->country?->name,
+            'Estado'  => $record->status,
+        ]);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
