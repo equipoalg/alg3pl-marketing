@@ -53,6 +53,7 @@ class WebhookResource extends Resource
                             null           => 'Generic webhook (events)',
                         ])
                         ->visible(fn ($get) => $get('direction') === 'inbound')
+                        ->live() // re-render so country_id / mapping sections appear when source picked
                         ->helperText('Fluent Forms parsea el payload directo a Lead. Generic ejecuta eventos del WebhookDispatcher.'),
                     Forms\Components\Select::make('country_id')
                         ->label('País destino')
