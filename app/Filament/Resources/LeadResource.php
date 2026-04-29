@@ -168,10 +168,8 @@ class LeadResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('País')
-                    ->options(Country::active()->pluck('name', 'id'))
-                    ->searchable(),
+                // Country filter removed — the sidebar country switcher already
+                // filters via ScopesByCountryFilter trait (single source of truth).
                 SelectFilter::make('status')
                     ->label('Estado')
                     ->options([

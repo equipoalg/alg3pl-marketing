@@ -113,9 +113,6 @@ class CampaignResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('Country')
-                    ->options(Country::pluck('name', 'id')),
                 SelectFilter::make('type')
                     ->options([
                         'email' => 'Email',

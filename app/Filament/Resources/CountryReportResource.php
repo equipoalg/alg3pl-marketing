@@ -138,9 +138,6 @@ class CountryReportResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('Country')
-                    ->options(Country::active()->pluck('name', 'id')),
             ])
             ->recordAction('view_report')
             ->actions([

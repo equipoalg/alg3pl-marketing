@@ -73,9 +73,6 @@ class SearchConsoleDataResource extends Resource
                 Tables\Columns\TextColumn::make('date')->label('Fecha')->date()->sortable()->toggleable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('País')
-                    ->relationship('country', 'name'),
             ])
             ->defaultSort('clicks', 'desc');
     }

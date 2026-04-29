@@ -174,9 +174,6 @@ class TaskResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('Country')
-                    ->options(Country::active()->pluck('name', 'id')),
                 SelectFilter::make('priority')
                     ->options(['P0' => 'P0', 'P1' => 'P1', 'P2' => 'P2', 'P3' => 'P3']),
                 SelectFilter::make('status')

@@ -182,9 +182,6 @@ class AdMetricResource extends Resource
                     ->placeholder('Manual'),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('País')
-                    ->options(Country::pluck('name', 'id')),
 
                 SelectFilter::make('platform')
                     ->label('Plataforma')

@@ -104,7 +104,6 @@ class ClientResource extends Resource
                 Tables\Columns\TextColumn::make('contract_end')->date()->sortable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')->label('Country')->options(Country::pluck('name', 'id')),
                 SelectFilter::make('status')->options([
                     'prospect' => 'Prospect', 'active' => 'Active',
                     'inactive' => 'Inactive', 'churned' => 'Churned',

@@ -74,9 +74,6 @@ class AnalyticsSnapshotResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('country_id')
-                    ->label('País')
-                    ->relationship('country', 'name'),
             ])
             ->defaultSort('date', 'desc');
     }

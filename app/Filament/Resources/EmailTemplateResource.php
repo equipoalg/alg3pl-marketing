@@ -123,9 +123,6 @@ class EmailTemplateResource extends Resource
                         'notification' => 'Notification',
                         'custom' => 'Custom',
                     ]),
-                SelectFilter::make('country_id')
-                    ->label('Country')
-                    ->options(Country::pluck('name', 'id')),
             ])
             ->defaultSort('updated_at', 'desc');
     }
