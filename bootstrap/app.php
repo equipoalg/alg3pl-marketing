@@ -12,7 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Inbound webhook endpoints can't send Laravel CSRF tokens — exempt them.
+        // /webhook/{id} = Fluent Forms / generic inbound (WebhookInboundController)
+        // /api/v1/webhook/* lives in routes/api.php so it's already CSRF-free
+        $middleware->validateCsrfTokens(except: [
+            'webhook/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
