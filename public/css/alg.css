@@ -1491,3 +1491,223 @@ html { scrollbar-width: thin; scrollbar-color: var(--alg-line-2) transparent; }
 .fi-header.fi-header-has-breadcrumbs {
     min-height: auto !important;
 }
+
+
+/* ══════════════════════════════════════════════════
+   ANIMATIONS — micro-interactions y entry effects
+   Mantiene la estética editorial: solo transform + opacity,
+   sin decorar con sombras o gradientes.
+══════════════════════════════════════════════════ */
+
+/* Tokens de motion (extiende los existentes --alg-ease/-fast) */
+:root {
+    --alg-ease-out:    cubic-bezier(0.22, 1, 0.36, 1);     /* "out-quart" — para entries */
+    --alg-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);     /* para transitions reversibles */
+    --alg-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);  /* leve overshoot — para confirmaciones */
+}
+
+/* #5 Card hover lift — opt-in con clase o data attr */
+.alg-hover-lift,
+.fi-section,
+[data-hover-lift] {
+    transition: transform 150ms var(--alg-ease-out),
+                border-color 150ms var(--alg-ease-out),
+                background-color 150ms var(--alg-ease-out);
+}
+.alg-hover-lift:hover,
+[data-hover-lift]:hover {
+    transform: translateY(-1px);
+    border-color: var(--alg-line-2);
+}
+
+/* Bonus: Pipeline cards de variant-b — dotted top border + hover lift */
+section[style*="border-top:2px solid"] {
+    transition: transform 150ms var(--alg-ease-out),
+                border-color 150ms var(--alg-ease-out);
+}
+section[style*="border-top:2px solid"]:hover {
+    transform: translateY(-1px);
+}
+
+/* #3 Stagger fade-in para listas: aplicar clase .alg-stagger al contenedor */
+@keyframes alg-fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.alg-stagger > * {
+    opacity: 0;
+    animation: alg-fade-up 320ms var(--alg-ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 30ms);
+}
+.alg-stagger > *:nth-child(1)  { --i: 0; }
+.alg-stagger > *:nth-child(2)  { --i: 1; }
+.alg-stagger > *:nth-child(3)  { --i: 2; }
+.alg-stagger > *:nth-child(4)  { --i: 3; }
+.alg-stagger > *:nth-child(5)  { --i: 4; }
+.alg-stagger > *:nth-child(6)  { --i: 5; }
+.alg-stagger > *:nth-child(7)  { --i: 6; }
+.alg-stagger > *:nth-child(8)  { --i: 7; }
+.alg-stagger > *:nth-child(9)  { --i: 8; }
+.alg-stagger > *:nth-child(10) { --i: 9; }
+.alg-stagger > *:nth-child(11) { --i: 10; }
+.alg-stagger > *:nth-child(12) { --i: 11; }
+
+/* #3b Filament tables: fade-up rows on initial render */
+.fi-ta-table tbody tr {
+    opacity: 0;
+    animation: alg-fade-up 280ms var(--alg-ease-out) forwards;
+}
+.fi-ta-table tbody tr:nth-child(1)  { animation-delay: 0ms; }
+.fi-ta-table tbody tr:nth-child(2)  { animation-delay: 25ms; }
+.fi-ta-table tbody tr:nth-child(3)  { animation-delay: 50ms; }
+.fi-ta-table tbody tr:nth-child(4)  { animation-delay: 75ms; }
+.fi-ta-table tbody tr:nth-child(5)  { animation-delay: 100ms; }
+.fi-ta-table tbody tr:nth-child(6)  { animation-delay: 125ms; }
+.fi-ta-table tbody tr:nth-child(7)  { animation-delay: 150ms; }
+.fi-ta-table tbody tr:nth-child(8)  { animation-delay: 175ms; }
+.fi-ta-table tbody tr:nth-child(9)  { animation-delay: 200ms; }
+.fi-ta-table tbody tr:nth-child(10) { animation-delay: 225ms; }
+.fi-ta-table tbody tr:nth-child(n+11) { animation-delay: 250ms; }
+
+/* #2 Sparkline draw-on-mount: aplicar clase .alg-sparkline-animate a polyline */
+@keyframes alg-draw {
+    to { stroke-dashoffset: 0; }
+}
+.alg-sparkline-animate {
+    /* JS sets stroke-dasharray to actual path length; CSS provides fallback animation */
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: alg-draw 1200ms var(--alg-ease-out) forwards;
+}
+
+/* #4 Sidebar B label fade — labels aparecen DESPUÉS del width transition */
+.alg-sidebar-b-label {
+    transition: opacity 200ms var(--alg-ease-out) 80ms;
+}
+
+/* Pipeline progress bar fill (lead-hero widget bars) */
+@keyframes alg-fill-bar {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+.alg-progress-fill,
+[data-progress-fill] {
+    transform-origin: left;
+    animation: alg-fill-bar 700ms var(--alg-ease-out) forwards;
+}
+
+/* Bonus: button press scale-down */
+button,
+.fi-btn,
+[role="button"] {
+    transition: transform 80ms var(--alg-ease-out),
+                background-color 120ms var(--alg-ease-out),
+                opacity 120ms var(--alg-ease-out);
+}
+button:active,
+.fi-btn:active,
+[role="button"]:active {
+    transform: scale(0.97);
+}
+
+/* Bonus: form field focus ring — navy 12% glow */
+.fi-input:focus,
+.fi-select-input:focus,
+.fi-input-wrp:focus-within,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12) !important;
+    border-color: var(--alg-accent) !important;
+    transition: box-shadow 150ms var(--alg-ease-out),
+                border-color 150ms var(--alg-ease-out) !important;
+}
+
+/* Bonus: empty state breath */
+@keyframes alg-breath {
+    0%, 100% { transform: scale(1); opacity: 0.55; }
+    50%      { transform: scale(1.04); opacity: 0.75; }
+}
+.fi-empty-state-icon,
+[data-empty-icon] {
+    animation: alg-breath 3.6s ease-in-out infinite;
+}
+
+/* #7 Skeleton shimmer */
+@keyframes alg-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.fi-skeleton,
+[data-skeleton] {
+    background: linear-gradient(
+        90deg,
+        var(--alg-surface-2) 25%,
+        var(--alg-line) 50%,
+        var(--alg-surface-2) 75%
+    ) !important;
+    background-size: 200% 100% !important;
+    animation: alg-shimmer 1.4s infinite linear !important;
+}
+
+/* #8 Toast notifications (Filament .fi-no-notification) — slide+fade */
+@keyframes alg-toast-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes alg-toast-out {
+    to { transform: scale(0.95) translateX(20%); opacity: 0; }
+}
+.fi-no-notification {
+    animation: alg-toast-in 240ms var(--alg-ease-out) forwards;
+}
+
+/* #9 Top progress bar — driven by JS via livewire:navigating events */
+#alg-nprogress {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--alg-accent);
+    z-index: 10000;
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 240ms var(--alg-ease-out);
+    pointer-events: none;
+    opacity: 1;
+}
+#alg-nprogress.active { transform: scaleX(0.7); }
+#alg-nprogress.done   {
+    transform: scaleX(1);
+    opacity: 0;
+    transition: transform 240ms ease-out, opacity 200ms ease-out 200ms;
+}
+
+/* #6 View Transitions API (Chrome/Edge/Safari 18+) */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 220ms;
+    animation-timing-function: var(--alg-ease-out);
+}
+::view-transition-old(root) { animation-name: alg-vt-out; }
+::view-transition-new(root) { animation-name: alg-vt-in; }
+@keyframes alg-vt-out { to   { opacity: 0; } }
+@keyframes alg-vt-in  { from { opacity: 0; } }
+
+/* #10 Number cross-fade — class toggled by JS when content changes */
+.alg-num-fade-out {
+    animation: alg-num-out 120ms var(--alg-ease-out) forwards;
+}
+.alg-num-fade-in {
+    animation: alg-num-in 200ms var(--alg-ease-out) forwards;
+}
+@keyframes alg-num-out { to   { opacity: 0; transform: translateY(-4px); } }
+@keyframes alg-num-in  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Respect prefers-reduced-motion — disable all of the above gracefully */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

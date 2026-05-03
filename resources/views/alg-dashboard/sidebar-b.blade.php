@@ -28,7 +28,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 12px 10px;flex-shrink:0;">
         <a href="/admin/dashboard" style="text-decoration:none;display:flex;align-items:center;gap:10px;color:white;flex:1;min-width:0;">
             <div style="width:30px;height:30px;border-radius:7px;background:white;color:var(--ink-1);display:grid;place-items:center;font-family:var(--font-mono);font-weight:700;font-size:13px;flex-shrink:0;">A</div>
-            <div x-show="expanded" x-transition.opacity style="display:flex;flex-direction:column;line-height:1.1;min-width:0;">
+            <div x-show="expanded" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity style="display:flex;flex-direction:column;line-height:1.1;min-width:0;">
                 <span style="font-size:13px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;">ALG3PL</span>
                 <span style="font-size:10.5px;color:rgba(255,255,255,0.55);margin-top:2px;white-space:nowrap;">Producción · Marketing</span>
             </div>
@@ -46,7 +46,7 @@
     </div>
 
     {{-- Workspace switcher (Alpine dropdown, dark theme, only when expanded) --}}
-    <div x-show="expanded" x-data="{ wsOpen: false }" x-transition.opacity style="padding:8px 10px;flex-shrink:0;position:relative;">
+    <div x-show="expanded" x-data="{ wsOpen: false }" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity style="padding:8px 10px;flex-shrink:0;position:relative;">
         <button
             x-on:click.stop="wsOpen = !wsOpen"
             type="button"
@@ -110,7 +110,7 @@
     <nav style="flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 10px 12px;">
         @foreach($navSections as $sec)
             @if(!empty($sec['label']))
-                <div x-show="expanded" x-transition.opacity style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;padding:10px 6px 4px;font-weight:500;white-space:nowrap;">{{ $sec['label'] }}</div>
+                <div x-show="expanded" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.08em;padding:10px 6px 4px;font-weight:500;white-space:nowrap;">{{ $sec['label'] }}</div>
             @endif
             @foreach($sec['items'] as $item)
                 @php
@@ -128,9 +128,9 @@
                     <span style="width:20px;display:grid;place-items:center;flex-shrink:0;">
                         @include('alg-dashboard.icon', ['name' => $item['icon'], 'size' => 17, 'stroke' => 'currentColor'])
                     </span>
-                    <span x-show="expanded" x-transition.opacity style="flex:1;overflow:hidden;text-overflow:ellipsis;">{{ $item['label'] }}</span>
+                    <span x-show="expanded" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity style="flex:1;overflow:hidden;text-overflow:ellipsis;">{{ $item['label'] }}</span>
                     @if(isset($item['count']))
-                        <span x-show="expanded" x-transition.opacity class="num tnum" style="font-size:11px;color:rgba(255,255,255,0.45);">{{ $item['count'] }}</span>
+                        <span x-show="expanded" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity class="num tnum" style="font-size:11px;color:rgba(255,255,255,0.45);">{{ $item['count'] }}</span>
                     @endif
                 </a>
             @endforeach
@@ -140,11 +140,11 @@
     {{-- Footer user --}}
     <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.10);display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0;">{{ $userInitials }}</div>
-        <div x-show="expanded" x-transition.opacity style="flex:1;line-height:1.2;min-width:0;">
+        <div x-show="expanded" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity style="flex:1;line-height:1.2;min-width:0;">
             <div style="font-size:12px;font-weight:500;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $userName }}</div>
             <div style="font-size:10.5px;color:rgba(255,255,255,0.55);">Marketing manager</div>
         </div>
-        <a x-show="expanded" x-transition.opacity href="#" onclick="event.preventDefault();document.getElementById('alg-logout-form-b').submit();" style="color:rgba(255,255,255,0.55);text-decoration:none;display:grid;place-items:center;">
+        <a x-show="expanded" x-transition:enter.duration.200ms.delay.80ms x-transition:leave.duration.120ms.opacity href="#" onclick="event.preventDefault();document.getElementById('alg-logout-form-b').submit();" style="color:rgba(255,255,255,0.55);text-decoration:none;display:grid;place-items:center;">
             @include('alg-dashboard.icon', ['name' => 'settings', 'size' => 14, 'stroke' => 'currentColor'])
         </a>
         <form id="alg-logout-form-b" action="/admin/logout" method="POST" style="display:none;">@csrf</form>

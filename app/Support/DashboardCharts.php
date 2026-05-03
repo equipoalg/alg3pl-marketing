@@ -111,7 +111,7 @@ class DashboardCharts
             $sw = $idx === 0 ? '1.75' : '1.25';
             $opacity = $idx === 0 ? '1' : '0.7';
             $path = $toPath($series[$k]);
-            $svg .= '<path d="' . $path . '" fill="none" stroke="' . $color . '" stroke-width="' . $sw . '" opacity="' . $opacity . '" />';
+            $svg .= '<path class="alg-sparkline-animate" d="' . $path . '" fill="none" stroke="' . $color . '" stroke-width="' . $sw . '" opacity="' . $opacity . '" />';
         }
 
         // Bar mode
@@ -163,7 +163,7 @@ class DashboardCharts
         if ($fill) {
             $svg .= "<path d=\"{$area}\" fill=\"{$color}\" fill-opacity=\"0.10\" />";
         }
-        $svg .= "<path d=\"{$path}\" fill=\"none\" stroke=\"{$color}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" />";
+        $svg .= "<path class=\"alg-sparkline-animate\" d=\"{$path}\" fill=\"none\" stroke=\"{$color}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\" />";
         $svg .= '</svg>';
         return $svg;
     }

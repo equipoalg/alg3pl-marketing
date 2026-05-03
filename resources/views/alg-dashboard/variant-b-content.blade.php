@@ -65,17 +65,21 @@
                 </div>
             </div>
 
-            {{-- 4 big editorial KPIs + traffic strip --}}
+            {{-- 4 big editorial KPIs + traffic strip — count-up animation via data-count-to --}}
             <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
                 @foreach([
-                    ['Leads totales',    '2,847', '+12.4%', 'pos'],
-                    ['Cuentas activas',  '142',   '+3.6%',  'pos'],
-                    ['Campañas activas', '8',     '3 prog.','ink'],
-                    ['Conversión',       '4.8%',  '+0.6pts','pos'],
-                ] as [$lbl, $val, $delta, $deltaColor])
+                    ['Leads totales',    '2,847', 2847, 0, '',  '+12.4%', 'pos'],
+                    ['Cuentas activas',  '142',   142,  0, '',  '+3.6%',  'pos'],
+                    ['Campañas activas', '8',     8,    0, '',  '3 prog.','ink'],
+                    ['Conversión',       '4.8%',  4.8,  1, '%', '+0.6pts','pos'],
+                ] as [$lbl, $val, $countTo, $decimals, $suffix, $delta, $deltaColor])
                     <div style="padding:0 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-end;gap:4px;">
                         <span style="font-size:10.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;">{{ $lbl }}</span>
-                        <span class="num" style="font-size:30px;font-weight:500;letter-spacing:-0.025em;color:var(--ink-1);line-height:1;">{{ $val }}</span>
+                        <span class="num"
+                              data-count-to="{{ $countTo }}"
+                              data-count-decimals="{{ $decimals }}"
+                              data-count-suffix="{{ $suffix }}"
+                              style="font-size:30px;font-weight:500;letter-spacing:-0.025em;color:var(--ink-1);line-height:1;">0{{ $suffix }}</span>
                         <span style="font-size:11.5px;color:{{ $deltaColor === 'pos' ? 'var(--pos)' : 'var(--ink-4)' }};font-weight:500;">{{ $delta }}</span>
                     </div>
                 @endforeach
@@ -109,12 +113,12 @@
             <div style="display:grid;grid-template-columns:repeat({{ count($pipelineStages) }},1fr);gap:8px;">
                 @foreach($pipelineStages as $s)
                     @php $clr = $colorMap[$s['color']] ?? 'var(--ink-3)'; @endphp
-                    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:6px;background:var(--surface);border-top:2px solid {{ $clr }};display:flex;flex-direction:column;gap:6px;">
+                    <div class="alg-hover-lift" style="padding:14px 16px;border:1px solid var(--border);border-radius:6px;background:var(--surface);border-top:2px solid {{ $clr }};display:flex;flex-direction:column;gap:6px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
                             <span style="font-size:11.5px;color:var(--ink-3);font-weight:500;">{{ $s['label'] }}</span>
                             <span style="font-size:10px;color:var(--ink-5);">{{ round(($s['count'] / $totalPipelineCount) * 100) }}%</span>
                         </div>
-                        <div class="num" style="font-size:22px;font-weight:500;letter-spacing:-0.02em;">{{ $s['count'] }}</div>
+                        <div class="num" data-count-to="{{ $s['count'] }}" style="font-size:22px;font-weight:500;letter-spacing:-0.02em;">0</div>
                     </div>
                 @endforeach
             </div>
