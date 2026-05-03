@@ -40,8 +40,12 @@
     $btnGhost = 'display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--ink-3);cursor:pointer;font-family:var(--font-sans);';
     $btnPrimary = 'display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:6px;border:1px solid var(--ink-1);background:var(--ink-1);font-size:12.5px;color:white;font-weight:500;cursor:pointer;font-family:var(--font-sans);';
 
-    $maxFuente = max(1, max(array_column($fuentes, 'value')));
-    $maxByCountry = max(1, max(array_column($byCountry, 'value')));
+    // Defensive max() — array_column on an empty array returns [] and max([]) is a
+    // PHP 8 ValueError. Falls back to [0] so we always have at least one numeric.
+    $fuenteValues   = array_column($fuentes, 'value') ?: [0];
+    $countryValues  = array_column($byCountry, 'value') ?: [0];
+    $maxFuente      = max(1, max($fuenteValues));
+    $maxByCountry   = max(1, max($countryValues));
 
     /* ───────── Real data wiring for the hero ───────── */
     $byId = collect($kpis)->keyBy('id');
@@ -232,7 +236,7 @@
                        style="text-decoration:none;color:inherit;padding:14px 16px;border:1px solid var(--border);border-radius:6px;background:var(--surface);border-top:2px solid {{ $clr }};display:flex;flex-direction:column;gap:6px;cursor:pointer;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
                             <span style="font-size:11.5px;color:var(--ink-3);font-weight:500;">{{ $s['label'] }}</span>
-                            <span style="font-size:10px;color:var(--ink-5);">{{ round(($s['count'] / $totalPipelineCount) * 100) }}%</span>
+                            <span style="font-size:10px;color:var(--ink-5);">{{ $totalPipelineCount > 0 ? round(($s['count'] / $totalPipelineCount) * 100) : 0 }}%</span>
                         </div>
                         <div class="num" data-count-to="{{ $s['count'] }}" style="font-size:22px;font-weight:500;letter-spacing:-0.02em;">0</div>
                     </a>
