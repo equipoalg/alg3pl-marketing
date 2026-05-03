@@ -1520,6 +1520,24 @@ html { scrollbar-width: thin; scrollbar-color: var(--alg-line-2) transparent; }
     border-color: var(--alg-line-2);
 }
 
+/* KPI tiles del hero variant B — clickeables, hover sutil */
+.alg-kpi-tile {
+    position: relative;
+}
+.alg-kpi-tile::after {
+    content: "";
+    position: absolute;
+    inset: 6px 14px;
+    border-radius: 6px;
+    background: var(--alg-surface-2);
+    opacity: 0;
+    transition: opacity 150ms var(--alg-ease-out);
+    pointer-events: none;
+    z-index: -1;
+}
+.alg-kpi-tile:hover::after { opacity: 0.6; }
+.alg-kpi-tile:hover .num { color: var(--alg-accent) !important; transition: color 150ms var(--alg-ease-out); }
+
 /* Bonus: Pipeline cards de variant-b — dotted top border + hover lift */
 section[style*="border-top:2px solid"] {
     transition: transform 150ms var(--alg-ease-out),

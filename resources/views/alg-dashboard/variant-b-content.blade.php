@@ -115,7 +115,9 @@
                         @if($heroTotalLeads === 0)
                             Sin leads en los últimos {{ $rangeLabel }}. <span style="color:var(--ink-4);">Conectá Fluent Forms o cargá leads para ver el panorama.</span>
                         @else
-                            <span style="color:var(--accent);" class="num" data-count-to="{{ $heroTotalLeads }}">{{ number_format($heroTotalLeads) }}</span> {{ $heroTotalLeads === 1 ? 'lead' : 'leads' }} {{ $heroTotalLeads === 1 ? 'captado' : 'captados' }} durante los últimos {{ $rangeLabel }}.
+                            <a href="/admin/leads" style="text-decoration:none;color:var(--accent);border-bottom:2px solid transparent;transition:border-color 150ms var(--alg-ease-out);" onmouseover="this.style.borderBottomColor='var(--accent)'" onmouseout="this.style.borderBottomColor='transparent'" title="Ver bandeja de entrada">
+                                <span class="num" data-count-to="{{ $heroTotalLeads }}">{{ number_format($heroTotalLeads) }}</span>
+                            </a> {{ $heroTotalLeads === 1 ? 'lead' : 'leads' }} {{ $heroTotalLeads === 1 ? 'captado' : 'captados' }} durante los últimos {{ $rangeLabel }}.
                         @endif
                     </h1>
                     @if($heroTotalLeads > 0)
@@ -135,7 +137,7 @@
                 <div style="display:flex;gap:8px;flex-shrink:0;">
                     <button style="{{ $btnGhost }}">@include('alg-dashboard.icon', ['name' => 'calendar', 'size' => 13, 'stroke' => 'var(--ink-3)']) Últimos 30 días</button>
                     <button style="{{ $btnGhost }}">@include('alg-dashboard.icon', ['name' => 'download', 'size' => 13, 'stroke' => 'var(--ink-3)'])</button>
-                    <button style="{{ $btnPrimary }}">@include('alg-dashboard.icon', ['name' => 'plus', 'size' => 14, 'stroke' => 'white']) Nuevo lead</button>
+                    <a href="/admin/leads/create" style="{{ $btnPrimary }};text-decoration:none;">@include('alg-dashboard.icon', ['name' => 'plus', 'size' => 14, 'stroke' => 'white']) Nuevo lead</a>
                 </div>
             </div>
 
@@ -143,14 +145,17 @@
             <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
                 @php
                     $tiles = [
-                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null],
-                        ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null],
-                        ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null],
-                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null],
+                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/leads',     'Ver bandeja de entrada'],
+                        ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients',   'Ver cuentas'],
+                        ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns', 'Ver campañas'],
+                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/leads',     'Ver leads ganados / cerrados'],
                     ];
                 @endphp
-                @foreach($tiles as [$lbl, $countTo, $decimals, $suffix, $delta, $sub])
-                    <div style="padding:0 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-end;gap:4px;">
+                @foreach($tiles as [$lbl, $countTo, $decimals, $suffix, $delta, $sub, $href, $tip])
+                    <a href="{{ $href }}"
+                       title="{{ $tip }}"
+                       class="alg-kpi-tile"
+                       style="text-decoration:none;color:inherit;padding:0 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-end;gap:4px;cursor:pointer;transition:background-color 150ms var(--alg-ease-out);">
                         <span style="font-size:10.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;">{{ $lbl }}</span>
                         <span class="num"
                               data-count-to="{{ $countTo }}"
@@ -164,7 +169,7 @@
                         @elseif($sub)
                             <span style="font-size:11.5px;color:var(--ink-4);font-weight:500;">{{ $sub }}</span>
                         @endif
-                    </div>
+                    </a>
                 @endforeach
                 <div style="padding:0 0 0 28px;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -188,21 +193,28 @@
         <section style="padding:24px 0;border-bottom:1px solid var(--border);">
             <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
                 <div>
-                    <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Pipeline</h2>
+                    <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;"><a href="/admin/kanban" style="text-decoration:none;color:inherit;" title="Abrir Kanban">Pipeline</a></h2>
                     <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $totalPipelineCount }} {{ $totalPipelineCount === 1 ? 'lead' : 'leads' }} en movimiento{{ $pipelineUsd > 0 ? ' · valor estimado ' . $pipelineUsdLabel . ' USD' : '' }}</p>
                 </div>
-                <button style="{{ $btnGhost }}">Ver detalle @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
+                <a href="/admin/kanban" style="{{ $btnGhost }};text-decoration:none;">Ver detalle @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</a>
             </div>
             <div style="display:grid;grid-template-columns:repeat({{ count($pipelineStages) }},1fr);gap:8px;">
                 @foreach($pipelineStages as $s)
-                    @php $clr = $colorMap[$s['color']] ?? 'var(--ink-3)'; @endphp
-                    <div class="alg-hover-lift" style="padding:14px 16px;border:1px solid var(--border);border-radius:6px;background:var(--surface);border-top:2px solid {{ $clr }};display:flex;flex-direction:column;gap:6px;">
+                    @php
+                        $clr = $colorMap[$s['color']] ?? 'var(--ink-3)';
+                        // Each stage links to the inbox filtered by status. Inbox supports ?status=<id>.
+                        $stageHref = '/admin/leads?status=' . urlencode($s['id']);
+                    @endphp
+                    <a href="{{ $stageHref }}"
+                       title="Ver leads en {{ $s['label'] }}"
+                       class="alg-hover-lift"
+                       style="text-decoration:none;color:inherit;padding:14px 16px;border:1px solid var(--border);border-radius:6px;background:var(--surface);border-top:2px solid {{ $clr }};display:flex;flex-direction:column;gap:6px;cursor:pointer;">
                         <div style="display:flex;align-items:center;justify-content:space-between;">
                             <span style="font-size:11.5px;color:var(--ink-3);font-weight:500;">{{ $s['label'] }}</span>
                             <span style="font-size:10px;color:var(--ink-5);">{{ round(($s['count'] / $totalPipelineCount) * 100) }}%</span>
                         </div>
                         <div class="num" data-count-to="{{ $s['count'] }}" style="font-size:22px;font-weight:500;letter-spacing:-0.02em;">0</div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         </section>
@@ -217,7 +229,7 @@
                             <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Posicionamiento orgánico</h2>
                             <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">Top keywords · Search Console · 30 días</p>
                         </div>
-                        <button style="{{ $btnGhost }}">Abrir reporte @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
+                        <a href="/admin/search-console" style="{{ $btnGhost }};text-decoration:none;">Abrir reporte @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</a>
                     </div>
                     <div>
                         <div style="display:grid;grid-template-columns:1fr 60px 70px 80px;font-size:10.5px;color:var(--ink-5);text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;border-top:1px solid var(--ink-2);border-bottom:1px solid var(--border);">
@@ -296,7 +308,7 @@
                             <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Leads recientes</h2>
                             <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $newLeadsToday }} {{ $newLeadsToday === 1 ? 'nuevo hoy' : 'nuevos hoy' }} · actualizado hace un momento</p>
                         </div>
-                        <button style="{{ $btnGhost }}">Ver todos @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
+                        <a href="/admin/leads" style="{{ $btnGhost }};text-decoration:none;">Ver todos @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</a>
                     </div>
                     <div style="border-top:1px solid var(--ink-2);">
                         @forelse($recentLeads as $l)
@@ -324,7 +336,7 @@
                             <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Campañas</h2>
                             <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $campaignsCount }} {{ $campaignsCount === 1 ? 'campaña' : 'campañas' }}{{ $campaignsSpend > 0 ? ' · ' . $campaignsSpendLabel . ' invertidos' : '' }}</p>
                         </div>
-                        <button style="{{ $btnGhost }}">Crear @include('alg-dashboard.icon', ['name' => 'plus', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
+                        <a href="/admin/campaigns/create" style="{{ $btnGhost }};text-decoration:none;">Crear @include('alg-dashboard.icon', ['name' => 'plus', 'size' => 12, 'stroke' => 'var(--ink-4)'])</a>
                     </div>
                     <div style="border-top:1px solid var(--ink-2);">
                         @forelse($campaigns as $c)
