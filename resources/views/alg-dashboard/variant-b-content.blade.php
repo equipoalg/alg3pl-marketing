@@ -145,7 +145,7 @@
             <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
                 @php
                     $tiles = [
-                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/leads',     'Ver bandeja de entrada'],
+                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/kanban',    'Ver pipeline completo en Kanban'],
                         ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients',   'Ver cuentas'],
                         ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns', 'Ver campañas'],
                         ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/leads?status=won', 'Ver contactos ganados con su historial'],
