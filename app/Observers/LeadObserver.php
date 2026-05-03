@@ -3,7 +3,9 @@
 namespace App\Observers;
 
 use App\Jobs\ScoreLeadJob;
+use App\Models\Client;
 use App\Models\Lead;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\NewLeadAssigned;
 use App\Services\Notifications\SlackNotifier;
@@ -28,6 +30,10 @@ class LeadObserver
 
         // Auto-enroll in matching funnels
         $this->autoEnrollInFunnels($lead);
+
+        // Mirror the lead's company into the Cuentas (clients) table so the CRM
+        // module reflects what came in via Fluent Forms / API.
+        $this->syncClientFromLead($lead);
     }
 
     public function updated(Lead $lead): void
@@ -46,6 +52,15 @@ class LeadObserver
                 'type'        => 'status_change',
                 'description' => "Status changed from {$lead->getOriginal('status')} to {$lead->status}",
             ]);
+
+            // Promote the matching Client to 'active' when the lead is won —
+            // demote to 'inactive' on lost. Other statuses → leave as 'prospect'.
+            $this->syncClientFromLead($lead);
+        }
+
+        // If the company or country was changed, re-sync the Client mirror.
+        if ($lead->isDirty('company') || $lead->isDirty('country_id')) {
+            $this->syncClientFromLead($lead);
         }
 
         // Fire score change webhook
@@ -93,6 +108,75 @@ class LeadObserver
             }
 
             \App\Jobs\EnrollLeadInFunnel::dispatch($lead, $funnel);
+        }
+    }
+
+    /**
+     * Mirror a lead's company into the `clients` table so the Cuentas resource
+     * shows actual companies imported from Fluent Forms / API.
+     *
+     * Idempotent: firstOrCreate on (tenant_id, country_id, company_name).
+     * Promotes the client to 'active' if the lead is 'won'; demotes to
+     * 'inactive' on 'lost'; otherwise leaves the existing status alone.
+     */
+    private function syncClientFromLead(Lead $lead): void
+    {
+        $companyName = trim((string) $lead->company);
+        if ($companyName === '' || $lead->country_id === null) {
+            return;
+        }
+
+        // Resolve tenant from country (countries.tenant_id is reliable) → fall
+        // back to the first/only tenant in the database.
+        $tenantId = $lead->country?->tenant_id
+            ?? Tenant::query()->orderBy('id')->value('id');
+        if ($tenantId === null) {
+            return; // no tenant → can't satisfy NOT NULL FK
+        }
+
+        // Skip the BelongsToTenant scope so the firstOrCreate works regardless
+        // of the request-time tenant binding (HTTP, queue, command, etc.).
+        $client = Client::withoutGlobalScopes()->firstOrCreate(
+            [
+                'tenant_id'    => $tenantId,
+                'country_id'   => $lead->country_id,
+                'company_name' => $companyName,
+            ],
+            [
+                'status'                 => 'prospect',
+                'tier'                   => 'smb',
+                'health_score'           => 50,
+                'primary_contact_name'   => $lead->name,
+                'primary_contact_email'  => $lead->email,
+                'primary_contact_phone'  => $lead->phone,
+            ]
+        );
+
+        // Backfill primary contact if currently empty
+        $dirty = false;
+        foreach ([
+            'primary_contact_name'  => $lead->name,
+            'primary_contact_email' => $lead->email,
+            'primary_contact_phone' => $lead->phone,
+        ] as $field => $value) {
+            if (! $client->{$field} && $value) {
+                $client->{$field} = $value;
+                $dirty = true;
+            }
+        }
+
+        // Promote to active when a lead becomes 'won'; mark inactive on 'lost'.
+        // Don't reset 'active' on subsequent prospect-stage leads.
+        if ($lead->status === 'won' && $client->status !== 'active') {
+            $client->status = 'active';
+            if (! $client->contract_start) {
+                $client->contract_start = now();
+            }
+            $dirty = true;
+        }
+
+        if ($dirty) {
+            $client->save();
         }
     }
 }
