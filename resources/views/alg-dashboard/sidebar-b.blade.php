@@ -107,12 +107,13 @@
 
     <div style="flex:1;"></div>
 
-    {{-- Activities (Launchpad) trigger at bottom --}}
-    <div class="alg-dock-cell" style="position:relative;display:flex;align-items:center;justify-content:center;">
+    {{-- Activities (Launchpad) trigger at bottom — must dispatch on window so the
+         topbar (separate Alpine component) catches it via x-on:open-activities.window --}}
+    <div class="alg-dock-cell" x-data="{}" style="position:relative;display:flex;align-items:center;justify-content:center;">
         <button type="button"
                 class="alg-dock-item"
                 data-tooltip="Aplicaciones"
-                x-on:click="$dispatch('open-activities')"
+                x-on:click="window.dispatchEvent(new CustomEvent('open-activities', { bubbles: true }))"
                 style="border:1px solid rgba(255,255,255,0.12);width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg, #57534E, #1C1917);color:#FFFFFF;cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);">
             <svg width="18" height="18" style="display:block;"><use href="#i-grid"/></svg>
         </button>
