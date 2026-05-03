@@ -109,6 +109,15 @@
             <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13V9a5 5 0 0110 0v4l1 2H4l1-2zM8 17a2 2 0 004 0"/></svg>
         </button>
 
+        {{-- A/B variant toggle — segmented control inside the topbar --}}
+        <div title="Cambiar layout (A: expandido · B: compacto)"
+             style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:5px;padding:1px;margin:0 4px;font-family:var(--font-mono);">
+            <a href="{{ $aUrl }}"
+               style="text-decoration:none;padding:1px 7px;border-radius:3px;font-size:10.5px;font-weight:600;letter-spacing:0.04em;line-height:1.4;color:{{ $variant === 'a' ? '#FFFFFF' : 'rgba(255,255,255,0.55)' }};background:{{ $variant === 'a' ? 'rgba(255,255,255,0.16)' : 'transparent' }};transition:background 120ms ease, color 120ms ease;">A</a>
+            <a href="{{ $bUrl }}"
+               style="text-decoration:none;padding:1px 7px;border-radius:3px;font-size:10.5px;font-weight:600;letter-spacing:0.04em;line-height:1.4;color:{{ $variant === 'b' ? '#FFFFFF' : 'rgba(255,255,255,0.55)' }};background:{{ $variant === 'b' ? 'rgba(255,255,255,0.16)' : 'transparent' }};transition:background 120ms ease, color 120ms ease;">B</a>
+        </div>
+
         {{-- Country flag indicator --}}
         <span title="País: {{ $countryLabel }}"
               style="padding:0 6px;font-size:14px;line-height:1;">{{ $flag($currentCountry?->code) }}</span>

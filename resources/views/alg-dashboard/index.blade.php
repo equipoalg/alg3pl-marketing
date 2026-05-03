@@ -134,18 +134,6 @@
         .num { font-family: var(--font-mono); font-feature-settings: "tnum", "zero"; letter-spacing: -0.01em; }
         .tnum { font-variant-numeric: tabular-nums; }
 
-        /* Floating variant toggle (top right corner) */
-        .variant-switch {
-            position: fixed; top: 16px; right: 16px; z-index: 100;
-            display: inline-flex; gap: 0; padding: 2px;
-            background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-            font-family: var(--font-mono); font-size: 11px; font-weight: 600;
-        }
-        .variant-switch a {
-            padding: 4px 10px; border-radius: 4px; text-decoration: none;
-            color: var(--ink-4); letter-spacing: 0.04em;
-        }
-        .variant-switch a.active { background: var(--surface-2); color: var(--ink-1); }
     </style>
 </head>
 <body class="alg-body">
@@ -173,9 +161,7 @@
 
     </div>
 
-    <div class="variant-switch" title="Cambiar layout">
-        <a href="?variant=a" class="{{ $variant === 'a' ? 'active' : '' }}">A</a>
-        <a href="?variant=b" class="{{ $variant === 'b' ? 'active' : '' }}">B</a>
-    </div>
+    {{-- A/B switcher now lives inside the GNOME topbar (see topbar.blade.php).
+         The floating .variant-switch was retired so it doesn't break the chrome. --}}
 </body>
 </html>

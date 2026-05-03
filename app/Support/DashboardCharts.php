@@ -76,7 +76,13 @@ class DashboardCharts
         // X ticks — first, q1, mid, q3, last (deduped)
         $xTicks = array_values(array_unique([0, intdiv($n, 4), intdiv($n, 2), intdiv(3 * $n, 4), $n - 1]));
 
-        $svg = "<svg width=\"100%\" viewBox=\"0 0 {$width} {$height}\" preserveAspectRatio=\"none\" style=\"display:block;overflow:visible;\">";
+        // Explicit height + width=100% locks vertical scale to {$height}px on
+        // every viewport. Without an explicit height, browsers compute it from
+        // the viewBox aspect ratio (e.g. 1200×144 on a wide screen for a 500×60
+        // viewBox), which combined with preserveAspectRatio="none" makes the
+        // font-size="10" axis labels render gigantic. Locking height keeps the
+        // Y scale at 1× and labels stay 10px tall on any width.
+        $svg = "<svg width=\"100%\" height=\"{$height}\" viewBox=\"0 0 {$width} {$height}\" preserveAspectRatio=\"none\" style=\"display:block;\">";
 
         // Y grid + labels
         foreach ($yTicks as $i => $v) {
