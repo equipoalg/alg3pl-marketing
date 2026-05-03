@@ -1,7 +1,5 @@
 <x-filament-panels::page>
     @php
-        use App\Support\DashboardCharts;
-
         $deltaPct = function ($curr, $prev) {
             if ($prev == 0 && $curr == 0) return ['pct' => 0, 'dir' => 'flat'];
             if ($prev == 0) return ['pct' => 100, 'dir' => 'up'];
@@ -97,7 +95,7 @@
                 </div>
             </div>
             <div style="height:240px;width:100%;">
-                {!! DashboardCharts::multiSeriesSvg(
+                {!! \App\Support\DashboardCharts::multiSeriesSvg(
                     ['users' => $usersSeries, 'previous' => $previousSeries],
                     $labels,
                     ['#1E3A8A', '#A8A29E'],
