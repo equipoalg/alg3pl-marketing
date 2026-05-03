@@ -309,10 +309,37 @@
                     @endif
 
                     {{-- Mensaje --}}
-                    @if($selected->notes)
+                    @php
+                        // Strip the "(Blog X, Sub #Y)" reference that Fluent Forms imports add
+                        // and the "— Importado de Fluent Forms" line that wraps it. We render
+                        // the form URL as a separate clickable line below instead.
+                        $cleanNotes = $selected->notes;
+                        if ($cleanNotes) {
+                            $cleanNotes = preg_replace(
+                                '/\s*[—–-]\s*Importado\s+de\s+Fluent\s+Forms[^\n]*\(Blog[^)]*\)\s*/iu',
+                                '',
+                                $cleanNotes
+                            );
+                            $cleanNotes = preg_replace('/\(Blog\s*\d+,\s*Sub\s*#\s*\d+\)/iu', '', $cleanNotes);
+                            $cleanNotes = trim($cleanNotes);
+                        }
+                    @endphp
+                    @if($cleanNotes)
                         <div style="padding:14px 24px;background:var(--alg-surface);border-bottom:1px solid var(--alg-line);">
                             <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:var(--alg-ink-4);margin:0 0 8px;">Mensaje</p>
-                            <p style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13.5px;line-height:1.6;color:var(--alg-ink);margin:0;white-space:pre-wrap;letter-spacing:-0.005em;">{{ $selected->notes }}</p>
+                            <p style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13.5px;line-height:1.6;color:var(--alg-ink);margin:0;white-space:pre-wrap;letter-spacing:-0.005em;">{{ $cleanNotes }}</p>
+                        </div>
+                    @endif
+
+                    {{-- Origen del formulario (URL) --}}
+                    @if($selected->landing_page)
+                        <div style="padding:10px 24px;background:var(--alg-surface);border-bottom:1px solid var(--alg-line);">
+                            <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:var(--alg-ink-4);margin:0 0 4px;">Origen</p>
+                            <a href="{{ $selected->landing_page }}" target="_blank" rel="noopener"
+                               style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;color:var(--alg-accent);text-decoration:none;letter-spacing:.04em;display:inline-flex;align-items:center;gap:5px;word-break:break-all;">
+                                <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" style="flex-shrink:0;"><path d="M11 4h5v5M16 4l-7 7M11 9v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-5a1 1 0 011-1h6"/></svg>
+                                <span>{{ $selected->landing_page }}</span>
+                            </a>
                         </div>
                     @endif
 
