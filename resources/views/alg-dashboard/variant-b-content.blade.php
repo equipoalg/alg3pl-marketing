@@ -42,6 +42,66 @@
 
     $maxFuente = max(1, max(array_column($fuentes, 'value')));
     $maxByCountry = max(1, max(array_column($byCountry, 'value')));
+
+    /* ───────── Real data wiring for the hero ───────── */
+    $byId = collect($kpis)->keyBy('id');
+    $kpiLeads      = $byId->get('leads',    ['value' => 0,    'delta' => 0, 'sub' => '']);
+    $kpiCuentas    = $byId->get('cuentas',  ['value' => 0,    'delta' => 0, 'sub' => '']);
+    $kpiCampanas   = $byId->get('campanas', ['value' => 0,    'delta' => 0, 'sub' => '']);
+    // DashboardData::kpis() returns id 'tasa' for "Tasa de conversión" — accept both keys.
+    $kpiConversion = $byId->get('tasa', $byId->get('conversion', ['value' => '0%', 'delta' => 0, 'sub' => '']));
+
+    // Convert "4.8%" → numeric for count-up
+    $convNumeric = (float) str_replace('%', '', (string) ($kpiConversion['value'] ?? 0));
+
+    // Headline numbers (real)
+    $heroTotalLeads = (int) ($kpiLeads['value'] ?? 0);
+
+    // Country label for the overline
+    $heroCountryCode = session('country_filter')
+        ? strtoupper(\App\Models\Country::find((int) session('country_filter'))?->code ?? 'GLOBAL')
+        : 'GLOBAL';
+    $heroDate = now()->translatedFormat('d F Y');
+
+    // Range label (matches $timeRange from controller)
+    $rangeLabels = ['7d' => '7 días', '30d' => '30 días', '90d' => '90 días', 'ytd' => 'Año'];
+    $rangeLabel  = $rangeLabels[$timeRange ?? '30d'] ?? '30 días';
+
+    $deltaPositive = (float) ($kpiLeads['delta'] ?? 0) >= 0;
+
+    /* ───────── Pipeline summary ───────── */
+    // Sum estimated_value of leads in active stages (won + open) for the headline.
+    $pipelineUsd = 0;
+    try {
+        $countryId = session('country_filter') ? (int) session('country_filter') : null;
+        $pipelineUsd = (float) \App\Models\Lead::query()
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->whereNotIn('status', ['lost'])
+            ->sum('estimated_value');
+    } catch (\Throwable $e) { /* schema mismatch — silently ignore */ }
+    $pipelineUsdLabel = $pipelineUsd >= 1_000_000
+        ? '$' . number_format($pipelineUsd / 1_000_000, 2) . 'M'
+        : ($pipelineUsd >= 1_000
+            ? '$' . number_format($pipelineUsd / 1_000, 0) . 'k'
+            : '$' . number_format($pipelineUsd, 0));
+
+    /* ───────── Recent leads + campaigns headline counts ───────── */
+    $newLeadsToday = 0;
+    try {
+        $countryId = session('country_filter') ? (int) session('country_filter') : null;
+        $newLeadsToday = \App\Models\Lead::query()
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->whereDate('created_at', today())
+            ->count();
+    } catch (\Throwable $e) {}
+
+    $campaignsCount = count($campaigns ?? []);
+    $campaignsSpend = 0.0;
+    foreach (($campaigns ?? []) as $c) {
+        $raw = (string) ($c['spend'] ?? '0');
+        $campaignsSpend += (float) preg_replace('/[^0-9.\-]/', '', $raw);
+    }
+    $campaignsSpendLabel = '$' . number_format($campaignsSpend, 0);
 @endphp
         {{-- ═══════════════════ HERO ═══════════════════ --}}
         <section style="padding:0 0 28px;border-bottom:1px solid var(--border);background:var(--surface);">
@@ -49,14 +109,28 @@
                 <div style="flex:1;min-width:280px;">
                     <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">
                         <span style="width:18px;height:1px;background:var(--ink-5);"></span>
-                        Panorama · ALG SV · 26 abril 2026
+                        Panorama · ALG {{ $heroCountryCode }} · {{ $heroDate }}
                     </div>
                     <h1 style="margin:0;font-size:32px;font-weight:500;letter-spacing:-0.03em;color:var(--ink-1);line-height:1.1;max-width:720px;">
-                        <span style="color:var(--accent);">2,847</span> leads activos generaron <span style="color:var(--accent);">$1.24M</span> en pipeline durante los últimos 30 días.
+                        @if($heroTotalLeads === 0)
+                            Sin leads en los últimos {{ $rangeLabel }}. <span style="color:var(--ink-4);">Conectá Fluent Forms o cargá leads para ver el panorama.</span>
+                        @else
+                            <span style="color:var(--accent);" class="num" data-count-to="{{ $heroTotalLeads }}">{{ number_format($heroTotalLeads) }}</span> {{ $heroTotalLeads === 1 ? 'lead' : 'leads' }} {{ $heroTotalLeads === 1 ? 'captado' : 'captados' }} durante los últimos {{ $rangeLabel }}.
+                        @endif
                     </h1>
-                    <p style="margin:12px 0 0;font-size:13.5px;color:var(--ink-3);max-width:640px;">
-                        La conversión subió 0.6 puntos a 4.8%, impulsada por la campaña <em style="font-style:normal;color:var(--ink-1);font-weight:500;">"Reactivación leads 2025"</em> y mejor posicionamiento de <em style="font-style:normal;color:var(--ink-1);font-weight:500;">alg el salvador</em> en SERP.
-                    </p>
+                    @if($heroTotalLeads > 0)
+                        <p style="margin:12px 0 0;font-size:13.5px;color:var(--ink-3);max-width:640px;">
+                            @if($kpiLeads['delta'] !== 0)
+                                Los leads {{ $deltaPositive ? 'subieron' : 'bajaron' }}
+                                <span style="color:{{ $deltaPositive ? 'var(--pos)' : 'var(--neg)' }};font-weight:500;">{{ abs($kpiLeads['delta']) }}%</span>
+                                {{ $kpiLeads['sub'] ?? '' }}.
+                            @else
+                                {{ $kpiLeads['sub'] ?? 'Período actual sin variaciones registradas.' }}
+                            @endif
+                            La conversión está en
+                            <em style="font-style:normal;color:var(--ink-1);font-weight:500;">{{ $kpiConversion['value'] ?? '0%' }}</em>{{ ($kpiConversion['sub'] ?? null) ? ' — ' . $kpiConversion['sub'] : '' }}.
+                        </p>
+                    @endif
                 </div>
                 <div style="display:flex;gap:8px;flex-shrink:0;">
                     <button style="{{ $btnGhost }}">@include('alg-dashboard.icon', ['name' => 'calendar', 'size' => 13, 'stroke' => 'var(--ink-3)']) Últimos 30 días</button>
@@ -65,14 +139,17 @@
                 </div>
             </div>
 
-            {{-- 4 big editorial KPIs + traffic strip — count-up animation via data-count-to --}}
+            {{-- 4 big editorial KPIs (real data) + traffic strip --}}
             <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
-                @foreach([
-                    ['Leads totales',    '2,847', 2847, 0, '',  '+12.4%', 'pos'],
-                    ['Cuentas activas',  '142',   142,  0, '',  '+3.6%',  'pos'],
-                    ['Campañas activas', '8',     8,    0, '',  '3 prog.','ink'],
-                    ['Conversión',       '4.8%',  4.8,  1, '%', '+0.6pts','pos'],
-                ] as [$lbl, $val, $countTo, $decimals, $suffix, $delta, $deltaColor])
+                @php
+                    $tiles = [
+                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null],
+                        ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null],
+                        ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null],
+                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null],
+                    ];
+                @endphp
+                @foreach($tiles as [$lbl, $countTo, $decimals, $suffix, $delta, $sub])
                     <div style="padding:0 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-end;gap:4px;">
                         <span style="font-size:10.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;">{{ $lbl }}</span>
                         <span class="num"
@@ -80,7 +157,13 @@
                               data-count-decimals="{{ $decimals }}"
                               data-count-suffix="{{ $suffix }}"
                               style="font-size:30px;font-weight:500;letter-spacing:-0.025em;color:var(--ink-1);line-height:1;">0{{ $suffix }}</span>
-                        <span style="font-size:11.5px;color:{{ $deltaColor === 'pos' ? 'var(--pos)' : 'var(--ink-4)' }};font-weight:500;">{{ $delta }}</span>
+                        @if((float) $delta !== 0.0)
+                            <span style="font-size:11.5px;color:{{ (float) $delta >= 0 ? 'var(--pos)' : 'var(--neg)' }};font-weight:500;">
+                                {{ (float) $delta >= 0 ? '▴' : '▾' }} {{ abs((float) $delta) }}%
+                            </span>
+                        @elseif($sub)
+                            <span style="font-size:11.5px;color:var(--ink-4);font-weight:500;">{{ $sub }}</span>
+                        @endif
                     </div>
                 @endforeach
                 <div style="padding:0 0 0 28px;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;">
@@ -106,7 +189,7 @@
             <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
                 <div>
                     <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Pipeline</h2>
-                    <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $totalPipelineCount }} leads en movimiento · valor estimado $1.24M USD</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $totalPipelineCount }} {{ $totalPipelineCount === 1 ? 'lead' : 'leads' }} en movimiento@if($pipelineUsd > 0) · valor estimado {{ $pipelineUsdLabel }} USD @endif</p>
                 </div>
                 <button style="{{ $btnGhost }}">Ver detalle @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
             </div>
@@ -143,7 +226,7 @@
                             <div style="text-align:right;">Impr.</div>
                             <div style="text-align:right;">Posición</div>
                         </div>
-                        @foreach($keywords as $i => $k)
+                        @forelse($keywords as $i => $k)
                             <div style="display:grid;grid-template-columns:1fr 60px 70px 80px;padding:11px 0;{{ $i < count($keywords) - 1 ? 'border-bottom:1px solid var(--border);' : '' }}font-size:13px;align-items:center;">
                                 <div style="color:var(--ink-1);font-weight:500;">{{ $k['kw'] }}</div>
                                 <div class="num tnum" style="text-align:right;color:var(--accent);font-weight:500;">{{ $k['clicks'] }}</div>
@@ -153,7 +236,11 @@
                                     <span style="font-size:10.5px;color:{{ $k['delta'] > 0 ? 'var(--pos)' : ($k['delta'] < 0 ? 'var(--neg)' : 'var(--ink-5)') }};font-weight:500;">{{ $k['delta'] > 0 ? '↑' : ($k['delta'] < 0 ? '↓' : '·') }}{{ number_format(abs($k['delta']), 1) }}</span>
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
+                                Sin datos de Search Console todavía.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
 
@@ -207,12 +294,12 @@
                     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
                         <div>
                             <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Leads recientes</h2>
-                            <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">18 nuevos hoy · sincronizado hace 4 min</p>
+                            <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $newLeadsToday }} {{ $newLeadsToday === 1 ? 'nuevo hoy' : 'nuevos hoy' }} · actualizado hace un momento</p>
                         </div>
                         <button style="{{ $btnGhost }}">Ver todos @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
                     </div>
                     <div style="border-top:1px solid var(--ink-2);">
-                        @foreach($recentLeads as $l)
+                        @forelse($recentLeads as $l)
                             @php [$bg, $fg] = $stageColor($l['stage']); @endphp
                             <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);">
                                 <div style="min-width:0;">
@@ -222,7 +309,11 @@
                                 <span style="font-size:10.5px;padding:3px 8px;border-radius:3px;background:{{ $bg }};color:{{ $fg }};font-weight:500;text-transform:uppercase;letter-spacing:0.04em;">{{ $l['stage'] }}</span>
                                 <div class="num tnum" style="font-size:13px;font-weight:500;color:var(--ink-1);min-width:64px;text-align:right;">{{ $l['value'] }}</div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
+                                Sin leads recientes en este filtro.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
 
@@ -231,12 +322,12 @@
                     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
                         <div>
                             <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Campañas</h2>
-                            <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">5 campañas · $8,010 invertidos</p>
+                            <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $campaignsCount }} {{ $campaignsCount === 1 ? 'campaña' : 'campañas' }}@if($campaignsSpend > 0) · {{ $campaignsSpendLabel }} invertidos @endif</p>
                         </div>
                         <button style="{{ $btnGhost }}">Crear @include('alg-dashboard.icon', ['name' => 'plus', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
                     </div>
                     <div style="border-top:1px solid var(--ink-2);">
-                        @foreach($campaigns as $c)
+                        @forelse($campaigns as $c)
                             @php
                                 $statusColor = match($c['status']) {
                                     'Activa'    => 'var(--pos)',
@@ -259,7 +350,11 @@
                                 </div>
                                 <div class="num tnum" style="font-size:13px;font-weight:500;text-align:right;">{{ $c['spend'] }}</div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
+                                Aún no hay campañas. <a href="/admin/campaigns/create" style="color:var(--accent);text-decoration:none;font-weight:500;">Crear la primera →</a>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -272,14 +367,18 @@
                 <div>
                     <h2 style="margin:0 0 14px;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Actividad reciente</h2>
                     <div style="border-top:1px solid var(--ink-2);">
-                        @foreach($activity as $a)
+                        @forelse($activity as $a)
                             <div style="display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);">
                                 <div style="font-size:12.5px;color:var(--ink-2);line-height:1.5;">
                                     <span style="font-weight:500;color:var(--ink-1);">{{ $a['actor'] }}</span> {{ $a['action'] }}
                                 </div>
                                 <span class="num" style="font-size:11px;color:var(--ink-5);">{{ $a['time'] }}</span>
                             </div>
-                        @endforeach
+                        @empty
+                            <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
+                                Sin actividad reciente.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
 
