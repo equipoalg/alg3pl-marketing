@@ -134,9 +134,30 @@
                         </p>
                     @endif
                 </div>
-                <div style="display:flex;gap:8px;flex-shrink:0;">
-                    <button style="{{ $btnGhost }}">@include('alg-dashboard.icon', ['name' => 'calendar', 'size' => 13, 'stroke' => 'var(--ink-3)']) Últimos 30 días</button>
-                    <button style="{{ $btnGhost }}">@include('alg-dashboard.icon', ['name' => 'download', 'size' => 13, 'stroke' => 'var(--ink-3)'])</button>
+                <div style="display:flex;gap:8px;flex-shrink:0;align-items:flex-start;">
+                    {{-- Period range picker — pushes ?range=7d|30d|90d|ytd to the dashboard --}}
+                    <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;">
+                        <button type="button"
+                                @click="open = !open"
+                                style="{{ $btnGhost }}">
+                            @include('alg-dashboard.icon', ['name' => 'calendar', 'size' => 13, 'stroke' => 'var(--ink-3)'])
+                            {{ $rangeLabel }}
+                            <svg width="9" height="9" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+                        </button>
+                        <div x-show="open" x-cloak x-transition.opacity
+                             style="position:absolute;top:calc(100% + 4px);right:0;min-width:170px;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,0.10);padding:4px;z-index:30;">
+                            @foreach(['7d' => '7 días', '30d' => '30 días', '90d' => '90 días', 'ytd' => 'Año en curso'] as $key => $lbl)
+                                @php $isCurrent = ($timeRange ?? '30d') === $key; @endphp
+                                <a href="?range={{ $key }}{{ ($variant ?? 'b') !== 'b' ? '&variant=' . $variant : '' }}"
+                                   style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:4px;text-decoration:none;color:var(--ink-2);font-size:12.5px;{{ $isCurrent ? 'background:var(--surface-2);font-weight:500;color:var(--ink-1);' : '' }}">
+                                    <span>{{ $lbl }}</span>
+                                    @if($isCurrent)
+                                        <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10l3 3 7-7"/></svg>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
                     <a href="/admin/leads/create" style="{{ $btnPrimary }};text-decoration:none;">@include('alg-dashboard.icon', ['name' => 'plus', 'size' => 14, 'stroke' => 'white']) Nuevo lead</a>
                 </div>
             </div>
@@ -148,7 +169,7 @@
                         ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/kanban',    'Ver pipeline completo en Kanban'],
                         ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients',   'Ver cuentas'],
                         ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns', 'Ver campañas'],
-                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/leads?status=won', 'Ver contactos ganados con su historial'],
+                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/conversion', 'Ver análisis de conversión'],
                     ];
                 @endphp
                 @foreach($tiles as [$lbl, $countTo, $decimals, $suffix, $delta, $sub, $href, $tip])
@@ -239,7 +260,10 @@
                             <div style="text-align:right;">Posición</div>
                         </div>
                         @forelse($keywords as $i => $k)
-                            <div style="display:grid;grid-template-columns:1fr 60px 70px 80px;padding:11px 0;{{ $i < count($keywords) - 1 ? 'border-bottom:1px solid var(--border);' : '' }}font-size:13px;align-items:center;">
+                            <a href="/admin/search-console?kw={{ urlencode($k['kw']) }}"
+                               class="alg-row-link"
+                               title="Ver desempeño de '{{ $k['kw'] }}' en Search Console"
+                               style="display:grid;grid-template-columns:1fr 60px 70px 80px;padding:11px 12px;margin:0 -12px;{{ $i < count($keywords) - 1 ? 'border-bottom:1px solid var(--border);' : '' }}font-size:13px;align-items:center;text-decoration:none;color:inherit;">
                                 <div style="color:var(--ink-1);font-weight:500;">{{ $k['kw'] }}</div>
                                 <div class="num tnum" style="text-align:right;color:var(--accent);font-weight:500;">{{ $k['clicks'] }}</div>
                                 <div class="num tnum" style="text-align:right;color:var(--ink-3);">{{ number_format($k['impr']) }}</div>
@@ -247,7 +271,7 @@
                                     <span class="num tnum" style="color:var(--ink-2);">{{ number_format($k['pos'], 1) }}</span>
                                     <span style="font-size:10.5px;color:{{ $k['delta'] > 0 ? 'var(--pos)' : ($k['delta'] < 0 ? 'var(--neg)' : 'var(--ink-5)') }};font-weight:500;">{{ $k['delta'] > 0 ? '↑' : ($k['delta'] < 0 ? '↓' : '·') }}{{ number_format(abs($k['delta']), 1) }}</span>
                                 </div>
-                            </div>
+                            </a>
                         @empty
                             <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
                                 Sin datos de Search Console todavía.
@@ -264,16 +288,22 @@
                             <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">Distribución · 30 días</p>
                         </div>
                     </div>
-                    <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div style="display:flex;flex-direction:column;gap:6px;">
                         @foreach($fuentes as $f)
-                            @php $pct = ($f['value'] / $maxFuente) * 100; @endphp
-                            <div style="display:grid;grid-template-columns:84px 1fr 56px;align-items:center;gap:10px;">
+                            @php
+                                $pct = ($f['value'] / $maxFuente) * 100;
+                                $channelKey = $f['key'] ?? strtolower($f['label']);
+                            @endphp
+                            <a href="/admin/analytics?channel={{ $channelKey }}"
+                               class="alg-row-link"
+                               title="Ver tráfico de {{ $f['label'] }} en GA4"
+                               style="display:grid;grid-template-columns:84px 1fr 56px;align-items:center;gap:10px;padding:6px 10px;margin:0 -10px;text-decoration:none;color:inherit;">
                                 <div style="font-size:12px;color:var(--ink-3);">{{ $f['label'] }}</div>
                                 <div style="position:relative;height:8px;background:var(--surface-2);border-radius:2px;">
                                     <div style="position:absolute;inset:0;width:{{ $pct }}%;background:var(--ink-1);border-radius:2px;"></div>
                                 </div>
                                 <div class="num tnum" style="font-size:12px;color:var(--ink-2);text-align:right;">{{ number_format($f['value']) }}</div>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                     <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border);">
@@ -285,12 +315,16 @@
                                     $h = ($c['value'] / $maxByCountry) * (120 - 36);
                                     $bg = $i < 2 ? 'var(--accent)' : 'var(--ink-2)';
                                     $opacity = $i < 2 ? 1 : (0.45 - ($i * 0.04));
+                                    $countryCode = $c['code'] ?? $c['label'];
                                 @endphp
-                                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                                <a href="/admin/analytics?country={{ urlencode($countryCode) }}"
+                                   class="alg-row-link"
+                                   title="Ver tráfico de {{ $c['label'] }} en GA4"
+                                   style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:inherit;padding:4px 0;border-radius:4px;">
                                     <div class="num tnum" style="font-size:11px;color:var(--ink-4);">{{ $c['value'] >= 1000 ? number_format($c['value']/1000, 1) . 'k' : $c['value'] }}</div>
                                     <div style="width:100%;max-width:36px;height:{{ $h }}px;background:{{ $bg }};opacity:{{ $opacity }};border-radius:2px 2px 0 0;"></div>
                                     <div style="font-size:11px;color:var(--ink-4);">{{ $c['label'] }}</div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
                     </div>
@@ -313,14 +347,17 @@
                     <div style="border-top:1px solid var(--ink-2);">
                         @forelse($recentLeads as $l)
                             @php [$bg, $fg] = $stageColor($l['stage']); @endphp
-                            <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);">
+                            <a href="/admin/leads?selected={{ $l['id'] ?? '' }}"
+                               class="alg-row-link"
+                               title="Abrir {{ $l['name'] }} en bandeja de entrada"
+                               style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:13px 12px;margin:0 -12px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;">
                                 <div style="min-width:0;">
                                     <div style="font-size:13px;font-weight:500;color:var(--ink-1);">{{ $l['name'] }}</div>
                                     <div style="font-size:11.5px;color:var(--ink-4);margin-top:2px;">{{ $l['company'] }} · {{ $l['country'] }} · {{ $l['time'] }}</div>
                                 </div>
                                 <span style="font-size:10.5px;padding:3px 8px;border-radius:3px;background:{{ $bg }};color:{{ $fg }};font-weight:500;text-transform:uppercase;letter-spacing:0.04em;">{{ $l['stage'] }}</span>
                                 <div class="num tnum" style="font-size:13px;font-weight:500;color:var(--ink-1);min-width:64px;text-align:right;">{{ $l['value'] }}</div>
-                            </div>
+                            </a>
                         @empty
                             <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
                                 Sin leads recientes en este filtro.
@@ -347,8 +384,12 @@
                                     'Programada'=> 'var(--accent)',
                                     default     => 'var(--ink-4)',
                                 };
+                                $campaignHref = isset($c['id']) ? "/admin/campaigns/{$c['id']}/edit" : '/admin/campaigns';
                             @endphp
-                            <div style="padding:13px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;">
+                            <a href="{{ $campaignHref }}"
+                               class="alg-row-link"
+                               title="Editar campaña {{ $c['name'] }}"
+                               style="padding:13px 12px;margin:0 -12px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;text-decoration:none;color:inherit;">
                                 <div style="min-width:0;">
                                     <div style="display:flex;align-items:center;gap:8px;">
                                         <span style="width:6px;height:6px;border-radius:50%;background:{{ $statusColor }};"></span>
@@ -361,7 +402,7 @@
                                     </div>
                                 </div>
                                 <div class="num tnum" style="font-size:13px;font-weight:500;text-align:right;">{{ $c['spend'] }}</div>
-                            </div>
+                            </a>
                         @empty
                             <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
                                 Aún no hay campañas. <a href="/admin/campaigns/create" style="color:var(--accent);text-decoration:none;font-weight:500;">Crear la primera →</a>
@@ -380,12 +421,25 @@
                     <h2 style="margin:0 0 14px;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Actividad reciente</h2>
                     <div style="border-top:1px solid var(--ink-2);">
                         @forelse($activity as $a)
-                            <div style="display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);">
-                                <div style="font-size:12.5px;color:var(--ink-2);line-height:1.5;">
-                                    <span style="font-weight:500;color:var(--ink-1);">{{ $a['actor'] }}</span> {{ $a['action'] }}
+                            @php $leadId = $a['lead_id'] ?? null; @endphp
+                            @if($leadId)
+                                <a href="/admin/leads?selected={{ $leadId }}"
+                                   class="alg-row-link"
+                                   title="Abrir lead relacionado"
+                                   style="display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 12px;margin:0 -12px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;">
+                                    <div style="font-size:12.5px;color:var(--ink-2);line-height:1.5;">
+                                        <span style="font-weight:500;color:var(--ink-1);">{{ $a['actor'] }}</span> {{ $a['action'] }}
+                                    </div>
+                                    <span class="num" style="font-size:11px;color:var(--ink-5);">{{ $a['time'] }}</span>
+                                </a>
+                            @else
+                                <div style="display:grid;grid-template-columns:1fr auto;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);">
+                                    <div style="font-size:12.5px;color:var(--ink-2);line-height:1.5;">
+                                        <span style="font-weight:500;color:var(--ink-1);">{{ $a['actor'] }}</span> {{ $a['action'] }}
+                                    </div>
+                                    <span class="num" style="font-size:11px;color:var(--ink-5);">{{ $a['time'] }}</span>
                                 </div>
-                                <span class="num" style="font-size:11px;color:var(--ink-5);">{{ $a['time'] }}</span>
-                            </div>
+                            @endif
                         @empty
                             <div style="padding:32px 0;text-align:center;font-size:12.5px;color:var(--ink-4);">
                                 Sin actividad reciente.
@@ -402,15 +456,19 @@
                             @php
                                 $prioBg = match($t['priority']) { 'alta' => 'var(--neg-soft)', 'media' => 'var(--warn-soft)', default => 'var(--surface-2)' };
                                 $prioFg = match($t['priority']) { 'alta' => 'var(--neg)',      'media' => 'var(--warn)',      default => 'var(--ink-4)' };
+                                $taskHref = isset($t['id']) ? "/admin/tasks/{$t['id']}/edit" : '/admin/tasks';
                             @endphp
-                            <div style="display:grid;grid-template-columns:16px 1fr auto;gap:12px;padding:11px 0;align-items:center;border-bottom:1px solid var(--border);">
+                            <a href="{{ $taskHref }}"
+                               class="alg-row-link"
+                               title="Abrir tarea"
+                               style="display:grid;grid-template-columns:16px 1fr auto;gap:12px;padding:11px 12px;margin:0 -12px;align-items:center;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;">
                                 <span style="width:14px;height:14px;border-radius:3px;border:1.5px solid var(--ink-5);"></span>
                                 <div style="font-size:13px;color:var(--ink-1);">{{ $t['title'] }}</div>
                                 <div style="display:flex;align-items:center;gap:8px;">
                                     <span style="font-size:10px;padding:2px 7px;border-radius:3px;background:{{ $prioBg }};color:{{ $prioFg }};text-transform:uppercase;letter-spacing:0.06em;font-weight:500;">{{ $t['priority'] }}</span>
                                     <span style="font-size:11.5px;color:var(--ink-4);">{{ $t['due'] }}</span>
                                 </div>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>

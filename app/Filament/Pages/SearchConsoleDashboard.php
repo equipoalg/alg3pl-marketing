@@ -7,6 +7,7 @@ use Filament\Pages\Page;
 use Filament\Panel;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
 
 /**
  * /admin/search-console — real-look Google Search Console dashboard.
@@ -23,6 +24,10 @@ class SearchConsoleDashboard extends Page
 
     public string $period = '28d';
     public string $tab = 'queries';
+
+    /** Drilldown filter from the dashboard's keyword rows: ?kw=alg+el+salvador. */
+    #[Url(as: 'kw')]
+    public string $keywordFilter = '';
 
     public static function getNavigationIcon(): string
     {
@@ -128,6 +133,7 @@ class SearchConsoleDashboard extends Page
             'queries' => (clone $base)
                 ->selectRaw('query as label, SUM(clicks) as clicks, SUM(impressions) as impressions, AVG(NULLIF(position,0)) as position, CASE WHEN SUM(impressions)>0 THEN (SUM(clicks)/SUM(impressions))*100 ELSE 0 END as ctr')
                 ->whereNotNull('query')
+                ->when($this->keywordFilter !== '', fn ($q) => $q->where('query', 'like', '%' . $this->keywordFilter . '%'))
                 ->groupBy('query')
                 ->orderByDesc('clicks')
                 ->limit(50)
@@ -167,6 +173,7 @@ class SearchConsoleDashboard extends Page
             'impressionsSeries' => $impressionsSeries,
             'labels'      => $labels,
             'rows'        => $rows,
+            'keywordFilter' => $this->keywordFilter,
         ];
     }
 

@@ -83,13 +83,14 @@ class DashboardMockData
 
     public static function fuentes(): array
     {
+        // 'key' powers the /admin/analytics?channel=<key> drilldown link
         return [
-            ['label' => 'Orgánico', 'value' => 8420, 'share' => 0.52, 'trend' => 14],
-            ['label' => 'Directo',  'value' => 3960, 'share' => 0.24, 'trend' => 6],
-            ['label' => 'Referido', 'value' => 2180, 'share' => 0.13, 'trend' => -2],
-            ['label' => 'Social',   'value' => 980,  'share' => 0.06, 'trend' => 22],
-            ['label' => 'Email',    'value' => 540,  'share' => 0.03, 'trend' => 8],
-            ['label' => 'Pagado',   'value' => 220,  'share' => 0.02, 'trend' => 3],
+            ['key' => 'organic',  'label' => 'Orgánico', 'value' => 8420, 'share' => 0.52, 'trend' => 14],
+            ['key' => 'direct',   'label' => 'Directo',  'value' => 3960, 'share' => 0.24, 'trend' => 6],
+            ['key' => 'referral', 'label' => 'Referido', 'value' => 2180, 'share' => 0.13, 'trend' => -2],
+            ['key' => 'social',   'label' => 'Social',   'value' => 980,  'share' => 0.06, 'trend' => 22],
+            ['key' => 'email',    'label' => 'Email',    'value' => 540,  'share' => 0.03, 'trend' => 8],
+            ['key' => 'paid',     'label' => 'Pagado',   'value' => 220,  'share' => 0.02, 'trend' => 3],
         ];
     }
 
@@ -123,59 +124,62 @@ class DashboardMockData
 
     public static function recentLeads(): array
     {
+        // 'id' is mock-only — used by /admin/leads?selected=<id> deep link
         return [
-            ['name' => 'María Villalobos', 'company' => 'Café del Volcán S.A.', 'country' => 'GT', 'value' => '$24,800', 'stage' => 'Calificado', 'time' => 'hace 12 min', 'initials' => 'MV'],
-            ['name' => 'Carlos Mendoza',   'company' => 'Industrias Mendoza',   'country' => 'SV', 'value' => '$8,400',  'stage' => 'Contactado', 'time' => 'hace 38 min', 'initials' => 'CM'],
-            ['name' => 'Ana Recinos',      'company' => 'TextileX Honduras',    'country' => 'HN', 'value' => '$52,000', 'stage' => 'Propuesta',  'time' => 'hace 1 h',    'initials' => 'AR'],
-            ['name' => 'Diego Fernández',  'company' => 'Pacífico Trading',     'country' => 'CR', 'value' => '$16,200', 'stage' => 'Calificado', 'time' => 'hace 2 h',    'initials' => 'DF'],
-            ['name' => 'Lucía Pineda',     'company' => 'Cosmética Maya',       'country' => 'MX', 'value' => '$31,500', 'stage' => 'Nuevo',      'time' => 'hace 3 h',    'initials' => 'LP'],
-            ['name' => 'Roberto Salazar',  'company' => 'Logitec PTY',          'country' => 'PA', 'value' => '$11,800', 'stage' => 'Nuevo',      'time' => 'hace 4 h',    'initials' => 'RS'],
+            ['id' => 1, 'name' => 'María Villalobos', 'company' => 'Café del Volcán S.A.', 'country' => 'GT', 'value' => '$24,800', 'stage' => 'Calificado', 'time' => 'hace 12 min', 'initials' => 'MV'],
+            ['id' => 2, 'name' => 'Carlos Mendoza',   'company' => 'Industrias Mendoza',   'country' => 'SV', 'value' => '$8,400',  'stage' => 'Contactado', 'time' => 'hace 38 min', 'initials' => 'CM'],
+            ['id' => 3, 'name' => 'Ana Recinos',      'company' => 'TextileX Honduras',    'country' => 'HN', 'value' => '$52,000', 'stage' => 'Propuesta',  'time' => 'hace 1 h',    'initials' => 'AR'],
+            ['id' => 4, 'name' => 'Diego Fernández',  'company' => 'Pacífico Trading',     'country' => 'CR', 'value' => '$16,200', 'stage' => 'Calificado', 'time' => 'hace 2 h',    'initials' => 'DF'],
+            ['id' => 5, 'name' => 'Lucía Pineda',     'company' => 'Cosmética Maya',       'country' => 'MX', 'value' => '$31,500', 'stage' => 'Nuevo',      'time' => 'hace 3 h',    'initials' => 'LP'],
+            ['id' => 6, 'name' => 'Roberto Salazar',  'company' => 'Logitec PTY',          'country' => 'PA', 'value' => '$11,800', 'stage' => 'Nuevo',      'time' => 'hace 4 h',    'initials' => 'RS'],
         ];
     }
 
     public static function campaigns(): array
     {
         return [
-            ['name' => 'Q2 — Centroamérica B2B',   'status' => 'Activa',     'sent' => 12480, 'open' => 0.42, 'click' => 0.061, 'spend' => '$3,200'],
-            ['name' => 'Aduanas El Salvador',      'status' => 'Activa',     'sent' => 4820,  'open' => 0.38, 'click' => 0.048, 'spend' => '$1,100'],
-            ['name' => 'Transporte multimodal MX', 'status' => 'Programada', 'sent' => 0,     'open' => null, 'click' => null,  'spend' => '$2,400'],
-            ['name' => 'Reactivación leads 2025',  'status' => 'Activa',     'sent' => 8940,  'open' => 0.51, 'click' => 0.072, 'spend' => '$890'],
-            ['name' => 'Caso de éxito — TextileX', 'status' => 'Pausada',    'sent' => 2110,  'open' => 0.34, 'click' => 0.052, 'spend' => '$420'],
+            ['id' => 1, 'name' => 'Q2 — Centroamérica B2B',   'status' => 'Activa',     'sent' => 12480, 'open' => 0.42, 'click' => 0.061, 'spend' => '$3,200'],
+            ['id' => 2, 'name' => 'Aduanas El Salvador',      'status' => 'Activa',     'sent' => 4820,  'open' => 0.38, 'click' => 0.048, 'spend' => '$1,100'],
+            ['id' => 3, 'name' => 'Transporte multimodal MX', 'status' => 'Programada', 'sent' => 0,     'open' => null, 'click' => null,  'spend' => '$2,400'],
+            ['id' => 4, 'name' => 'Reactivación leads 2025',  'status' => 'Activa',     'sent' => 8940,  'open' => 0.51, 'click' => 0.072, 'spend' => '$890'],
+            ['id' => 5, 'name' => 'Caso de éxito — TextileX', 'status' => 'Pausada',    'sent' => 2110,  'open' => 0.34, 'click' => 0.052, 'spend' => '$420'],
         ];
     }
 
     public static function activity(): array
     {
+        // 'lead_id' optional — when present the activity row links to that lead in the inbox
         return [
-            ['actor' => 'Sistema',       'action' => "sincronizó 18 nuevos leads desde HubSpot", 'time' => '10:42'],
-            ['actor' => 'María García',  'action' => "movió 'Café del Volcán' a Propuesta",      'time' => '10:18'],
-            ['actor' => 'Sistema',       'action' => "envió campaña 'Q2 — Centroamérica B2B'",   'time' => '09:55'],
-            ['actor' => 'Andrés Rivera', 'action' => "agregó nota a 'TextileX Honduras'",        'time' => '09:31'],
-            ['actor' => 'Sistema',       'action' => "actualizó posiciones Search Console",      'time' => '08:00'],
-            ['actor' => 'María García',  'action' => "creó cuenta 'Pacífico Trading'",           'time' => 'ayer'],
+            ['lead_id' => null, 'actor' => 'Sistema',       'action' => "sincronizó 18 nuevos leads desde HubSpot", 'time' => '10:42'],
+            ['lead_id' => 1,    'actor' => 'María García',  'action' => "movió 'Café del Volcán' a Propuesta",      'time' => '10:18'],
+            ['lead_id' => null, 'actor' => 'Sistema',       'action' => "envió campaña 'Q2 — Centroamérica B2B'",   'time' => '09:55'],
+            ['lead_id' => 3,    'actor' => 'Andrés Rivera', 'action' => "agregó nota a 'TextileX Honduras'",        'time' => '09:31'],
+            ['lead_id' => null, 'actor' => 'Sistema',       'action' => "actualizó posiciones Search Console",      'time' => '08:00'],
+            ['lead_id' => 4,    'actor' => 'María García',  'action' => "creó cuenta 'Pacífico Trading'",           'time' => 'ayer'],
         ];
     }
 
     public static function tasks(): array
     {
         return [
-            ['title' => 'Llamar a Ana Recinos — TextileX',    'due' => 'Hoy 14:00',   'priority' => 'alta'],
-            ['title' => 'Enviar propuesta — Café del Volcán', 'due' => 'Hoy 16:30',   'priority' => 'alta'],
-            ['title' => 'Revisar campaña aduanas SV',         'due' => 'Mañana',      'priority' => 'media'],
-            ['title' => 'Cierre Q2 — reporte ejecutivo',      'due' => 'Vie 30 abr',  'priority' => 'media'],
-            ['title' => 'Sincronizar tags HubSpot',           'due' => 'Próx. semana','priority' => 'baja'],
+            ['id' => 1, 'title' => 'Llamar a Ana Recinos — TextileX',    'due' => 'Hoy 14:00',   'priority' => 'alta'],
+            ['id' => 2, 'title' => 'Enviar propuesta — Café del Volcán', 'due' => 'Hoy 16:30',   'priority' => 'alta'],
+            ['id' => 3, 'title' => 'Revisar campaña aduanas SV',         'due' => 'Mañana',      'priority' => 'media'],
+            ['id' => 4, 'title' => 'Cierre Q2 — reporte ejecutivo',      'due' => 'Vie 30 abr',  'priority' => 'media'],
+            ['id' => 5, 'title' => 'Sincronizar tags HubSpot',           'due' => 'Próx. semana','priority' => 'baja'],
         ];
     }
 
     public static function byCountry(): array
     {
+        // 'code' powers the /admin/analytics?country=<code> drilldown
         return [
-            ['label' => 'SV', 'value' => 4820],
-            ['label' => 'GT', 'value' => 3640],
-            ['label' => 'HN', 'value' => 2180],
-            ['label' => 'CR', 'value' => 1840],
-            ['label' => 'MX', 'value' => 1620],
-            ['label' => 'PA', 'value' => 980],
+            ['code' => 'SV', 'label' => 'SV', 'value' => 4820],
+            ['code' => 'GT', 'label' => 'GT', 'value' => 3640],
+            ['code' => 'HN', 'label' => 'HN', 'value' => 2180],
+            ['code' => 'CR', 'label' => 'CR', 'value' => 1840],
+            ['code' => 'MX', 'label' => 'MX', 'value' => 1620],
+            ['code' => 'PA', 'label' => 'PA', 'value' => 980],
         ];
     }
 

@@ -36,6 +36,8 @@ class ListLeads extends Page
     protected string $view = 'filament.resources.lead-resource.pages.leads-inbox';
     protected Width|string|null $maxContentWidth = Width::Full;
 
+    /** Selected lead — URL-bound so /admin/leads?selected=42 opens that lead in the right pane. */
+    #[Url(as: 'selected')]
     public ?int $selectedId = null;
 
     /** Status filter — URL-bound so /admin/leads?status=won lands pre-filtered. */
@@ -63,11 +65,15 @@ class ListLeads extends Page
         $this->readIds = session('inbox_read_ids', []);
         $this->pinnedIds = session('inbox_pinned_ids', []);
 
-        // Default selection = newest lead, so the right panel isn't empty
-        $first = $this->buildQuery()->first();
-        if ($first) {
-            $this->selectedId = $first->id;
-            $this->markRead($first->id);
+        // If the URL didn't pre-select a lead via ?selected=N, default to the newest.
+        if ($this->selectedId === null) {
+            $first = $this->buildQuery()->first();
+            if ($first) {
+                $this->selectedId = $first->id;
+            }
+        }
+        if ($this->selectedId) {
+            $this->markRead($this->selectedId);
         }
     }
 

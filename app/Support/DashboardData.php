@@ -209,12 +209,13 @@ class DashboardData
             ->selectRaw('SUM(organic_users) as o, SUM(direct_users) as d, SUM(referral_users) as r, SUM(social_users) as s, SUM(paid_users) as p')
             ->first();
 
+        // 'key' is the slug used by /admin/analytics?channel=<key> drilldown
         $sources = [
-            ['label' => 'Orgánico', 'value' => (int) ($row->o ?? 0)],
-            ['label' => 'Directo',  'value' => (int) ($row->d ?? 0)],
-            ['label' => 'Referido', 'value' => (int) ($row->r ?? 0)],
-            ['label' => 'Social',   'value' => (int) ($row->s ?? 0)],
-            ['label' => 'Pagado',   'value' => (int) ($row->p ?? 0)],
+            ['key' => 'organic',  'label' => 'Orgánico', 'value' => (int) ($row->o ?? 0)],
+            ['key' => 'direct',   'label' => 'Directo',  'value' => (int) ($row->d ?? 0)],
+            ['key' => 'referral', 'label' => 'Referido', 'value' => (int) ($row->r ?? 0)],
+            ['key' => 'social',   'label' => 'Social',   'value' => (int) ($row->s ?? 0)],
+            ['key' => 'paid',     'label' => 'Pagado',   'value' => (int) ($row->p ?? 0)],
         ];
         $total = max(1, array_sum(array_column($sources, 'value')));
         return array_map(fn ($s) => array_merge($s, [
@@ -268,6 +269,7 @@ class DashboardData
                     'won' => 'Ganado', 'lost' => 'Perdido',
                 ];
                 return [
+                    'id' => $l->id, // for /admin/leads?selected=<id> deep link
                     'name' => $l->name ?: '—',
                     'company' => $l->company ?: '—',
                     'country' => strtoupper($l->country->code ?? '—'),
@@ -291,6 +293,7 @@ class DashboardData
                 $statusMap = ['active' => 'Activa', 'paused' => 'Pausada', 'scheduled' => 'Programada', 'draft' => 'Borrador', 'completed' => 'Completada'];
                 $sent = (int) ($c->sent_count ?? 0);
                 return [
+                    'id' => $c->id, // for /admin/campaigns/<id>/edit deep link
                     'name' => $c->name,
                     'status' => $statusMap[$c->status] ?? ucfirst((string) $c->status),
                     'sent' => $sent,
@@ -310,6 +313,7 @@ class DashboardData
             ->limit($limit)
             ->get()
             ->map(fn ($a) => [
+                'lead_id' => $a->lead_id, // for /admin/leads?selected=<lead_id> deep link
                 'actor' => $a->user?->name ?? 'Sistema',
                 'action' => $a->description ?: ($a->type ?? 'evento'),
                 'time' => $a->created_at?->format('H:i') ?? '—',
@@ -326,6 +330,7 @@ class DashboardData
             ->limit(6)->with('country')
             ->get()
             ->map(fn ($r) => [
+                'code' => strtoupper($r->country->code ?? ''), // for /admin/analytics?country=<code> deep link
                 'label' => strtoupper($r->country->code ?? '?'),
                 'value' => (int) $r->sessions,
             ])->toArray();

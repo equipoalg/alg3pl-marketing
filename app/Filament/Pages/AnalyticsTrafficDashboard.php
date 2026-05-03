@@ -7,6 +7,7 @@ use App\Models\Country;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Filament\Support\Enums\Width;
+use Livewire\Attributes\Url;
 
 /**
  * /admin/analytics — real-look Google Analytics 4 "Reports overview" page.
@@ -23,6 +24,13 @@ class AnalyticsTrafficDashboard extends Page
     protected Width|string|null $maxContentWidth = Width::Full;
 
     public string $period = '28d';
+
+    /** Drilldown filters from the dashboard cards. URL-bound so deep links work. */
+    #[Url(as: 'channel')]
+    public string $channel = '';
+
+    #[Url(as: 'country')]
+    public string $countryCode = '';
 
     public static function getNavigationIcon(): string
     {
@@ -63,7 +71,15 @@ class AnalyticsTrafficDashboard extends Page
 
     public function getViewData(): array
     {
-        $countryId = session('country_filter') ? (int) session('country_filter') : null;
+        // ?country=<code> from a dashboard drilldown overrides the session country filter
+        $countryId = null;
+        if ($this->countryCode !== '') {
+            $countryId = Country::where('code', strtoupper($this->countryCode))->value('id');
+        }
+        if ($countryId === null && session('country_filter')) {
+            $countryId = (int) session('country_filter');
+        }
+
         [$start, $end] = $this->resolvePeriod();
         $days = $start->diffInDays($end) + 1;
         $prevStart = $start->copy()->subDays($days);
@@ -156,6 +172,8 @@ class AnalyticsTrafficDashboard extends Page
             'channelTotal'   => $channelTotal,
             'byCountry'      => $byCountry,
             'isGlobal'       => ! $countryId,
+            'highlightChannel' => $this->channel,                       // 'organic' | 'direct' | etc.
+            'highlightCountry' => strtoupper($this->countryCode),       // 'SV' | 'GT' | etc.
         ];
     }
 
