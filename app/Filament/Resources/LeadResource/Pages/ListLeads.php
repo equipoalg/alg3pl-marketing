@@ -10,6 +10,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Filament\Support\Enums\Width;
+use Livewire\Attributes\Url;
 
 /**
  * Outlook-style inbox for /admin/leads.
@@ -36,9 +37,19 @@ class ListLeads extends Page
     protected Width|string|null $maxContentWidth = Width::Full;
 
     public ?int $selectedId = null;
+
+    /** Status filter — URL-bound so /admin/leads?status=won lands pre-filtered. */
+    #[Url(as: 'status')]
     public string $statusFilter = '';
+
+    /** Folder filter — URL-bound: ?folder=hot, ?folder=pinned, etc. */
+    #[Url(as: 'folder')]
     public string $folder = 'all';
+
+    /** Search box — URL-bound so we can deep-link search results. */
+    #[Url(as: 'q')]
     public string $search = '';
+
     public string $replyText = '';
 
     /** @var array<int> */
@@ -237,8 +248,11 @@ class ListLeads extends Page
 
         $selected = null;
         if ($this->selectedId) {
-            $selected = Lead::with(['country', 'tags', 'activities' => fn ($q) => $q->latest()->limit(20)])
-                ->find($this->selectedId);
+            $selected = Lead::with([
+                'country',
+                'tags',
+                'activities' => fn ($q) => $q->with('user:id,name')->latest()->limit(50),
+            ])->find($this->selectedId);
         }
 
         return [

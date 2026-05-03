@@ -80,8 +80,23 @@
          TOP TOOLBAR (40px) — search + actions
     ════════════════════════════════════════════════ --}}
     <div style="display:flex;align-items:center;gap:10px;padding:0 16px;height:48px;border-bottom:1px solid var(--alg-line);background:var(--alg-surface);flex-shrink:0;">
-        <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;flex-shrink:0;">Bandeja de entrada</span>
+        @php
+            $titleByStatus = [
+                'won'         => 'Contactos · Ganados',
+                'lost'        => 'Contactos · Perdidos',
+                'qualified'   => 'Contactos · Calificados',
+                'proposal'    => 'Contactos · En propuesta',
+                'negotiation' => 'Contactos · En negociación',
+                'contacted'   => 'Contactos · Contactados',
+                'new'         => 'Contactos · Nuevos',
+            ];
+            $toolbarTitle = $titleByStatus[$statusFilter] ?? 'Bandeja de entrada';
+        @endphp
+        <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;flex-shrink:0;">{{ $toolbarTitle }}</span>
         <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--alg-ink-4);letter-spacing:.04em;flex-shrink:0;">· {{ $totalShown }}</span>
+        @if($statusFilter !== '')
+            <a href="/admin/leads" style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);text-decoration:none;border:1px solid var(--alg-line);padding:2px 6px;border-radius:3px;background:var(--alg-surface-2);letter-spacing:.04em;flex-shrink:0;" title="Quitar filtro">× quitar filtro</a>
+        @endif
 
         {{-- Search full-width with key hint --}}
         <div style="flex:1;position:relative;max-width:520px;">
@@ -359,23 +374,72 @@
                         </div>
                     @endif
 
-                    {{-- Activity timeline --}}
+                    {{-- History timeline — emails, calls, whatsapp, meetings, notes --}}
+                    @php
+                        $emailCount = $selected->activities->where('type', 'email')->count();
+                        $iconForType = [
+                            'email'         => '✉',
+                            'call'          => '☎',
+                            'whatsapp'      => '◉',
+                            'meeting'       => '◇',
+                            'note'          => '◎',
+                            'status_change' => '↻',
+                            'score_change'  => '★',
+                        ];
+                        $colorForType = [
+                            'email'         => 'var(--alg-accent)',
+                            'call'          => 'var(--alg-pos)',
+                            'whatsapp'      => 'var(--alg-pos)',
+                            'meeting'       => 'var(--alg-warn)',
+                            'note'          => 'var(--alg-ink-3)',
+                            'status_change' => 'var(--alg-ink-4)',
+                            'score_change'  => 'var(--alg-ink-4)',
+                        ];
+                        $labelForType = [
+                            'email'         => 'Correo',
+                            'call'          => 'Llamada',
+                            'whatsapp'      => 'WhatsApp',
+                            'meeting'       => 'Reunión',
+                            'note'          => 'Nota',
+                            'status_change' => 'Cambio de estado',
+                            'score_change'  => 'Cambio de score',
+                        ];
+                    @endphp
                     <div style="padding:14px 24px;">
-                        <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:var(--alg-ink-4);margin:0 0 12px;">Actividad reciente</p>
+                        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 12px;">
+                            <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:var(--alg-ink-4);margin:0;">Historial</p>
+                            @if($emailCount > 0)
+                                <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-accent);margin:0;letter-spacing:.04em;">✉ {{ $emailCount }} {{ $emailCount === 1 ? 'correo' : 'correos' }}</p>
+                            @endif
+                        </div>
                         @if($selected->activities->isNotEmpty())
-                            <div style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="display:flex;flex-direction:column;gap:14px;position:relative;">
+                                {{-- Vertical thread line --}}
+                                <div style="position:absolute;left:9px;top:8px;bottom:8px;width:1px;background:var(--alg-line);pointer-events:none;"></div>
                                 @foreach($selected->activities as $activity)
-                                    <div style="display:flex;gap:10px;align-items:flex-start;">
-                                        <div style="width:6px;height:6px;border-radius:50%;background:var(--alg-accent);margin-top:7px;flex-shrink:0;"></div>
-                                        <div style="flex:1;min-width:0;">
-                                            <p style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink-2);margin:0 0 1px;letter-spacing:-0.005em;line-height:1.5;">{{ $activity->description ?? ucfirst($activity->type) }}</p>
-                                            <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);margin:0;letter-spacing:.04em;">{{ $activity->created_at->format('d M · H:i') }} · {{ $activity->created_at->diffForHumans() }}</p>
+                                    @php
+                                        $glyph = $iconForType[$activity->type] ?? '·';
+                                        $color = $colorForType[$activity->type] ?? 'var(--alg-ink-4)';
+                                        $label = $labelForType[$activity->type] ?? ucfirst($activity->type);
+                                        $isEmail = $activity->type === 'email';
+                                    @endphp
+                                    <div style="display:flex;gap:10px;align-items:flex-start;position:relative;z-index:1;">
+                                        <div style="width:18px;height:18px;border-radius:50%;background:var(--alg-surface);border:1.5px solid {{ $color }};color:{{ $color }};display:grid;place-items:center;font-size:9px;font-weight:700;flex-shrink:0;line-height:1;">{{ $glyph }}</div>
+                                        <div style="flex:1;min-width:0;{{ $isEmail ? 'background:var(--alg-surface-2);border:1px solid var(--alg-line);border-radius:6px;padding:8px 10px;' : '' }}">
+                                            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px;">
+                                                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:{{ $color }};font-weight:600;text-transform:uppercase;letter-spacing:.06em;">{{ $label }}</span>
+                                                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);letter-spacing:.04em;flex-shrink:0;">{{ $activity->created_at->format('d M · H:i') }}</span>
+                                            </div>
+                                            <p style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink-2);margin:0;letter-spacing:-0.005em;line-height:1.5;{{ $isEmail ? '' : '' }}">{{ $activity->description ?? '—' }}</p>
+                                            @if($activity->user_id && $activity->relationLoaded('user') && $activity->user)
+                                                <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);margin:3px 0 0;letter-spacing:.04em;">— {{ $activity->user->name }}</p>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
                         @else
-                            <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--alg-ink-4);margin:0;letter-spacing:.04em;">Sin actividad registrada todavía.</p>
+                            <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--alg-ink-4);margin:0;letter-spacing:.04em;">Sin historial todavía. Los correos enviados, llamadas y notas aparecerán aquí.</p>
                         @endif
                     </div>
                 </div>

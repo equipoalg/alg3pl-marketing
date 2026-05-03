@@ -148,7 +148,7 @@
                         ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/leads',     'Ver bandeja de entrada'],
                         ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients',   'Ver cuentas'],
                         ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns', 'Ver campañas'],
-                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/leads',     'Ver leads ganados / cerrados'],
+                        ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/leads?status=won', 'Ver contactos ganados con su historial'],
                     ];
                 @endphp
                 @foreach($tiles as [$lbl, $countTo, $decimals, $suffix, $delta, $sub, $href, $tip])
