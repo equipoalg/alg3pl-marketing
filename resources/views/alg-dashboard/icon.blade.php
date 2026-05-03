@@ -18,6 +18,7 @@
     @case('megaphone')     <svg {!! $svgAttrs !!}><path d="M3 8v4l9 4V4l-9 4zM12 6v8M3 12h2v3"/></svg> @break
     @case('filter')        <svg {!! $svgAttrs !!}><path d="M3 4h14l-5 7v5l-4-2v-3L3 4z"/></svg> @break
     @case('mail')          <svg {!! $svgAttrs !!}><rect x="3" y="5" width="14" height="10" rx="1"/><path d="M3 6l7 5 7-5"/></svg> @break
+    @case('inbox')         <svg {!! $svgAttrs !!}><path d="M3 12l2.5-7h9L17 12M3 12h4l1 2h4l1-2h4M3 12v4a1 1 0 001 1h12a1 1 0 001-1v-4"/></svg> @break
     @case('send')          <svg {!! $svgAttrs !!}><path d="M17 3l-7 14-2-6-6-2 15-6z"/></svg> @break
     @case('trending-up')   <svg {!! $svgAttrs !!}><path d="M3 14l5-5 3 3 6-6M13 6h4v4"/></svg> @break
     @case('search')        <svg {!! $svgAttrs !!}><circle cx="9" cy="9" r="5"/><path d="M13 13l4 4"/></svg> @break

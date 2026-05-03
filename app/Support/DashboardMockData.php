@@ -19,13 +19,12 @@ class DashboardMockData
             ]],
             ['label' => 'Marketing search', 'items' => [
                 ['id' => 'kanban', 'icon' => 'columns', 'label' => 'Kanban Board', 'href' => '/admin/kanban'],
-                ['id' => 'table',  'icon' => 'table',   'label' => 'Tabla',         'href' => '/admin/leads'],
             ]],
             ['label' => 'CRM', 'items' => [
-                ['id' => 'cuentas',     'icon' => 'building',  'label' => 'Cuentas',     'href' => '/admin/clients',  'count' => 142],
-                ['id' => 'leads',       'icon' => 'user-plus', 'label' => 'Leads',       'href' => '/admin/leads',    'count' => 483],
-                ['id' => 'tags',        'icon' => 'tag',       'label' => 'Tags',        'href' => '/admin/tags'],
-                ['id' => 'seguimiento', 'icon' => 'activity',  'label' => 'Seguimiento', 'href' => '/admin/tasks'],
+                ['id' => 'cuentas',     'icon' => 'building',  'label' => 'Cuentas',             'href' => '/admin/clients',  'count' => 142],
+                ['id' => 'leads',       'icon' => 'inbox',     'label' => 'Bandeja de entrada',  'href' => '/admin/leads',    'count' => 483],
+                ['id' => 'tags',        'icon' => 'tag',       'label' => 'Tags',                'href' => '/admin/tags'],
+                ['id' => 'seguimiento', 'icon' => 'activity',  'label' => 'Seguimiento',         'href' => '/admin/tasks'],
             ]],
             ['label' => 'Marketing', 'items' => [
                 ['id' => 'campanas',        'icon' => 'megaphone', 'label' => 'Campañas',        'href' => '/admin/campaigns', 'count' => 8],
@@ -34,8 +33,8 @@ class DashboardMockData
                 ['id' => 'envios',          'icon' => 'send',      'label' => 'Envíos',          'href' => '/admin/email-campaigns'],
             ]],
             ['label' => 'Analytics', 'items' => [
-                ['id' => 'trafico',  'icon' => 'trending-up', 'label' => 'Tráfico',         'href' => '/admin/analytics-snapshots'],
-                ['id' => 'search',   'icon' => 'search',      'label' => 'Search Console',  'href' => '/admin/search-console-data'],
+                ['id' => 'trafico',  'icon' => 'trending-up', 'label' => 'Tráfico',         'href' => '/admin/analytics'],
+                ['id' => 'search',   'icon' => 'search',      'label' => 'Search Console',  'href' => '/admin/search-console'],
                 ['id' => 'reportes', 'icon' => 'file-text',   'label' => 'Reportes',        'href' => '/admin/country-reports'],
             ]],
         ];
