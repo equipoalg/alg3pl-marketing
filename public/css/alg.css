@@ -1711,3 +1711,101 @@ select:focus {
         scroll-behavior: auto !important;
     }
 }
+
+
+/* ══════════════════════════════════════════════════
+   UBUNTU / GNOME-INSPIRED CHROME (variant B)
+   - 32px black topbar (GNOME shell)
+   - 64px vertical dock (Ubuntu dock)
+   - Pages render as floating "windows" with traffic lights + 12px radius
+   The desktop background tint is set on body so the window contrast works.
+══════════════════════════════════════════════════ */
+
+/* Yaru-inspired desktop wallpaper-tint — subtle gradient so the white "window" pops */
+body[data-alg-variant="b"], body.fi-body:has(.alg-dock) {
+    background: linear-gradient(135deg, #1C1917 0%, #292524 100%) !important;
+}
+
+/* The flex container that holds dock + main column */
+.alg-dock + div {
+    background: transparent !important;
+}
+
+/* Outer frame around the page content (the "window"). Applied to .alg-main
+   on Filament pages and to the variant-b/a wrapper on the dashboard. */
+.alg-main,
+.alg-window {
+    margin: 8px 8px 8px 0 !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.20) !important;
+    overflow: hidden !important;
+    background: var(--alg-surface) !important;
+    position: relative;
+    padding-top: 32px !important; /* room for the traffic-lights row */
+}
+
+/* Traffic-light buttons — purely decorative, visual marker that this is a "window" */
+.alg-main::before,
+.alg-window::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #FF5F57;
+    box-shadow:
+        17px 0 0 0 #FEBC2E,
+        34px 0 0 0 #28C840;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Inbox is full-bleed already (its own toolbar starts at row 0 within main).
+   Hide the traffic-lights and remove the 32px top padding, then let the
+   inbox use the full window height. */
+.alg-main:has(.alg-inbox) {
+    padding-top: 0 !important;
+}
+.alg-main:has(.alg-inbox)::before { display: none; }
+.alg-main:has(.alg-inbox) .alg-inbox { height: calc(100vh - 32px - 16px) !important; }
+
+/* Override the old .fi-topbar styling — we now use the black GNOME bar */
+.alg-topbar {
+    height: 32px !important;
+}
+
+/* GNOME-style notification toast — slide-down from top center, black pill */
+.fi-no-notification {
+    background: #1C1917 !important;
+    color: rgba(255,255,255,0.92) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.40) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.fi-no-notification .fi-no-notification-title,
+.fi-no-notification h3 {
+    color: rgba(255,255,255,0.95) !important;
+}
+.fi-no-notification .fi-no-notification-body,
+.fi-no-notification p {
+    color: rgba(255,255,255,0.65) !important;
+}
+
+/* Dock item active state — extra polish */
+.alg-dock a:hover { transform: scale(1.06); }
+
+/* Sidebar A (legacy "Expandido") — keep navy, doesn't get the dock treatment */
+.alg-sidebar-a {
+    background: var(--alg-accent) !important;
+    color: #FFFFFF !important;
+}
+
+/* Reduce motion respect for traffic-lights too (purely decorative) */
+@media (prefers-reduced-motion: reduce) {
+    .alg-main::before, .alg-window::before { transition: none !important; }
+}
