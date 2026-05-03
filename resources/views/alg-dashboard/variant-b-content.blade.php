@@ -189,7 +189,7 @@
             <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
                 <div>
                     <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Pipeline</h2>
-                    <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $totalPipelineCount }} {{ $totalPipelineCount === 1 ? 'lead' : 'leads' }} en movimiento@if($pipelineUsd > 0) · valor estimado {{ $pipelineUsdLabel }} USD @endif</p>
+                    <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $totalPipelineCount }} {{ $totalPipelineCount === 1 ? 'lead' : 'leads' }} en movimiento{{ $pipelineUsd > 0 ? ' · valor estimado ' . $pipelineUsdLabel . ' USD' : '' }}</p>
                 </div>
                 <button style="{{ $btnGhost }}">Ver detalle @include('alg-dashboard.icon', ['name' => 'arrow-up-right', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
             </div>
@@ -322,7 +322,7 @@
                     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
                         <div>
                             <h2 style="margin:0;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Campañas</h2>
-                            <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $campaignsCount }} {{ $campaignsCount === 1 ? 'campaña' : 'campañas' }}@if($campaignsSpend > 0) · {{ $campaignsSpendLabel }} invertidos @endif</p>
+                            <p style="margin:4px 0 0;font-size:12px;color:var(--ink-4);">{{ $campaignsCount }} {{ $campaignsCount === 1 ? 'campaña' : 'campañas' }}{{ $campaignsSpend > 0 ? ' · ' . $campaignsSpendLabel . ' invertidos' : '' }}</p>
                         </div>
                         <button style="{{ $btnGhost }}">Crear @include('alg-dashboard.icon', ['name' => 'plus', 'size' => 12, 'stroke' => 'var(--ink-4)'])</button>
                     </div>
