@@ -16,6 +16,14 @@ class SearchConsoleDataResource extends Resource
 
     protected static ?string $model = SearchConsoleData::class;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Replaced in nav by App\Filament\Pages\SearchConsoleDashboard (real-look layout).
+        // The raw list page stays accessible at /admin/search-console-data for power users
+        // and CSV imports, but it's hidden from the sidebar.
+        return false;
+    }
+
     public static function getNavigationIcon(): string
     {
         return 'heroicon-o-magnifying-glass';

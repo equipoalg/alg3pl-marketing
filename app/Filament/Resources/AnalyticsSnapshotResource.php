@@ -16,6 +16,14 @@ class AnalyticsSnapshotResource extends Resource
 
     protected static ?string $model = AnalyticsSnapshot::class;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Replaced in nav by App\Filament\Pages\AnalyticsTrafficDashboard (real-look layout).
+        // The raw list page stays accessible at /admin/analytics-snapshots for power users
+        // and CSV imports, but it's hidden from the sidebar.
+        return false;
+    }
+
     public static function getNavigationIcon(): string
     {
         return 'heroicon-o-arrow-trending-up';
