@@ -33,7 +33,14 @@ class LeadResource extends Resource
 
     public static function getNavigationIcon(): string
     {
-        return 'heroicon-o-user-group';
+        // heroicon-o-inbox-arrow-down = "incoming inbox" — fits the inbox-style /admin/leads
+        // (renamed from "Leads"). Other resources keep heroicon-o-user-group/etc.
+        return 'heroicon-o-inbox-arrow-down';
+    }
+
+    public static function getActiveNavigationIcon(): string
+    {
+        return 'heroicon-s-inbox-arrow-down';
     }
 
     public static function getNavigationGroup(): string
@@ -48,7 +55,7 @@ class LeadResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return 'Leads';
+        return 'Bandeja de entrada';
     }
 
     public static function getModelLabel(): string
@@ -58,7 +65,7 @@ class LeadResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return 'Leads';
+        return 'Bandeja de entrada';
     }
 
     /** Global search — Buscar ⌘K hits this */

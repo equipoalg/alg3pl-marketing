@@ -32,6 +32,16 @@ class ListLeads extends Page
     public string $statusFilter = '';
     public string $search = '';
 
+    public function getTitle(): string
+    {
+        return 'Bandeja de entrada';
+    }
+
+    public function getHeading(): string
+    {
+        return 'Bandeja de entrada';
+    }
+
     public function mount(): void
     {
         // Default selection = newest lead, so the right panel isn't empty on first load
