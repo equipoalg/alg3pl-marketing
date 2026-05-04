@@ -1,8 +1,34 @@
 {{-- Floating bulk-action bar — shown when selectedIds is non-empty.
-     Expects: $selectedIds. Static helpers used directly. --}}
+     Also renders the soft-undo toast for the last delete (within the recovery window).
+     Expects: $selectedIds, $this->canUndo (computed), $lastDeletedSnapshot, $lastDeletedKind.
+     Static helpers used directly. --}}
 @php
     use App\Filament\Resources\TaskResource\Pages\ListTasks;
 @endphp
+
+{{-- Undo toast — only shown when there's a fresh delete to roll back.
+     Stays visible for UNDO_WINDOW_SECONDS; after that the wire prop expires
+     server-side and a re-render hides this bar. --}}
+@if($this->canUndo)
+    <div style="position:fixed;bottom:{{ count($selectedIds) > 0 ? '74px' : '20px' }};left:50%;transform:translateX(-50%);background:var(--alg-surface);border:1px solid var(--alg-line);box-shadow:0 8px 24px rgba(0,0,0,0.18);padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:10px;z-index:1001;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink-2);">
+        <span style="font-size:13px;color:var(--alg-warn);">↶</span>
+        <span>
+            @if($lastDeletedKind === 'bulk')
+                {{ count($lastDeletedSnapshot) }} tareas eliminadas.
+            @else
+                Tarea eliminada.
+            @endif
+        </span>
+        <button type="button" wire:click="undoLastDelete"
+                style="padding:4px 10px;background:var(--alg-ink);color:#FFFFFF;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:600;letter-spacing:-0.005em;">
+            Deshacer
+        </button>
+        <button type="button" wire:click="clearUndoSnapshot"
+                title="Descartar"
+                style="border:none;background:transparent;color:var(--alg-ink-5);cursor:pointer;padding:4px 8px;font-size:14px;line-height:1;">×</button>
+    </div>
+@endif
+
 @if(count($selectedIds) > 0)
     <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--alg-ink);color:#FFFFFF;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.35);display:flex;align-items:center;gap:12px;z-index:1000;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;">
         <span style="font-weight:600;">{{ count($selectedIds) }} seleccionada{{ count($selectedIds) > 1 ? 's' : '' }}</span>

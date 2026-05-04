@@ -67,6 +67,18 @@ class ListTasks extends Page
     #[Url(as: 'due')]
     public string $dueFilter = '';
 
+    /** Soft-undo stack: snapshots of bulk-deleted tasks within the recovery window. */
+    public array $lastDeletedSnapshot = [];
+    public ?int  $lastDeletedAt       = null;
+    public string $lastDeletedKind    = ''; // 'single' or 'bulk' — for the toast message
+
+    /** Recovery window for bulk-delete undo (seconds). */
+    public const UNDO_WINDOW_SECONDS = 30;
+
+    /** Saved-view limits — protect users.preferences from getting bloated/abused. */
+    public const SAVED_VIEW_NAME_MAX_LENGTH = 40;
+    public const SAVED_VIEW_MAX_COUNT       = 20;
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return ''; // suppress Filament heading; our custom toolbar replaces it
@@ -195,8 +207,15 @@ class ListTasks extends Page
     public function deleteSelected(): void
     {
         if (! $this->selectedId) return;
+        // Snapshot full row before delete so the user can undo.
+        $task = TaskResource::getEloquentQuery()->where('id', $this->selectedId)->first();
+        if (! $task) return;
+        $snapshot = $task->toArray();
         TaskResource::getEloquentQuery()->where('id', $this->selectedId)->delete();
-        $this->selectedId = null;
+        $this->lastDeletedSnapshot = [$snapshot];
+        $this->lastDeletedAt       = now()->timestamp;
+        $this->lastDeletedKind     = 'single';
+        $this->selectedId          = null;
         Notification::make()->title('Tarea eliminada')->success()->send();
     }
 
@@ -301,10 +320,88 @@ class ListTasks extends Page
     public function bulkDelete(): void
     {
         if (empty($this->selectedIds)) return;
-        $count = count($this->selectedIds);
+        // Snapshot full rows before delete so the user can undo within the window.
+        $rows = TaskResource::getEloquentQuery()
+            ->whereIn('id', $this->selectedIds)
+            ->get()
+            ->map(fn ($t) => $t->toArray())
+            ->toArray();
+        $count = count($rows);
+        if ($count === 0) {
+            $this->selectedIds = [];
+            return;
+        }
         TaskResource::getEloquentQuery()->whereIn('id', $this->selectedIds)->delete();
-        $this->selectedIds = [];
-        Notification::make()->title("$count tareas eliminadas")->success()->send();
+        $this->lastDeletedSnapshot = $rows;
+        $this->lastDeletedAt       = now()->timestamp;
+        $this->lastDeletedKind     = 'bulk';
+        $this->selectedIds         = [];
+        Notification::make()
+            ->title("$count tareas eliminadas")
+            ->body('Tenés ' . self::UNDO_WINDOW_SECONDS . ' segundos para deshacer.')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Restore the most recently deleted task(s) if still within the undo window.
+     * Reinserts using mass-assignment via Task::create — the snapshot includes
+     * country_id so the recovery respects tenant isolation.
+     */
+    public function undoLastDelete(): void
+    {
+        if (empty($this->lastDeletedSnapshot) || ! $this->lastDeletedAt) {
+            Notification::make()->title('Nada que deshacer')->warning()->send();
+            return;
+        }
+        if (now()->timestamp - $this->lastDeletedAt > self::UNDO_WINDOW_SECONDS) {
+            Notification::make()->title('La ventana de undo expiró')->warning()->send();
+            $this->clearUndoSnapshot();
+            return;
+        }
+
+        $restored = 0;
+        foreach ($this->lastDeletedSnapshot as $row) {
+            // Strip non-fillable timestamp/audit fields so Eloquent doesn't error.
+            // Keep id so the task lands back at the same id (no FK drift).
+            unset($row['updated_at']);
+            try {
+                Task::withoutEvents(function () use ($row) {
+                    Task::create($row);
+                });
+                $restored++;
+            } catch (\Throwable $e) {
+                // Swallow individual failures; report total at the end.
+            }
+        }
+
+        Notification::make()->title("$restored {$this->describeRestoredCount($restored)}")->success()->send();
+        $this->clearUndoSnapshot();
+    }
+
+    private function describeRestoredCount(int $n): string
+    {
+        return $n === 1 ? 'tarea restaurada' : 'tareas restauradas';
+    }
+
+    public function clearUndoSnapshot(): void
+    {
+        $this->lastDeletedSnapshot = [];
+        $this->lastDeletedAt       = null;
+        $this->lastDeletedKind     = '';
+    }
+
+    /**
+     * Computed: is the undo snapshot still within the recovery window?
+     * Used by the toast in the bulk-bar to render an "Undo" button only
+     * when there's something to undo.
+     */
+    public function getCanUndoProperty(): bool
+    {
+        if (empty($this->lastDeletedSnapshot) || ! $this->lastDeletedAt) {
+            return false;
+        }
+        return now()->timestamp - $this->lastDeletedAt <= self::UNDO_WINDOW_SECONDS;
     }
 
     /* ───── Saved views (persisted per-user in JSON preferences) ───── */
@@ -312,15 +409,33 @@ class ListTasks extends Page
     /**
      * Snapshot the current filter+group+search+chips combo and save it under
      * a user-supplied name. Stored at users.preferences->task_views[].
+     *
+     * Validation:
+     *   - Name truncated to SAVED_VIEW_NAME_MAX_LENGTH chars
+     *   - Empty / whitespace-only names rejected silently
+     *   - Duplicate names overwrite (no two views with the same name)
+     *   - Hard cap of SAVED_VIEW_MAX_COUNT views per user (oldest dropped)
+     *
+     * Note: country_filter (sidebar global) is captured too so reloading
+     * the view restores the exact context, including which country was active.
      */
     public function saveCurrentView(string $name): void
     {
         $name = trim($name);
         if ($name === '') return;
+        // Cap name length defensively (UI also has maxlength but never trust the client)
+        if (mb_strlen($name) > self::SAVED_VIEW_NAME_MAX_LENGTH) {
+            $name = mb_substr($name, 0, self::SAVED_VIEW_NAME_MAX_LENGTH);
+        }
         $user = auth()->user();
         if (! $user) return;
 
         $existing = $user->pref('task_views', []);
+
+        // Dedup: if a view with the same name exists, drop the old entry
+        // (we'll re-append below with the latest filter snapshot).
+        $existing = array_values(array_filter($existing, fn ($v) => ($v['name'] ?? '') !== $name));
+
         $existing[] = [
             'name'     => $name,
             'view'     => $this->viewMode,
@@ -330,7 +445,16 @@ class ListTasks extends Page
             'priority' => $this->priorityFilter,
             'cat'      => $this->categoryFilter,
             'due'      => $this->dueFilter,
+            // Capture country context — restored on loadView so the user's
+            // sidebar selection isn't ignored when they reload the view.
+            'country'  => session('country_filter') ?: null,
         ];
+
+        // Hard cap: keep only the most recent SAVED_VIEW_MAX_COUNT
+        if (count($existing) > self::SAVED_VIEW_MAX_COUNT) {
+            $existing = array_slice($existing, -self::SAVED_VIEW_MAX_COUNT);
+        }
+
         $user->setPrefs(['task_views' => array_values($existing)]);
         Notification::make()->title("Vista \"$name\" guardada")->success()->send();
     }
@@ -350,6 +474,11 @@ class ListTasks extends Page
         $this->priorityFilter = $v['priority'] ?? '';
         $this->categoryFilter = $v['cat']      ?? '';
         $this->dueFilter      = $v['due']      ?? '';
+        // Restore the country context if it was saved with the view.
+        // null/missing = user keeps whatever country is currently active.
+        if (array_key_exists('country', $v) && $v['country'] !== null) {
+            session(['country_filter' => $v['country']]);
+        }
     }
 
     public function deleteView(int $index): void
