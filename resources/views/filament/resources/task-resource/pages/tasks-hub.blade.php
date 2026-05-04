@@ -4,8 +4,13 @@
          (App\Filament\Resources\TaskResource\Pages\ListTasks); each partial
          imports them directly. No more inline closure duplication. --}}
     <style>
-        /* Suppress Filament's default page header so our toolbar is the only chrome */
-        .fi-page > .fi-header { display: none !important; }
+        /* Suppress Filament's default page header (we use our own toolbar) */
+        .fi-page > .fi-header,
+        .fi-page-header { display: none !important; }
+        /* Reclaim the ~80px Filament reserves for title/breadcrumb area.
+           Scoped via the page-active style block so it only applies here. */
+        .fi-main-ctn > .fi-page { padding-top: 0 !important; }
+        .fi-main { padding-top: 0.5rem !important; }
     </style>
 
     {{-- Grid: sidebar 220px | main flex | (right pane 420px when a task is selected) --}}
