@@ -67,7 +67,8 @@
         <aside style="position:sticky;top:14px;background:var(--alg-surface);border:1px solid var(--alg-line);">
             <div style="padding:14px 16px 10px;border-bottom:1px solid var(--alg-line);">
                 <h3 style="margin:0;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;">Tareas</h3>
-                <p style="margin:3px 0 0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);letter-spacing:.04em;">{{ $totalShown }} visibles</p>
+                <p style="margin:3px 0 0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);letter-spacing:.04em;"
+                   title="Tareas en tu país (sin filtros)">{{ $totalUnfiltered }} en total</p>
             </div>
             <nav style="display:flex;flex-direction:column;padding:6px 0;">
                 @foreach($presets as $key => $preset)
@@ -153,6 +154,14 @@
                            placeholder="Buscar tareas…"
                            style="width:100%;padding:6px 10px 6px 28px;border:1px solid var(--alg-line);background:var(--alg-bg);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);outline:none;border-radius:4px;">
                 </div>
+
+                {{-- Mostrando X / Y — honest counter (always visible, even when 0) --}}
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--alg-surface-2);border:1px solid var(--alg-line);border-radius:4px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-3);letter-spacing:.02em;white-space:nowrap;"
+                      title="Tareas que coinciden con tus filtros activos">
+                    <span style="color:var(--alg-ink);font-weight:600;">{{ $totalAfterFilter }}</span>
+                    <span style="color:var(--alg-ink-5);">de</span>
+                    <span>{{ $totalUnfiltered }}</span>
+                </span>
 
                 {{-- View toggle: Lista | Kanban --}}
                 <div style="display:inline-flex;background:var(--alg-surface-2);border:1px solid var(--alg-line);border-radius:5px;padding:1px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:500;letter-spacing:-0.005em;">
@@ -245,6 +254,17 @@
                     </button>
                 @endif
             </div>
+
+            {{-- Viewport-limit notice — shown only when filtered count > VIEWPORT_LIMIT.
+                 Honest disclosure: we truncated. Old code silently dropped past row 500. --}}
+            @if($wasLimited)
+                <div style="background:var(--alg-warn-soft);border:1px solid var(--alg-warn);color:var(--alg-warn);padding:7px 14px;display:flex;align-items:center;gap:10px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;border-radius:4px;">
+                    <span style="font-size:12px;">ⓘ</span>
+                    <span style="flex:1;">
+                        Mostrando las primeras <strong>{{ $viewportLimit }}</strong> tareas de <strong>{{ $totalAfterFilter }}</strong> que coinciden. Refiná los filtros para ver el resto.
+                    </span>
+                </div>
+            @endif
 
             {{-- ════════════════════════ BODY: List view OR Kanban view ════════════════════════ --}}
 

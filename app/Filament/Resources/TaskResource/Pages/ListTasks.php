@@ -436,59 +436,84 @@ class ListTasks extends Page
 
     /* ───── View data ───── */
 
+    /** Hard ceiling on rows fetched per render — protects the page from
+     *  loading 10k+ rows in memory if a country has explosive growth. */
+    public const VIEWPORT_LIMIT = 1000;
+
+    /**
+     * Apply chip filters + search to a query. Extracted so we can reuse it
+     * both for the active fetch AND for sidebar preset counts (so each preset
+     * count honestly reflects what the user would see if they clicked it).
+     */
+    private function applyChipsAndSearch($q)
+    {
+        if ($this->searchTerm !== '') {
+            $like = '%' . $this->searchTerm . '%';
+            $q->where(function ($qq) use ($like) {
+                $qq->where('title', 'like', $like)
+                   ->orWhere('description', 'like', $like)
+                   ->orWhere('assignee', 'like', $like);
+            });
+        }
+        $priorities = array_filter(explode(',', $this->priorityFilter));
+        if (! empty($priorities)) {
+            $q->whereIn('priority', $priorities);
+        }
+        $categories = array_filter(explode(',', $this->categoryFilter));
+        if (! empty($categories)) {
+            $q->whereIn('category', $categories);
+        }
+        if ($this->dueFilter !== '') {
+            match ($this->dueFilter) {
+                'today'      => $q->whereDate('due_date', today()),
+                'this_week'  => $q->whereBetween('due_date', [now()->startOfWeek(), now()->endOfWeek()]),
+                'this_month' => $q->whereBetween('due_date', [now()->startOfMonth(), now()->endOfMonth()]),
+                'overdue'    => $q->whereDate('due_date', '<', now())->where('status', '!=', 'done'),
+                default      => null,
+            };
+        }
+        return $q;
+    }
+
     public function getViewData(): array
     {
         $presets = $this->filterPresets();
 
-        // Build base query (apply preset + search + country scope from sidebar)
+        // Build base query (apply preset + search/chips + country scope from sidebar)
         $base = TaskResource::getEloquentQuery()->with('country');
 
         $applyPreset = $presets[$this->filterPreset]['apply'] ?? null;
         if ($applyPreset) {
             $base = call_user_func($applyPreset, $base);
         }
+        $base = $this->applyChipsAndSearch($base);
 
-        if ($this->searchTerm !== '') {
-            $like = '%' . $this->searchTerm . '%';
-            $base->where(function ($q) use ($like) {
-                $q->where('title', 'like', $like)
-                  ->orWhere('description', 'like', $like)
-                  ->orWhere('assignee', 'like', $like);
-            });
-        }
+        // Honest counts:
+        //   $totalUnfiltered  → tasks in user's country, NO filters at all
+        //   $totalAfterFilter → tasks matching active preset + chips + search (before viewport limit)
+        $totalUnfiltered  = TaskResource::getEloquentQuery()->count();
+        $totalAfterFilter = (clone $base)->count();
 
-        // Apply chip filters (multi-select, AND-combined)
-        $priorities = array_filter(explode(',', $this->priorityFilter));
-        if (! empty($priorities)) {
-            $base->whereIn('priority', $priorities);
-        }
-        $categories = array_filter(explode(',', $this->categoryFilter));
-        if (! empty($categories)) {
-            $base->whereIn('category', $categories);
-        }
-        if ($this->dueFilter !== '') {
-            match ($this->dueFilter) {
-                'today'      => $base->whereDate('due_date', today()),
-                'this_week'  => $base->whereBetween('due_date', [now()->startOfWeek(), now()->endOfWeek()]),
-                'this_month' => $base->whereBetween('due_date', [now()->startOfMonth(), now()->endOfMonth()]),
-                'overdue'    => $base->whereDate('due_date', '<', now())->where('status', '!=', 'done'),
-                default      => null,
-            };
-        }
-
-        // Pre-compute counts for the sidebar badges (one quick count per preset)
+        // Pre-compute counts for the sidebar badges. Each preset count REFLECTS
+        // the active chips + search, so the user sees how many results each
+        // preset would yield if they clicked it RIGHT NOW.
         $presetCounts = [];
         foreach ($presets as $key => $preset) {
             $sub = TaskResource::getEloquentQuery();
-            $presetCounts[$key] = (clone call_user_func($preset['apply'], $sub))->count();
+            $sub = call_user_func($preset['apply'], $sub);
+            $sub = $this->applyChipsAndSearch($sub);
+            $presetCounts[$key] = $sub->count();
         }
 
-        // Fetch tasks once; both list & kanban modes use this collection
+        // Fetch tasks once; both list & kanban modes use this collection.
+        // Note: viewport limit at 1000 with explicit "wasLimited" flag — old
+        // behavior silently dropped rows past 500.
         $tasks = (clone $base)
             ->orderByRaw("CASE priority WHEN 'P0' THEN 0 WHEN 'P1' THEN 1 WHEN 'P2' THEN 2 WHEN 'P3' THEN 3 ELSE 9 END")
             ->orderByRaw('due_date IS NULL, due_date ASC')
-            ->limit(500)
+            ->limit(self::VIEWPORT_LIMIT)
             ->get();
+        $wasLimited = $totalAfterFilter > self::VIEWPORT_LIMIT;
 
         // For list mode: group by $groupBy
         $grouped = collect();
@@ -529,15 +554,19 @@ class ListTasks extends Page
         $savedViews = auth()->user()?->pref('task_views', []) ?? [];
 
         return [
-            'tasks'         => $tasks,
-            'grouped'       => $grouped,
-            'kanbanColumns' => $kanbanColumns,
-            'presets'       => $presets,
-            'presetCounts'  => $presetCounts,
-            'totalShown'    => $tasks->count(),
-            'selected'      => $selected,
-            'banner'        => $banner,
-            'savedViews'    => $savedViews,
+            'tasks'             => $tasks,
+            'grouped'           => $grouped,
+            'kanbanColumns'     => $kanbanColumns,
+            'presets'           => $presets,
+            'presetCounts'      => $presetCounts,
+            'totalShown'        => $tasks->count(),       // rows actually rendered
+            'totalAfterFilter'  => $totalAfterFilter,     // matches active filters (no viewport limit)
+            'totalUnfiltered'   => $totalUnfiltered,      // country scope only — no filters
+            'wasLimited'        => $wasLimited,           // true if filtered count > VIEWPORT_LIMIT
+            'viewportLimit'     => self::VIEWPORT_LIMIT,
+            'selected'          => $selected,
+            'banner'            => $banner,
+            'savedViews'        => $savedViews,
         ];
     }
 
