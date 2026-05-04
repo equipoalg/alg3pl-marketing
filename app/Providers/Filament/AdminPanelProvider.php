@@ -105,10 +105,38 @@ class AdminPanelProvider extends PanelProvider
                                     } catch(e) {}
                                 });
                             }
+                            // Initial run + full SPA navigations
                             document.addEventListener("DOMContentLoaded", init);
                             document.addEventListener("livewire:navigated", init);
-                            // Re-run after Livewire morphs (e.g. when the user changes period)
-                            document.addEventListener("livewire:morph.updated", init);
+
+                            // After every Livewire partial update (e.g. period button click)
+                            // we need to:
+                            //  1. Reset the data-count-done flag on tiles whose value changed
+                            //     so init() will re-animate them to the new target.
+                            //  2. Re-run init().
+                            // Livewire 3 exposes Livewire.hook("morph.updated", cb) which
+                            // fires once per morphed element. We register it as soon as
+                            // Livewire is available.
+                            document.addEventListener("livewire:initialized", () => {
+                                if (! window.Livewire) return;
+                                window.Livewire.hook("morph.updated", () => {
+                                    document.querySelectorAll("[data-count-to]").forEach(el => {
+                                        // If the data-count-to value changed, force re-animation
+                                        const target = parseFloat(el.dataset.countTo) || 0;
+                                        const last = parseFloat(el.dataset.countLast || "");
+                                        if (last !== target) {
+                                            delete el.dataset.countDone;
+                                            el.dataset.countLast = target;
+                                        }
+                                    });
+                                    document.querySelectorAll(".alg-sparkline-animate").forEach(line => {
+                                        // SVG paths get fully re-rendered by Livewire morph,
+                                        // so we always reset the draw-done flag.
+                                        delete line.dataset.drawDone;
+                                    });
+                                    init();
+                                });
+                            });
                         })();
                     </script>',
             )
