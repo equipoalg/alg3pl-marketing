@@ -28,7 +28,8 @@
         .fi-page > .fi-header { display: none !important; }
     </style>
 
-    <div style="display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:flex-start;font-family:var(--alg-font);">
+    {{-- Grid: sidebar 220px | main flex | (right pane 420px when a task is selected) --}}
+    <div style="display:grid;grid-template-columns:220px 1fr {{ $selected ? '420px' : '' }};gap:18px;align-items:flex-start;font-family:var(--alg-font);">
 
         {{-- ════════════════════════ LEFT SIDEBAR — filter presets ════════════════════════ --}}
         <aside style="position:sticky;top:14px;background:var(--alg-surface);border:1px solid var(--alg-line);">
@@ -241,8 +242,9 @@
                                          data-task-id="{{ $t->id }}"
                                          style="background:var(--alg-bg);border:1px solid var(--alg-line);border-left:3px solid {{ $pc['fg'] }};border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;cursor:grab;">
                                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
-                                            <a href="{{ \App\Filament\Resources\TaskResource::getUrl('edit', ['record' => $t]) }}"
-                                               style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);font-weight:500;line-height:1.35;text-decoration:none;letter-spacing:-0.005em;">{{ $t->title }}</a>
+                                            {{-- Title click → slide-over (not edit page) --}}
+                                            <button type="button" wire:click.stop="selectTask({{ $t->id }})"
+                                                    style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);font-weight:500;line-height:1.35;background:transparent;border:none;text-align:left;padding:0;cursor:pointer;letter-spacing:-0.005em;">{{ $t->title }}</button>
                                             <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;font-weight:700;color:{{ $pc['fg'] }};background:{{ $pc['bg'] }};padding:1px 5px;border-radius:2px;flex-shrink:0;">{{ $t->priority }}</span>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:8px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);">
@@ -270,5 +272,16 @@
             @endif
 
         </div>
+
+        {{-- ════════════════════════ RIGHT PANE (slide-over) ════════════════════════ --}}
+        @if($selected)
+            @include('filament.resources.task-resource.pages.partials.task-detail-pane', [
+                'selected'      => $selected,
+                'priorityColor' => $priorityColor,
+                'statusColor'   => $statusColor,
+                'statusLabel'   => $statusLabel,
+            ])
+        @endif
+
     </div>
 </x-filament-panels::page>

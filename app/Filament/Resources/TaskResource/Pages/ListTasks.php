@@ -44,6 +44,16 @@ class ListTasks extends Page
     #[Url(as: 'q')]
     public string $searchTerm = '';
 
+    /** Currently-open task in the right slide-over pane (null = closed). */
+    #[Url(as: 'selected')]
+    public ?int $selectedId = null;
+
+    /** Inline-edit form state (loaded from selectedTask). */
+    public string $editTitle = '';
+    public ?string $editDescription = null;
+    public ?string $editDueDate = null;
+    public ?string $editAssignee = null;
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return ''; // suppress Filament heading; our custom toolbar replaces it
@@ -92,7 +102,23 @@ class ListTasks extends Page
         $task = Task::find($taskId);
         if (! $task) return;
         $task->update(['status' => $newStatus]);
-        Notification::make()->title('Tarea actualizada')->success()->send();
+        // Silent — no notification on DnD/inline-edit because they're high-frequency
+    }
+
+    public function setPriority(int $taskId, string $newPriority): void
+    {
+        if (! in_array($newPriority, ['P0', 'P1', 'P2', 'P3'], true)) return;
+        $task = Task::find($taskId);
+        if (! $task) return;
+        $task->update(['priority' => $newPriority]);
+    }
+
+    public function setCategory(int $taskId, string $newCategory): void
+    {
+        if (! in_array($newCategory, ['seo', 'technical', 'content', 'ux', 'marketing', 'analytics'], true)) return;
+        $task = Task::find($taskId);
+        if (! $task) return;
+        $task->update(['category' => $newCategory]);
     }
 
     public function markDone(int $taskId): void
@@ -114,6 +140,66 @@ class ListTasks extends Page
             'assignee'   => auth()->user()?->email,
         ]);
         Notification::make()->title('Tarea creada')->success()->send();
+    }
+
+    /* ───── Slide-over (right pane) ───── */
+
+    /** Open the right pane for the given task — also hydrates inline-edit fields. */
+    public function selectTask(int $taskId): void
+    {
+        $this->selectedId = $taskId;
+        $task = Task::find($taskId);
+        if (! $task) {
+            $this->selectedId = null;
+            return;
+        }
+        $this->editTitle       = (string) $task->title;
+        $this->editDescription = $task->description;
+        $this->editDueDate     = $task->due_date?->format('Y-m-d');
+        $this->editAssignee    = $task->assignee;
+    }
+
+    public function closeDetail(): void
+    {
+        $this->selectedId = null;
+    }
+
+    public function saveDetail(): void
+    {
+        if (! $this->selectedId) return;
+        $task = Task::find($this->selectedId);
+        if (! $task) return;
+        $task->update([
+            'title'       => trim($this->editTitle) ?: $task->title,
+            'description' => $this->editDescription,
+            'due_date'    => $this->editDueDate ?: null,
+            'assignee'    => $this->editAssignee ?: null,
+        ]);
+        Notification::make()->title('Tarea guardada')->success()->send();
+    }
+
+    public function deleteSelected(): void
+    {
+        if (! $this->selectedId) return;
+        Task::where('id', $this->selectedId)->delete();
+        $this->selectedId = null;
+        Notification::make()->title('Tarea eliminada')->success()->send();
+    }
+
+    /** Re-hydrate edit fields when selectedId changes via URL navigation */
+    public function updatedSelectedId($value): void
+    {
+        if ($value) {
+            $this->selectTask((int) $value);
+        }
+    }
+
+    public function mount(): void
+    {
+        // If URL has ?selected=N on first load, populate edit fields too
+        if ($this->selectedId) {
+            $this->selectTask($this->selectedId);
+        }
     }
 
     /* ───── Filter presets ───── */
@@ -238,6 +324,13 @@ class ListTasks extends Page
             ];
         }
 
+        // Selected task for the slide-over pane (load with country relation
+        // for display in the detail view)
+        $selected = null;
+        if ($this->selectedId) {
+            $selected = Task::with('country')->find($this->selectedId);
+        }
+
         return [
             'tasks'         => $tasks,
             'grouped'       => $grouped,
@@ -245,6 +338,7 @@ class ListTasks extends Page
             'presets'       => $presets,
             'presetCounts'  => $presetCounts,
             'totalShown'    => $tasks->count(),
+            'selected'      => $selected,
         ];
     }
 }
