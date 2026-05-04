@@ -112,7 +112,8 @@ class ListTasks extends Page
         if (! in_array($newStatus, ['pending', 'in_progress', 'blocked', 'done'], true)) {
             return;
         }
-        $task = Task::find($taskId);
+        // Use scoped query so a forged taskId from another country can't be touched.
+        $task = TaskResource::getEloquentQuery()->find($taskId);
         if (! $task) return;
         $task->update(['status' => $newStatus]);
         // Silent — no notification on DnD/inline-edit because they're high-frequency
@@ -121,7 +122,7 @@ class ListTasks extends Page
     public function setPriority(int $taskId, string $newPriority): void
     {
         if (! in_array($newPriority, ['P0', 'P1', 'P2', 'P3'], true)) return;
-        $task = Task::find($taskId);
+        $task = TaskResource::getEloquentQuery()->find($taskId);
         if (! $task) return;
         $task->update(['priority' => $newPriority]);
     }
@@ -129,7 +130,7 @@ class ListTasks extends Page
     public function setCategory(int $taskId, string $newCategory): void
     {
         if (! in_array($newCategory, ['seo', 'technical', 'content', 'ux', 'marketing', 'analytics'], true)) return;
-        $task = Task::find($taskId);
+        $task = TaskResource::getEloquentQuery()->find($taskId);
         if (! $task) return;
         $task->update(['category' => $newCategory]);
     }
@@ -161,7 +162,7 @@ class ListTasks extends Page
     public function selectTask(int $taskId): void
     {
         $this->selectedId = $taskId;
-        $task = Task::find($taskId);
+        $task = TaskResource::getEloquentQuery()->find($taskId);
         if (! $task) {
             $this->selectedId = null;
             return;
@@ -180,7 +181,7 @@ class ListTasks extends Page
     public function saveDetail(): void
     {
         if (! $this->selectedId) return;
-        $task = Task::find($this->selectedId);
+        $task = TaskResource::getEloquentQuery()->find($this->selectedId);
         if (! $task) return;
         $task->update([
             'title'       => trim($this->editTitle) ?: $task->title,
@@ -194,7 +195,7 @@ class ListTasks extends Page
     public function deleteSelected(): void
     {
         if (! $this->selectedId) return;
-        Task::where('id', $this->selectedId)->delete();
+        TaskResource::getEloquentQuery()->where('id', $this->selectedId)->delete();
         $this->selectedId = null;
         Notification::make()->title('Tarea eliminada')->success()->send();
     }
@@ -268,7 +269,9 @@ class ListTasks extends Page
     public function bulkMarkDone(): void
     {
         if (empty($this->selectedIds)) return;
-        Task::whereIn('id', $this->selectedIds)->update(['status' => 'done']);
+        // Scope through TaskResource so cross-tenant IDs in $selectedIds (forged
+        // via DOM tampering or Livewire payload) cannot leak into another country.
+        TaskResource::getEloquentQuery()->whereIn('id', $this->selectedIds)->update(['status' => 'done']);
         $count = count($this->selectedIds);
         $this->selectedIds = [];
         Notification::make()->title("$count tareas marcadas como completadas")->success()->send();
@@ -278,7 +281,7 @@ class ListTasks extends Page
     {
         if (empty($this->selectedIds)) return;
         if (! in_array($priority, ['P0', 'P1', 'P2', 'P3'], true)) return;
-        Task::whereIn('id', $this->selectedIds)->update(['priority' => $priority]);
+        TaskResource::getEloquentQuery()->whereIn('id', $this->selectedIds)->update(['priority' => $priority]);
         $count = count($this->selectedIds);
         $this->selectedIds = [];
         Notification::make()->title("Prioridad $priority aplicada a $count tareas")->success()->send();
@@ -289,7 +292,7 @@ class ListTasks extends Page
         if (empty($this->selectedIds)) return;
         $email = auth()->user()?->email;
         if (! $email) return;
-        Task::whereIn('id', $this->selectedIds)->update(['assignee' => $email]);
+        TaskResource::getEloquentQuery()->whereIn('id', $this->selectedIds)->update(['assignee' => $email]);
         $count = count($this->selectedIds);
         $this->selectedIds = [];
         Notification::make()->title("$count tareas asignadas a ti")->success()->send();
@@ -299,7 +302,7 @@ class ListTasks extends Page
     {
         if (empty($this->selectedIds)) return;
         $count = count($this->selectedIds);
-        Task::whereIn('id', $this->selectedIds)->delete();
+        TaskResource::getEloquentQuery()->whereIn('id', $this->selectedIds)->delete();
         $this->selectedIds = [];
         Notification::make()->title("$count tareas eliminadas")->success()->send();
     }
@@ -398,7 +401,10 @@ class ListTasks extends Page
             'unassigned' => [
                 'label' => 'Sin asignar',
                 'icon'  => '○',
-                'apply' => fn ($q) => $q->whereNull('assignee')->orWhere('assignee', ''),
+                // Wrap the OR in a closure so the AND clause from country-scope
+                // isn't broken: WHERE country=X AND (assignee IS NULL OR assignee='')
+                // (without the closure it becomes: WHERE country=X AND assignee IS NULL OR assignee='' — leak)
+                'apply' => fn ($q) => $q->where(fn ($qq) => $qq->whereNull('assignee')->orWhere('assignee', '')),
             ],
             'no_due' => [
                 'label' => 'Sin fecha',
@@ -510,10 +516,10 @@ class ListTasks extends Page
         }
 
         // Selected task for the slide-over pane (load with country relation
-        // for display in the detail view)
+        // for display in the detail view) — must respect country scope.
         $selected = null;
         if ($this->selectedId) {
-            $selected = Task::with('country')->find($this->selectedId);
+            $selected = TaskResource::getEloquentQuery()->with('country')->find($this->selectedId);
         }
 
         // Focus banner — count overdue + P0/P1 due today, scoped by country session
