@@ -13,15 +13,15 @@
         <div style="display:grid;grid-template-columns:auto 1fr;gap:10px 14px;font-size:12.5px;align-items:center;">
             @php
                 $shortcuts = [
-                    '/'        => 'Buscar tareas',
-                    'c'        => 'Crear nueva tarea',
-                    'l'        => 'Cambiar a vista Lista',
-                    'k'        => 'Cambiar a vista Kanban',
-                    'j / k'    => 'Navegar entre tareas (lista)',
-                    'Enter'    => 'Abrir detalle de la tarea seleccionada',
-                    '1 / 2 / 3 / 4' => 'Asignar P0 / P1 / P2 / P3 a la seleccionada',
-                    'Esc'      => 'Cerrar panel de detalle',
-                    '?'        => 'Mostrar/ocultar esta ayuda',
+                    '/'             => 'Buscar tareas',
+                    'c'             => 'Crear nueva tarea',
+                    'g l'           => 'Cambiar a vista Lista',
+                    'g k'           => 'Cambiar a vista Kanban',
+                    'j / k'         => 'Navegar entre tareas (foco arriba/abajo)',
+                    'Enter'         => 'Abrir el panel de detalle de la tarea enfocada',
+                    '1 / 2 / 3 / 4' => 'Cambiar prioridad de la enfocada a P0 / P1 / P2 / P3',
+                    'Esc'           => 'Cerrar panel de detalle',
+                    '?'             => 'Mostrar / ocultar esta ayuda',
                 ];
             @endphp
             @foreach($shortcuts as $key => $action)

@@ -20,7 +20,8 @@
                 $isOverdue = $t->due_date && $t->due_date->isPast() && $t->status !== 'done';
             @endphp
             @php $isChecked = in_array($t->id, $selectedIds ?? [], true); @endphp
-            <tr style="border-bottom:1px solid var(--alg-line);transition:background 120ms;{{ $isChecked ? 'background:var(--alg-accent-soft);' : '' }}"
+            <tr data-task-id="{{ $t->id }}"
+                style="border-bottom:1px solid var(--alg-line);transition:background 120ms;{{ $isChecked ? 'background:var(--alg-accent-soft);' : '' }}"
                 onmouseover="if(this.style.background.indexOf('accent-soft')<0) this.style.background='var(--alg-surface-2)'"
                 onmouseout="this.style.background='{{ $isChecked ? 'var(--alg-accent-soft)' : 'transparent' }}'">
                 <td style="padding:8px 0 8px 12px;text-align:center;">

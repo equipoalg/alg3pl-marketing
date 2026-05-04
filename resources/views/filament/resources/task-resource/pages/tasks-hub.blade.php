@@ -9,38 +9,116 @@
     </style>
 
     {{-- Grid: sidebar 220px | main flex | (right pane 420px when a task is selected) --}}
-    {{-- Alpine wrapper: keyboard shortcuts (#10) + showShortcutsHelp toggle for the cheatsheet modal --}}
+    {{-- Alpine wrapper: keyboard shortcuts + showShortcutsHelp modal toggle.
+         Shortcut grammar:
+           - Single keys: /, ?, c, j, k, Enter, 1-4, Esc
+           - Vim-style "g" prefix:  g l → list view,  g k → kanban view
+             (we keep the conflict-free single-key model; "k" alone is up-nav) --}}
     <div x-data="{
             showHelp: false,
+            focusedIdx: -1,
+            gWaiting: false,
+            gTimer: null,
             isTyping(e) {
                 const t = e.target;
                 return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
             },
+            visibleRows() {
+                // Document-ordered selectable elements. Used by j/k navigation.
+                return Array.from(document.querySelectorAll('tr[data-task-id]'));
+            },
+            applyFocus() {
+                const rows = this.visibleRows();
+                rows.forEach((r, i) => {
+                    if (i === this.focusedIdx) {
+                        r.style.outline = '2px solid var(--alg-accent)';
+                        r.style.outlineOffset = '-2px';
+                        r.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    } else {
+                        r.style.outline = '';
+                        r.style.outlineOffset = '';
+                    }
+                });
+            },
+            moveFocus(delta) {
+                const rows = this.visibleRows();
+                if (rows.length === 0) return;
+                this.focusedIdx = ((this.focusedIdx < 0 ? -1 : this.focusedIdx) + delta + rows.length) % rows.length;
+                this.applyFocus();
+            },
+            focusedTaskId() {
+                const rows = this.visibleRows();
+                const r = rows[this.focusedIdx];
+                return r ? parseInt(r.dataset.taskId, 10) : null;
+            },
+            beginGPrefix() {
+                this.gWaiting = true;
+                clearTimeout(this.gTimer);
+                this.gTimer = setTimeout(() => { this.gWaiting = false; }, 800);
+            },
             handle(e) {
                 if (this.isTyping(e)) return;
+
+                // Two-key 'g' prefix: g l → list, g k → kanban
+                if (this.gWaiting) {
+                    this.gWaiting = false;
+                    clearTimeout(this.gTimer);
+                    if (e.key === 'l') { e.preventDefault(); $wire.setViewMode('list'); return; }
+                    if (e.key === 'k') { e.preventDefault(); $wire.setViewMode('kanban'); return; }
+                    // Unknown 2nd key — fall through to single-key handling
+                }
+                if (e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                    e.preventDefault();
+                    this.beginGPrefix();
+                    return;
+                }
+
                 // Single-key shortcuts
                 if (e.key === '/' && !e.shiftKey) {
                     e.preventDefault();
                     document.querySelector('input[wire\\:model\\.live\\.debounce\\.300ms=\'searchTerm\']')?.focus();
-                } else if (e.key === '?') {
+                    return;
+                }
+                if (e.key === '?') {
                     e.preventDefault();
                     this.showHelp = !this.showHelp;
-                } else if (e.key === 'c' && !e.metaKey && !e.ctrlKey) {
+                    return;
+                }
+                if (e.key === 'c' && !e.metaKey && !e.ctrlKey) {
                     e.preventDefault();
                     window.location.href = '{{ \App\Filament\Resources\TaskResource::getUrl('create') }}';
-                } else if (e.key === 'l') {
-                    e.preventDefault();
-                    $wire.setViewMode('list');
-                } else if (e.key === 'k') {
-                    e.preventDefault();
-                    $wire.setViewMode('kanban');
-                } else if (e.key === 'Escape' && {{ $selected ? 'true' : 'false' }}) {
+                    return;
+                }
+                if (e.key === 'Escape' && {{ $selected ? 'true' : 'false' }}) {
                     e.preventDefault();
                     $wire.closeDetail();
+                    return;
+                }
+
+                // j / k row navigation (only meaningful in list view)
+                if (e.key === 'j') { e.preventDefault(); this.moveFocus(+1); return; }
+                if (e.key === 'k') { e.preventDefault(); this.moveFocus(-1); return; }
+
+                // Enter — open the focused row's slide-over
+                if (e.key === 'Enter') {
+                    const id = this.focusedTaskId();
+                    if (id) { e.preventDefault(); $wire.selectTask(id); return; }
+                }
+
+                // 1 / 2 / 3 / 4 — set priority of focused row
+                if (['1','2','3','4'].includes(e.key) && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                    const id = this.focusedTaskId();
+                    if (id) {
+                        e.preventDefault();
+                        const priorities = { '1': 'P0', '2': 'P1', '3': 'P2', '4': 'P3' };
+                        $wire.setPriority(id, priorities[e.key]);
+                    }
                 }
             }
          }"
          x-on:keydown.window="handle($event)"
+         x-init="$nextTick(() => applyFocus())"
+         x-effect="applyFocus()"
          style="display:grid;grid-template-columns:220px 1fr {{ $selected ? '420px' : '' }};gap:18px;align-items:flex-start;font-family:var(--alg-font);position:relative;">
 
         {{-- LEFT SIDEBAR — filter presets + saved views --}}
