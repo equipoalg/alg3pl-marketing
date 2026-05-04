@@ -169,10 +169,16 @@
             {{-- 4 big editorial KPIs (real data) + traffic strip --}}
             <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
                 @php
+                    // KPI hrefs land on the EXACT subset the card represents:
+                    //   Leads totales      → bandeja filtrada al rango actual ($timeRange)
+                    //   Cuentas activas    → /admin/clients   con tableFilter status=active (Filament v3 native)
+                    //   Campañas activas   → /admin/campaigns con tableFilter status=active
+                    //   Conversión         → ConversionDashboard (página dedicada al análisis)
+                    $rangeForLink = $timeRange ?? '30d';
                     $tiles = [
-                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/kanban',    'Ver pipeline completo en Kanban'],
-                        ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients',   'Ver cuentas'],
-                        ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns', 'Ver campañas'],
+                        ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/leads?period=' . urlencode($rangeForLink),    'Ver los leads captados en este rango'],
+                        ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients?tableFilters[status][value]=active',  'Ver cuentas con status active'],
+                        ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns?tableFilters[status][value]=active', 'Ver campañas activas'],
                         ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/conversion', 'Ver análisis de conversión'],
                     ];
                 @endphp
@@ -196,7 +202,11 @@
                         @endif
                     </a>
                 @endforeach
-                <div style="padding:0 0 0 28px;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;">
+                {{-- Tráfico orgánico — clickable to GA4 analytics page filtered to organic --}}
+                <a href="/admin/analytics?channel=organic"
+                   class="alg-kpi-tile"
+                   title="Ver detalle de tráfico orgánico (90 días) en analytics"
+                   style="text-decoration:none;color:inherit;padding:0 0 0 28px;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;cursor:pointer;transition:background-color 150ms var(--alg-ease-out);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                         <span style="font-size:10.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;">Tráfico orgánico · 90 días</span>
                         <span style="font-size:11px;color:var(--ink-4);">{{ number_format($totalTraffic) }} sesiones</span>
@@ -210,7 +220,7 @@
                             ['t' => 4, 'r' => 0, 'b' => 4, 'l' => 0]
                         ) !!}
                     </div>
-                </div>
+                </a>
             </div>
         </section>
 

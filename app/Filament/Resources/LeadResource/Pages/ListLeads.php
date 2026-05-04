@@ -44,6 +44,14 @@ class ListLeads extends Page
     #[Url(as: 'status')]
     public string $statusFilter = '';
 
+    /**
+     * Period filter — URL-bound so the dashboard can deep-link to the same
+     * time-range it shows. Accepts: '7d', '30d', '90d', 'ytd', 'today'.
+     * Empty = no time filter (show all). Applied as created_at >= cutoff.
+     */
+    #[Url(as: 'period')]
+    public string $periodFilter = '';
+
     /** Folder filter — URL-bound: ?folder=hot, ?folder=pinned, etc. */
     #[Url(as: 'folder')]
     public string $folder = 'all';
@@ -192,6 +200,21 @@ class ListLeads extends Page
 
         if ($this->statusFilter !== '') {
             $q->where('status', $this->statusFilter);
+        }
+
+        // Period filter — only one value allowed; matches the dashboard's $timeRange semantic.
+        if ($this->periodFilter !== '') {
+            $cutoff = match ($this->periodFilter) {
+                'today' => now()->startOfDay(),
+                '7d'    => now()->subDays(7),
+                '30d'   => now()->subDays(30),
+                '90d'   => now()->subDays(90),
+                'ytd'   => now()->startOfYear(),
+                default => null,
+            };
+            if ($cutoff) {
+                $q->where('created_at', '>=', $cutoff);
+            }
         }
 
         if ($this->search !== '') {
