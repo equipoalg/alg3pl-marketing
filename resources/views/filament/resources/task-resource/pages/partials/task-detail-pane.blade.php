@@ -1,7 +1,9 @@
-{{-- Right-pane slide-over for the selected task. Expects: $selected, $priorityColor, $statusColor, $statusLabel --}}
+{{-- Right-pane slide-over for the selected task. Expects: $selected.
+     Color helpers come from ListTasks static methods (no longer params). --}}
 @php
-    $pc = $priorityColor($selected->priority);
-    $sc = $statusColor($selected->status);
+    use App\Filament\Resources\TaskResource\Pages\ListTasks;
+    $pc = ListTasks::priorityColor($selected->priority);
+    $sc = ListTasks::statusColor($selected->status);
     $isOverdue = $selected->due_date && $selected->due_date->isPast() && $selected->status !== 'done';
 @endphp
 <aside style="background:var(--alg-surface);border-left:1px solid var(--alg-line);position:sticky;top:14px;display:flex;flex-direction:column;max-height:calc(100vh - 28px);overflow:hidden;">
@@ -18,7 +20,7 @@
                 <div x-show="open" x-cloak x-transition.opacity
                      style="position:absolute;top:calc(100% + 4px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,0.10);padding:3px;z-index:10;display:flex;flex-direction:column;gap:1px;">
                     @foreach(['P0','P1','P2','P3'] as $pri)
-                        @php $c = $priorityColor($pri); @endphp
+                        @php $c = ListTasks::priorityColor($pri); @endphp
                         <button type="button"
                                 wire:click="setPriority({{ $selected->id }}, '{{ $pri }}')"
                                 @click="open = false"
@@ -35,12 +37,12 @@
             <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;">
                 <button type="button" @click="open = !open"
                         style="font-size:10px;font-weight:500;color:{{ $sc['fg'] }};background:{{ $sc['bg'] }};padding:3px 8px;border:none;border-radius:3px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;">
-                    {{ $statusLabel($selected->status) }} ▾
+                    {{ ListTasks::statusLabel($selected->status) }} ▾
                 </button>
                 <div x-show="open" x-cloak x-transition.opacity
                      style="position:absolute;top:calc(100% + 4px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,0.10);padding:3px;z-index:10;display:flex;flex-direction:column;gap:1px;min-width:140px;">
                     @foreach(['pending','in_progress','blocked','done'] as $st)
-                        @php $c = $statusColor($st); @endphp
+                        @php $c = ListTasks::statusColor($st); @endphp
                         <button type="button"
                                 wire:click="moveTaskStatus({{ $selected->id }}, '{{ $st }}')"
                                 @click="open = false"
@@ -48,7 +50,7 @@
                                 onmouseover="this.style.background='var(--alg-surface-2)'"
                                 onmouseout="this.style.background='transparent'">
                             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{{ $c['fg'] }};"></span>
-                            {{ $statusLabel($st) }}
+                            {{ ListTasks::statusLabel($st) }}
                         </button>
                     @endforeach
                 </div>

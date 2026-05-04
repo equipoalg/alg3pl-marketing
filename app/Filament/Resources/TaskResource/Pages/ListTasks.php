@@ -374,64 +374,122 @@ class ListTasks extends Page
     /* ───── Filter presets ───── */
 
     /**
-     * Catalog of preset filters: label, icon, and the closure that applies
-     * the filter to a Task query.
+     * Catalog of preset filters: label, icon, the closure that applies
+     * the filter to a Task query, and a SQL CASE expression used by the
+     * batched count (all 9 counts in 1 query — see countPresetsBatched()).
      *
-     * @return array<string, array{label:string, icon:string, apply:callable}>
+     * The 'apply' closure and 'sqlCase' fragment must encode the same
+     * predicate; if you change one, change the other.
+     *
+     * @return array<string, array{label:string, icon:string, apply:callable, sqlCase:string, binds:array}>
      */
     public function filterPresets(): array
     {
-        $userEmail = auth()->user()?->email;
+        $userEmail = auth()->user()?->email ?? '__nobody__@invalid';
+        $today     = today()->format('Y-m-d');
         return [
             'all' => [
-                'label' => 'Todas',
-                'icon'  => '◆',
-                'apply' => fn ($q) => $q,
+                'label'   => 'Todas',
+                'icon'    => '◆',
+                'apply'   => fn ($q) => $q,
+                'sqlCase' => '1=1',
+                'binds'   => [],
             ],
             'mine' => [
-                'label' => 'Asignadas a mí',
-                'icon'  => '◉',
-                'apply' => fn ($q) => $q->where('assignee', $userEmail),
+                'label'   => 'Asignadas a mí',
+                'icon'    => '◉',
+                'apply'   => fn ($q) => $q->where('assignee', $userEmail),
+                'sqlCase' => 'assignee = ?',
+                'binds'   => [$userEmail],
             ],
             'overdue' => [
-                'label' => 'Vencidas',
-                'icon'  => '◒',
-                'apply' => fn ($q) => $q->whereDate('due_date', '<', now())->where('status', '!=', 'done'),
+                'label'   => 'Vencidas',
+                'icon'    => '◒',
+                'apply'   => fn ($q) => $q->whereDate('due_date', '<', now())->where('status', '!=', 'done'),
+                'sqlCase' => "due_date < ? AND status != 'done'",
+                'binds'   => [$today],
             ],
             'unassigned' => [
-                'label' => 'Sin asignar',
-                'icon'  => '○',
+                'label'   => 'Sin asignar',
+                'icon'    => '○',
                 // Wrap the OR in a closure so the AND clause from country-scope
                 // isn't broken: WHERE country=X AND (assignee IS NULL OR assignee='')
                 // (without the closure it becomes: WHERE country=X AND assignee IS NULL OR assignee='' — leak)
-                'apply' => fn ($q) => $q->where(fn ($qq) => $qq->whereNull('assignee')->orWhere('assignee', '')),
+                'apply'   => fn ($q) => $q->where(fn ($qq) => $qq->whereNull('assignee')->orWhere('assignee', '')),
+                'sqlCase' => "(assignee IS NULL OR assignee = '')",
+                'binds'   => [],
             ],
             'no_due' => [
-                'label' => 'Sin fecha',
-                'icon'  => '∅',
-                'apply' => fn ($q) => $q->whereNull('due_date'),
+                'label'   => 'Sin fecha',
+                'icon'    => '∅',
+                'apply'   => fn ($q) => $q->whereNull('due_date'),
+                'sqlCase' => 'due_date IS NULL',
+                'binds'   => [],
             ],
             'high_priority' => [
-                'label' => 'Alta prioridad',
-                'icon'  => '★',
-                'apply' => fn ($q) => $q->whereIn('priority', ['P0', 'P1'])->where('status', '!=', 'done'),
+                'label'   => 'Alta prioridad',
+                'icon'    => '★',
+                'apply'   => fn ($q) => $q->whereIn('priority', ['P0', 'P1'])->where('status', '!=', 'done'),
+                'sqlCase' => "priority IN ('P0','P1') AND status != 'done'",
+                'binds'   => [],
             ],
             'in_progress' => [
-                'label' => 'En progreso',
-                'icon'  => '▶',
-                'apply' => fn ($q) => $q->where('status', 'in_progress'),
+                'label'   => 'En progreso',
+                'icon'    => '▶',
+                'apply'   => fn ($q) => $q->where('status', 'in_progress'),
+                'sqlCase' => "status = 'in_progress'",
+                'binds'   => [],
             ],
             'blocked' => [
-                'label' => 'Bloqueadas',
-                'icon'  => '⛔',
-                'apply' => fn ($q) => $q->where('status', 'blocked'),
+                'label'   => 'Bloqueadas',
+                'icon'    => '⛔',
+                'apply'   => fn ($q) => $q->where('status', 'blocked'),
+                'sqlCase' => "status = 'blocked'",
+                'binds'   => [],
             ],
             'done' => [
-                'label' => 'Completadas',
-                'icon'  => '✓',
-                'apply' => fn ($q) => $q->where('status', 'done'),
+                'label'   => 'Completadas',
+                'icon'    => '✓',
+                'apply'   => fn ($q) => $q->where('status', 'done'),
+                'sqlCase' => "status = 'done'",
+                'binds'   => [],
             ],
         ];
+    }
+
+    /**
+     * Compute all 9 sidebar preset counts in a single SQL query, scoped by
+     * the user's country and narrowed by the active chips + search.
+     *
+     * Old code ran 9 count() queries inside a foreach (~30-50ms in MySQL with
+     * indexes); this batches them via SUM(CASE WHEN ... THEN 1 ELSE 0 END)
+     * for 1 round-trip.
+     *
+     * @return array<string, int>
+     */
+    private function countPresetsBatched(array $presets): array
+    {
+        $selectParts = [];
+        $bindings    = [];
+        foreach ($presets as $key => $preset) {
+            // Use a sanitized alias matching the preset key (only \w chars allowed).
+            $alias = 'c_' . preg_replace('/\W+/', '_', $key);
+            $selectParts[] = "SUM(CASE WHEN {$preset['sqlCase']} THEN 1 ELSE 0 END) AS {$alias}";
+            $bindings = array_merge($bindings, $preset['binds']);
+        }
+        $selectExpr = implode(', ', $selectParts);
+
+        $base = TaskResource::getEloquentQuery();
+        $base = $this->applyChipsAndSearch($base);
+
+        $row = $base->selectRaw($selectExpr, $bindings)->first();
+
+        $counts = [];
+        foreach ($presets as $key => $_) {
+            $alias        = 'c_' . preg_replace('/\W+/', '_', $key);
+            $counts[$key] = (int) ($row->{$alias} ?? 0);
+        }
+        return $counts;
     }
 
     /* ───── View data ───── */
@@ -497,13 +555,8 @@ class ListTasks extends Page
         // Pre-compute counts for the sidebar badges. Each preset count REFLECTS
         // the active chips + search, so the user sees how many results each
         // preset would yield if they clicked it RIGHT NOW.
-        $presetCounts = [];
-        foreach ($presets as $key => $preset) {
-            $sub = TaskResource::getEloquentQuery();
-            $sub = call_user_func($preset['apply'], $sub);
-            $sub = $this->applyChipsAndSearch($sub);
-            $presetCounts[$key] = $sub->count();
-        }
+        // Batched: all 9 counts in 1 SQL query (was 9 separate count() calls).
+        $presetCounts = $this->countPresetsBatched($presets);
 
         // Fetch tasks once; both list & kanban modes use this collection.
         // Note: viewport limit at 1000 with explicit "wasLimited" flag — old
@@ -594,6 +647,42 @@ class ListTasks extends Page
             'dueTodayHigh' => $dueTodayHigh,
             'level'        => $level,
         ];
+    }
+
+    /* ───── Visual helpers (single source of truth for all blade callsites) ───── */
+
+    /** Returns ['bg' => css, 'fg' => css] for a priority chip. */
+    public static function priorityColor(?string $priority): array
+    {
+        return match ($priority) {
+            'P0'    => ['bg' => 'var(--alg-neg-soft)',    'fg' => 'var(--alg-neg)'],
+            'P1'    => ['bg' => 'var(--alg-warn-soft)',   'fg' => 'var(--alg-warn)'],
+            'P2'    => ['bg' => 'var(--alg-accent-soft)', 'fg' => 'var(--alg-accent)'],
+            default => ['bg' => 'var(--alg-surface-2)',   'fg' => 'var(--alg-ink-4)'],
+        };
+    }
+
+    /** Returns ['bg' => css, 'fg' => css] for a status badge. */
+    public static function statusColor(?string $status): array
+    {
+        return match ($status) {
+            'done'        => ['bg' => 'var(--alg-pos-soft)',    'fg' => 'var(--alg-pos)'],
+            'in_progress' => ['bg' => 'var(--alg-accent-soft)', 'fg' => 'var(--alg-accent)'],
+            'blocked'     => ['bg' => 'var(--alg-neg-soft)',    'fg' => 'var(--alg-neg)'],
+            default       => ['bg' => 'var(--alg-surface-2)',   'fg' => 'var(--alg-ink-3)'],
+        };
+    }
+
+    /** Spanish label for a status enum. */
+    public static function statusLabel(?string $status): string
+    {
+        return match ($status) {
+            'pending'     => 'Pendiente',
+            'in_progress' => 'En progreso',
+            'blocked'     => 'Bloqueada',
+            'done'        => 'Completada',
+            default       => $status ?? '',
+        };
     }
 
     /**

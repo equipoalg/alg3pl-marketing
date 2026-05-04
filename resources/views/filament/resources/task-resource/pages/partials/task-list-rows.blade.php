@@ -1,6 +1,7 @@
 {{-- Reusable list rows partial — used both by grouped & ungrouped list views.
-     Expects: $rows, $priorityColor, $statusColor, $statusLabel
-     Reads: $selectedIds (from parent component) for checkbox state --}}
+     Expects: $rows. Reads: $selectedIds (from parent component) for checkbox state.
+     Color/label helpers come from ListTasks static methods. --}}
+@php use App\Filament\Resources\TaskResource\Pages\ListTasks; @endphp
 <table style="width:100%;border-collapse:collapse;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;">
     <colgroup>
         <col style="width:30px;">                  {{-- Bulk checkbox --}}
@@ -14,8 +15,8 @@
     <tbody>
         @foreach($rows as $t)
             @php
-                $pc = $priorityColor($t->priority);
-                $sc = $statusColor($t->status);
+                $pc = ListTasks::priorityColor($t->priority);
+                $sc = ListTasks::statusColor($t->status);
                 $isOverdue = $t->due_date && $t->due_date->isPast() && $t->status !== 'done';
             @endphp
             @php $isChecked = in_array($t->id, $selectedIds ?? [], true); @endphp
@@ -36,7 +37,7 @@
                         <div x-show="open" x-cloak x-transition.opacity
                              style="position:absolute;top:calc(100% + 3px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,0.10);padding:3px;z-index:10;display:flex;flex-direction:column;gap:1px;">
                             @foreach(['P0','P1','P2','P3'] as $pri)
-                                @php $cc = $priorityColor($pri); @endphp
+                                @php $cc = ListTasks::priorityColor($pri); @endphp
                                 <button type="button" wire:click="setPriority({{ $t->id }}, '{{ $pri }}')" @click="open = false"
                                         style="display:flex;align-items:center;gap:6px;padding:3px 8px;border:none;background:transparent;cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:10.5px;color:var(--alg-ink-2);text-align:left;border-radius:3px;"
                                         onmouseover="this.style.background='var(--alg-surface-2)'"
@@ -64,16 +65,16 @@
                     {{-- Status badge — click to change inline --}}
                     <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;display:inline-block;">
                         <button type="button" @click="open = !open"
-                                style="display:inline-block;font-size:10px;font-weight:500;color:{{ $sc['fg'] }};background:{{ $sc['bg'] }};padding:2px 7px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;border:none;cursor:pointer;">{{ $statusLabel($t->status) }}</button>
+                                style="display:inline-block;font-size:10px;font-weight:500;color:{{ $sc['fg'] }};background:{{ $sc['bg'] }};padding:2px 7px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;border:none;cursor:pointer;">{{ ListTasks::statusLabel($t->status) }}</button>
                         <div x-show="open" x-cloak x-transition.opacity
                              style="position:absolute;top:calc(100% + 3px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,0.10);padding:3px;z-index:10;display:flex;flex-direction:column;gap:1px;min-width:130px;">
                             @foreach(['pending','in_progress','blocked','done'] as $st)
-                                @php $cs = $statusColor($st); @endphp
+                                @php $cs = ListTasks::statusColor($st); @endphp
                                 <button type="button" wire:click="moveTaskStatus({{ $t->id }}, '{{ $st }}')" @click="open = false"
                                         style="display:flex;align-items:center;gap:6px;padding:3px 8px;border:none;background:transparent;cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:10.5px;color:var(--alg-ink-2);text-align:left;border-radius:3px;"
                                         onmouseover="this.style.background='var(--alg-surface-2)'"
                                         onmouseout="this.style.background='transparent'">
-                                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:{{ $cs['fg'] }};"></span>{{ $statusLabel($st) }}
+                                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:{{ $cs['fg'] }};"></span>{{ ListTasks::statusLabel($st) }}
                                 </button>
                             @endforeach
                         </div>
