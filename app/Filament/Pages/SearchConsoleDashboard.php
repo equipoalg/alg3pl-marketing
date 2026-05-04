@@ -170,6 +170,86 @@ class SearchConsoleDashboard extends Page
             default => collect(),
         };
 
+        // ──────────────────────────────────────────────
+        //  INSIGHTS — winners / losers / opportunities / quick wins / position dist
+        // ──────────────────────────────────────────────
+
+        // Per-query stats current vs previous period — used by winners/losers
+        $currentByQuery = (clone $base)
+            ->whereNotNull('query')->where('query', '!=', '')
+            ->selectRaw('query, SUM(clicks) as c, SUM(impressions) as i, AVG(NULLIF(position,0)) as p')
+            ->groupBy('query')
+            ->get()
+            ->keyBy('query');
+
+        $prevByQuery = SearchConsoleData::query()
+            ->whereBetween('date', [$prevStart, $prevEnd])
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->whereNotNull('query')->where('query', '!=', '')
+            ->selectRaw('query, SUM(clicks) as c, SUM(impressions) as i, AVG(NULLIF(position,0)) as p')
+            ->groupBy('query')
+            ->get()
+            ->keyBy('query');
+
+        // Compute click delta per query (only for queries present in current)
+        $deltas = $currentByQuery->map(function ($r, $q) use ($prevByQuery) {
+            $prev = $prevByQuery->get($q);
+            $delta = (int) $r->c - (int) ($prev->c ?? 0);
+            return [
+                'query'       => $q,
+                'clicks'      => (int) $r->c,
+                'prev_clicks' => (int) ($prev->c ?? 0),
+                'delta'       => $delta,
+                'impressions' => (int) $r->i,
+                'position'    => round((float) $r->p, 1),
+                'ctr'         => $r->i > 0 ? round(($r->c / $r->i) * 100, 1) : 0,
+            ];
+        });
+
+        $winners = $deltas->where('delta', '>', 0)->sortByDesc('delta')->take(5)->values();
+        $losers  = $deltas->where('delta', '<', 0)->sortBy('delta')->take(5)->values();
+
+        // CTR opportunities — high impressions but low CTR (relative)
+        // Threshold: impressions > 50 AND ctr < 2.0 AND position <= 20
+        $opportunities = $currentByQuery
+            ->filter(fn ($r) => $r->i > 50 && $r->i > 0 && ($r->c / $r->i) * 100 < 2.0 && $r->p <= 20)
+            ->map(fn ($r, $q) => [
+                'query'       => $q,
+                'clicks'      => (int) $r->c,
+                'impressions' => (int) $r->i,
+                'ctr'         => round(($r->c / max(1, $r->i)) * 100, 2),
+                'position'    => round((float) $r->p, 1),
+            ])
+            ->sortByDesc('impressions')
+            ->take(5)
+            ->values();
+
+        // Quick wins — queries on page 2 of Google (positions 11-20) with decent
+        // impressions. Pushing them into page 1 = traffic gain.
+        $quickWins = $currentByQuery
+            ->filter(fn ($r) => $r->p >= 11 && $r->p <= 20 && $r->i >= 20)
+            ->map(fn ($r, $q) => [
+                'query'       => $q,
+                'clicks'      => (int) $r->c,
+                'impressions' => (int) $r->i,
+                'position'    => round((float) $r->p, 1),
+                'ctr'         => $r->i > 0 ? round(($r->c / $r->i) * 100, 1) : 0,
+            ])
+            ->sortByDesc('impressions')
+            ->take(5)
+            ->values();
+
+        // Position distribution: counts in top3 / 4-10 / 11-20 / 21+
+        $positionBuckets = ['top3' => 0, 'page1' => 0, 'page2' => 0, 'beyond' => 0];
+        foreach ($currentByQuery as $r) {
+            $pos = (float) $r->p;
+            if ($pos > 0 && $pos <= 3)        $positionBuckets['top3']++;
+            elseif ($pos > 3 && $pos <= 10)   $positionBuckets['page1']++;
+            elseif ($pos > 10 && $pos <= 20)  $positionBuckets['page2']++;
+            elseif ($pos > 20)                $positionBuckets['beyond']++;
+        }
+        $totalQueries = array_sum($positionBuckets);
+
         return [
             'period'      => $this->period,
             'tab'         => $this->tab,
@@ -182,6 +262,13 @@ class SearchConsoleDashboard extends Page
             'labels'      => $labels,
             'rows'        => $rows,
             'keywordFilter' => $this->keywordFilter,
+            // Insights
+            'winners'         => $winners,
+            'losers'          => $losers,
+            'opportunities'   => $opportunities,
+            'quickWins'       => $quickWins,
+            'positionBuckets' => $positionBuckets,
+            'totalQueries'    => $totalQueries,
         ];
     }
 

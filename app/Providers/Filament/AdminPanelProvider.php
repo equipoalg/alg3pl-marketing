@@ -59,7 +59,58 @@ class AdminPanelProvider extends PanelProvider
                 // Load AT THE END of <head> so we WIN cascade vs Filament's app.css
                 // (Filament loads its CSS via assets() before HEAD_END fires).
                 PanelsRenderHook::HEAD_END,
-                fn (): string => '<link rel="stylesheet" href="' . asset('css/alg.css') . '?v=' . (file_exists(public_path('css/alg.css')) ? filemtime(public_path('css/alg.css')) : time()) . '">',
+                fn (): string => '<link rel="stylesheet" href="' . asset('css/alg.css') . '?v=' . (file_exists(public_path('css/alg.css')) ? filemtime(public_path('css/alg.css')) : time()) . '">'
+                    . '<script>
+                        // ALG animation helpers — count-up KPIs + sparkline draw.
+                        // Mirrors the helpers in alg-dashboard/index.blade.php so Filament
+                        // pages (search-console, analytics, conversion) get the same
+                        // KPI tile animation. Without this, data-count-to spans show
+                        // their initial "0" text forever.
+                        (function(){
+                            const fmtInt = new Intl.NumberFormat("es-ES");
+                            const ease = t => 1 - Math.pow(1 - t, 3);
+                            window.algCountUp = function(el, target, duration){
+                                if (!el || isNaN(target)) return;
+                                duration = duration || 800;
+                                const decimals = parseInt(el.dataset.countDecimals || "0", 10);
+                                const prefix = el.dataset.countPrefix || "";
+                                const suffix = el.dataset.countSuffix || "";
+                                const start = performance.now();
+                                const tick = (now) => {
+                                    const t = Math.min(1, (now - start) / duration);
+                                    const v = target * ease(t);
+                                    const display = decimals > 0 ? v.toFixed(decimals) : fmtInt.format(Math.round(v));
+                                    el.textContent = prefix + display + suffix;
+                                    if (t < 1) requestAnimationFrame(tick);
+                                };
+                                requestAnimationFrame(tick);
+                            };
+                            function init(){
+                                document.querySelectorAll("[data-count-to]").forEach(el => {
+                                    if (el.dataset.countDone) return;
+                                    el.dataset.countDone = "1";
+                                    algCountUp(el, parseFloat(el.dataset.countTo) || 0, 900);
+                                });
+                                document.querySelectorAll(".alg-sparkline-animate").forEach(line => {
+                                    if (line.dataset.drawDone) return;
+                                    line.dataset.drawDone = "1";
+                                    try {
+                                        const len = line.getTotalLength();
+                                        line.style.strokeDasharray = len;
+                                        line.style.strokeDashoffset = len;
+                                        requestAnimationFrame(() => {
+                                            line.style.transition = "stroke-dashoffset 1200ms cubic-bezier(0.22,1,0.36,1)";
+                                            line.style.strokeDashoffset = 0;
+                                        });
+                                    } catch(e) {}
+                                });
+                            }
+                            document.addEventListener("DOMContentLoaded", init);
+                            document.addEventListener("livewire:navigated", init);
+                            // Re-run after Livewire morphs (e.g. when the user changes period)
+                            document.addEventListener("livewire:morph.updated", init);
+                        })();
+                    </script>',
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
