@@ -60,7 +60,7 @@
                     <span style="font-size:14px;">{{ $banner['level'] === 'critical' ? '⚠' : '🔥' }}</span>
                     <span style="flex:1;">
                         @if($banner['overdue'] > 0)
-                            Tienes <strong>{{ $banner['overdue'] }}</strong> {{ $banner['overdue'] === 1 ? 'tarea vencida' : 'tareas vencidas' }}@if($banner['dueTodayHigh'] > 0) y <strong>{{ $banner['dueTodayHigh'] }}</strong> de alta prioridad para hoy@endif.
+                            Tienes <strong>{{ $banner['overdue'] }}</strong> {{ $banner['overdue'] === 1 ? 'tarea vencida' : 'tareas vencidas' }}{{ $banner['dueTodayHigh'] > 0 ? ' y ' : '' }}{!! $banner['dueTodayHigh'] > 0 ? '<strong>' . $banner['dueTodayHigh'] . '</strong> de alta prioridad para hoy' : '' !!}.
                         @else
                             Tienes <strong>{{ $banner['dueTodayHigh'] }}</strong> {{ $banner['dueTodayHigh'] === 1 ? 'tarea de alta prioridad' : 'tareas de alta prioridad' }} para hoy.
                         @endif
@@ -231,7 +231,7 @@
             @else
                 {{-- ─────────────── KANBAN VIEW (4 cols by status, DnD via SortableJS) ─────────────── --}}
                 {{-- SortableJS — loaded once for the page, re-init on Livewire morph --}}
-                <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+                <script src="https://cdn.jsdelivr.net/npm/sortablejs@@1.15.2/Sortable.min.js" defer></script>
                 <script>
                     (function(){
                         function initKanbanDnD() {
@@ -329,11 +329,14 @@
                                             @endif
                                         </div>
                                         @if($t->assignee)
-                                            @php $av = \App\Filament\Resources\TaskResource\Pages\ListTasks::avatarFor($t->assignee); @endphp
+                                            @php
+                                                $av = \App\Filament\Resources\TaskResource\Pages\ListTasks::avatarFor($t->assignee);
+                                                $assigneeShort = strtok($t->assignee, '@');
+                                            @endphp
                                             <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
                                                 <span title="{{ $t->assignee }}"
                                                       style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:{{ $av['bg'] }};color:{{ $av['fg'] }};font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:8.5px;font-weight:600;">{{ $av['initials'] }}</span>
-                                                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ explode('@', $t->assignee)[0] }}</span>
+                                                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $assigneeShort }}</span>
                                             </div>
                                         @endif
                                     </div>
