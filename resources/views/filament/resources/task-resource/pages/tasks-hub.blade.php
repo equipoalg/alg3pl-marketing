@@ -108,6 +108,52 @@
                 </a>
             </div>
 
+            {{-- ─── Filter chips row (priority / category / due) — multi-select AND ─── --}}
+            @php
+                $priChips = array_filter(explode(',', $priorityFilter));
+                $catChips = array_filter(explode(',', $categoryFilter));
+                $hasAnyChip = ! empty($priChips) || ! empty($catChips) || $dueFilter !== '';
+            @endphp
+            <div style="background:var(--alg-surface);border:1px solid var(--alg-line);padding:8px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;">
+                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);text-transform:uppercase;letter-spacing:.08em;margin-right:4px;">Prioridad</span>
+                @foreach(['P0','P1','P2','P3'] as $pri)
+                    @php $isOn = in_array($pri, $priChips, true); $c = $priorityColor($pri); @endphp
+                    <button type="button" wire:click="togglePriorityChip('{{ $pri }}')"
+                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid {{ $isOn ? $c['fg'] : 'var(--alg-line)' }};background:{{ $isOn ? $c['bg'] : 'transparent' }};color:{{ $isOn ? $c['fg'] : 'var(--alg-ink-4)' }};font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:600;border-radius:3px;cursor:pointer;letter-spacing:.04em;">
+                        {{ $pri }}
+                    </button>
+                @endforeach
+
+                <span style="width:1px;height:18px;background:var(--alg-line);margin:0 4px;"></span>
+
+                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);text-transform:uppercase;letter-spacing:.08em;margin-right:4px;">Categoría</span>
+                @foreach(['seo','technical','content','ux','marketing','analytics'] as $cat)
+                    @php $isOn = in_array($cat, $catChips, true); @endphp
+                    <button type="button" wire:click="toggleCategoryChip('{{ $cat }}')"
+                            style="padding:3px 9px;border:1px solid {{ $isOn ? 'var(--alg-accent)' : 'var(--alg-line)' }};background:{{ $isOn ? 'var(--alg-accent-soft)' : 'transparent' }};color:{{ $isOn ? 'var(--alg-accent)' : 'var(--alg-ink-4)' }};font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;">
+                        {{ $cat }}
+                    </button>
+                @endforeach
+
+                <span style="width:1px;height:18px;background:var(--alg-line);margin:0 4px;"></span>
+
+                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);text-transform:uppercase;letter-spacing:.08em;margin-right:4px;">Vence</span>
+                @foreach(['today'=>'Hoy','this_week'=>'Esta semana','this_month'=>'Este mes','overdue'=>'Vencidas'] as $key=>$label)
+                    @php $isOn = $dueFilter === $key; @endphp
+                    <button type="button" wire:click="toggleDueChip('{{ $key }}')"
+                            style="padding:3px 9px;border:1px solid {{ $isOn ? 'var(--alg-warn)' : 'var(--alg-line)' }};background:{{ $isOn ? 'var(--alg-warn-soft)' : 'transparent' }};color:{{ $isOn ? 'var(--alg-warn)' : 'var(--alg-ink-4)' }};font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11px;border-radius:3px;cursor:pointer;font-weight:500;">
+                        {{ $label }}
+                    </button>
+                @endforeach
+
+                @if($hasAnyChip)
+                    <button type="button" wire:click="clearAllChips"
+                            style="margin-left:auto;padding:3px 9px;border:none;background:transparent;color:var(--alg-ink-4);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11px;cursor:pointer;text-decoration:underline;">
+                        × limpiar
+                    </button>
+                @endif
+            </div>
+
             {{-- ════════════════════════ BODY: List view OR Kanban view ════════════════════════ --}}
 
             @if($viewMode === 'list')
@@ -118,7 +164,7 @@
                             No hay tareas en este filtro.
                         </div>
                     @elseif($groupBy === 'none')
-                        @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $tasks, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel])
+                        @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $tasks, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel, 'selectedIds' => $selectedIds])
                         {{-- Quick-add at the bottom of ungrouped list --}}
                         <div x-data="{ title: '' }" style="padding:8px 16px;border-top:1px solid var(--alg-line);">
                             <input type="text"
@@ -144,7 +190,7 @@
                                     <span>{{ $groupLabel }}</span>
                                     <span style="color:var(--alg-ink-4);font-weight:500;">{{ count($rows) }}</span>
                                 </summary>
-                                @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $rows, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel])
+                                @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $rows, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel, 'selectedIds' => $selectedIds])
                                 {{-- Quick-add inline at the foot of every group — pre-fills status when grouping by status --}}
                                 <div x-data="{ title: '' }" style="padding:6px 16px 10px;background:var(--alg-bg);">
                                     <input type="text"
@@ -284,4 +330,63 @@
         @endif
 
     </div>
+
+    {{-- ════════════════════════ BULK ACTION BAR (floating bottom) ════════════════════════ --}}
+    @if(count($selectedIds) > 0)
+        <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--alg-ink);color:#FFFFFF;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.35);display:flex;align-items:center;gap:12px;z-index:1000;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;">
+            <span style="font-weight:600;">{{ count($selectedIds) }} seleccionada{{ count($selectedIds) > 1 ? 's' : '' }}</span>
+            <span style="width:1px;height:16px;background:rgba(255,255,255,0.20);"></span>
+
+            <button type="button" wire:click="bulkMarkDone"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:none;background:transparent;color:#FFFFFF;cursor:pointer;font-family:inherit;font-size:inherit;border-radius:4px;font-weight:500;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.10)'"
+                    onmouseout="this.style.background='transparent'">
+                ✓ Marcar Done
+            </button>
+
+            <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;">
+                <button type="button" @click="open = !open"
+                        style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:none;background:transparent;color:#FFFFFF;cursor:pointer;font-family:inherit;font-size:inherit;border-radius:4px;font-weight:500;"
+                        onmouseover="this.style.background='rgba(255,255,255,0.10)'"
+                        onmouseout="this.style.background='transparent'">
+                    ★ Prioridad ▾
+                </button>
+                <div x-show="open" x-cloak x-transition.opacity
+                     style="position:absolute;bottom:calc(100% + 4px);left:0;background:var(--alg-ink);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px;display:flex;flex-direction:column;gap:1px;min-width:120px;">
+                    @foreach(['P0','P1','P2','P3'] as $pri)
+                        @php $c = $priorityColor($pri); @endphp
+                        <button type="button" wire:click="bulkSetPriority('{{ $pri }}')" @click="open = false"
+                                style="display:flex;align-items:center;gap:6px;padding:5px 10px;border:none;background:transparent;color:#FFFFFF;font-family:inherit;font-size:inherit;text-align:left;cursor:pointer;border-radius:4px;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.10)'"
+                                onmouseout="this.style.background='transparent'">
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:{{ $c['fg'] }};"></span>{{ $pri }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <button type="button" wire:click="bulkAssignToMe"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:none;background:transparent;color:#FFFFFF;cursor:pointer;font-family:inherit;font-size:inherit;border-radius:4px;font-weight:500;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.10)'"
+                    onmouseout="this.style.background='transparent'">
+                👤 Asignarme
+            </button>
+
+            <button type="button" wire:click="bulkDelete"
+                    wire:confirm="¿Eliminar las {{ count($selectedIds) }} tareas seleccionadas? No se puede deshacer."
+                    style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:none;background:transparent;color:#FCA5A5;cursor:pointer;font-family:inherit;font-size:inherit;border-radius:4px;font-weight:500;"
+                    onmouseover="this.style.background='rgba(248,113,113,0.15)'"
+                    onmouseout="this.style.background='transparent'">
+                🗑 Eliminar
+            </button>
+
+            <span style="width:1px;height:16px;background:rgba(255,255,255,0.20);"></span>
+
+            <button type="button" wire:click="clearSelected"
+                    title="Quitar selección"
+                    style="border:none;background:transparent;color:rgba(255,255,255,0.65);cursor:pointer;padding:4px 8px;font-size:14px;line-height:1;border-radius:4px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.10)'"
+                    onmouseout="this.style.background='transparent'">×</button>
+        </div>
+    @endif
 </x-filament-panels::page>

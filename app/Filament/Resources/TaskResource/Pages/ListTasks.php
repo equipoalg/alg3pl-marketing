@@ -54,6 +54,19 @@ class ListTasks extends Page
     public ?string $editDueDate = null;
     public ?string $editAssignee = null;
 
+    /** Multi-select bulk state — IDs of currently-checked tasks. */
+    public array $selectedIds = [];
+
+    /** Filter chips (multi-select, AND-combined). URL-bound as comma list. */
+    #[Url(as: 'priority')]
+    public string $priorityFilter = '';
+
+    #[Url(as: 'cat')]
+    public string $categoryFilter = '';
+
+    #[Url(as: 'due')]
+    public string $dueFilter = '';
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return ''; // suppress Filament heading; our custom toolbar replaces it
@@ -194,6 +207,103 @@ class ListTasks extends Page
         }
     }
 
+    /* ───── Filter chips (toggle on/off — URL-bound CSV) ───── */
+
+    private function toggleCsv(string $current, string $value): string
+    {
+        $items = array_filter(explode(',', $current));
+        if (in_array($value, $items, true)) {
+            $items = array_filter($items, fn ($i) => $i !== $value);
+        } else {
+            $items[] = $value;
+        }
+        return implode(',', $items);
+    }
+
+    public function togglePriorityChip(string $value): void
+    {
+        if (in_array($value, ['P0', 'P1', 'P2', 'P3'], true)) {
+            $this->priorityFilter = $this->toggleCsv($this->priorityFilter, $value);
+        }
+    }
+
+    public function toggleCategoryChip(string $value): void
+    {
+        if (in_array($value, ['seo', 'technical', 'content', 'ux', 'marketing', 'analytics'], true)) {
+            $this->categoryFilter = $this->toggleCsv($this->categoryFilter, $value);
+        }
+    }
+
+    public function toggleDueChip(string $value): void
+    {
+        if (in_array($value, ['today', 'this_week', 'this_month', 'overdue'], true)) {
+            // Due is single-select (these ranges are mutually exclusive)
+            $this->dueFilter = $this->dueFilter === $value ? '' : $value;
+        }
+    }
+
+    public function clearAllChips(): void
+    {
+        $this->priorityFilter = '';
+        $this->categoryFilter = '';
+        $this->dueFilter = '';
+    }
+
+    /* ───── Bulk actions (operate on $selectedIds) ───── */
+
+    public function toggleSelected(int $taskId): void
+    {
+        if (in_array($taskId, $this->selectedIds, true)) {
+            $this->selectedIds = array_values(array_filter($this->selectedIds, fn ($i) => $i !== $taskId));
+        } else {
+            $this->selectedIds[] = $taskId;
+        }
+    }
+
+    public function clearSelected(): void
+    {
+        $this->selectedIds = [];
+    }
+
+    public function bulkMarkDone(): void
+    {
+        if (empty($this->selectedIds)) return;
+        Task::whereIn('id', $this->selectedIds)->update(['status' => 'done']);
+        $count = count($this->selectedIds);
+        $this->selectedIds = [];
+        Notification::make()->title("$count tareas marcadas como completadas")->success()->send();
+    }
+
+    public function bulkSetPriority(string $priority): void
+    {
+        if (empty($this->selectedIds)) return;
+        if (! in_array($priority, ['P0', 'P1', 'P2', 'P3'], true)) return;
+        Task::whereIn('id', $this->selectedIds)->update(['priority' => $priority]);
+        $count = count($this->selectedIds);
+        $this->selectedIds = [];
+        Notification::make()->title("Prioridad $priority aplicada a $count tareas")->success()->send();
+    }
+
+    public function bulkAssignToMe(): void
+    {
+        if (empty($this->selectedIds)) return;
+        $email = auth()->user()?->email;
+        if (! $email) return;
+        Task::whereIn('id', $this->selectedIds)->update(['assignee' => $email]);
+        $count = count($this->selectedIds);
+        $this->selectedIds = [];
+        Notification::make()->title("$count tareas asignadas a ti")->success()->send();
+    }
+
+    public function bulkDelete(): void
+    {
+        if (empty($this->selectedIds)) return;
+        $count = count($this->selectedIds);
+        Task::whereIn('id', $this->selectedIds)->delete();
+        $this->selectedIds = [];
+        Notification::make()->title("$count tareas eliminadas")->success()->send();
+    }
+
     public function mount(): void
     {
         // If URL has ?selected=N on first load, populate edit fields too
@@ -283,6 +393,25 @@ class ListTasks extends Page
                   ->orWhere('description', 'like', $like)
                   ->orWhere('assignee', 'like', $like);
             });
+        }
+
+        // Apply chip filters (multi-select, AND-combined)
+        $priorities = array_filter(explode(',', $this->priorityFilter));
+        if (! empty($priorities)) {
+            $base->whereIn('priority', $priorities);
+        }
+        $categories = array_filter(explode(',', $this->categoryFilter));
+        if (! empty($categories)) {
+            $base->whereIn('category', $categories);
+        }
+        if ($this->dueFilter !== '') {
+            match ($this->dueFilter) {
+                'today'      => $base->whereDate('due_date', today()),
+                'this_week'  => $base->whereBetween('due_date', [now()->startOfWeek(), now()->endOfWeek()]),
+                'this_month' => $base->whereBetween('due_date', [now()->startOfMonth(), now()->endOfMonth()]),
+                'overdue'    => $base->whereDate('due_date', '<', now())->where('status', '!=', 'done'),
+                default      => null,
+            };
         }
 
         // Pre-compute counts for the sidebar badges (one quick count per preset)

@@ -1,7 +1,9 @@
 {{-- Reusable list rows partial — used both by grouped & ungrouped list views.
-     Expects: $rows, $priorityColor, $statusColor, $statusLabel  --}}
+     Expects: $rows, $priorityColor, $statusColor, $statusLabel
+     Reads: $selectedIds (from parent component) for checkbox state --}}
 <table style="width:100%;border-collapse:collapse;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;">
     <colgroup>
+        <col style="width:30px;">                  {{-- Bulk checkbox --}}
         <col style="width:42px;">                  {{-- Priority chip --}}
         <col>                                       {{-- Title --}}
         <col style="width:90px;">                   {{-- Category --}}
@@ -16,7 +18,16 @@
                 $sc = $statusColor($t->status);
                 $isOverdue = $t->due_date && $t->due_date->isPast() && $t->status !== 'done';
             @endphp
-            <tr style="border-bottom:1px solid var(--alg-line);transition:background 120ms;" onmouseover="this.style.background='var(--alg-surface-2)'" onmouseout="this.style.background='transparent'">
+            @php $isChecked = in_array($t->id, $selectedIds ?? [], true); @endphp
+            <tr style="border-bottom:1px solid var(--alg-line);transition:background 120ms;{{ $isChecked ? 'background:var(--alg-accent-soft);' : '' }}"
+                onmouseover="if(this.style.background.indexOf('accent-soft')<0) this.style.background='var(--alg-surface-2)'"
+                onmouseout="this.style.background='{{ $isChecked ? 'var(--alg-accent-soft)' : 'transparent' }}'">
+                <td style="padding:8px 0 8px 12px;text-align:center;">
+                    <input type="checkbox"
+                           wire:click="toggleSelected({{ $t->id }})"
+                           {{ $isChecked ? 'checked' : '' }}
+                           style="cursor:pointer;width:14px;height:14px;accent-color:var(--alg-accent);">
+                </td>
                 <td style="padding:8px 12px;">
                     {{-- Priority chip — click to change inline --}}
                     <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;display:inline-block;">
