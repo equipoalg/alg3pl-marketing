@@ -86,15 +86,19 @@
                         <span style="color:var(--alg-ink-5);">—</span>
                     @endif
                 </td>
-                <td style="padding:8px 12px 8px 6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-3);text-align:right;">
-                    @if($t->country)
-                        <span style="background:var(--alg-surface-2);padding:1px 5px;border-radius:2px;margin-right:4px;">{{ strtoupper($t->country->code) }}</span>
-                    @endif
-                    @if($t->assignee)
-                        <span style="color:var(--alg-ink-4);">{{ $t->assignee }}</span>
-                    @else
-                        <span style="color:var(--alg-ink-5);">—</span>
-                    @endif
+                <td style="padding:8px 12px 8px 6px;text-align:right;">
+                    <div style="display:inline-flex;align-items:center;gap:6px;">
+                        @if($t->country)
+                            <span style="background:var(--alg-surface-2);padding:1px 5px;border-radius:2px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-3);">{{ strtoupper($t->country->code) }}</span>
+                        @endif
+                        @if($t->assignee)
+                            @php $av = \App\Filament\Resources\TaskResource\Pages\ListTasks::avatarFor($t->assignee); @endphp
+                            <span title="{{ $t->assignee }}"
+                                  style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:{{ $av['bg'] }};color:{{ $av['fg'] }};font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:9.5px;font-weight:600;letter-spacing:0;">{{ $av['initials'] }}</span>
+                        @else
+                            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--alg-surface-2);color:var(--alg-ink-5);font-size:11px;" title="Sin asignar">○</span>
+                        @endif
+                    </div>
                 </td>
             </tr>
         @endforeach

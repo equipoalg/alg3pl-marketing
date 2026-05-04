@@ -54,6 +54,30 @@
         {{-- ════════════════════════ RIGHT MAIN ════════════════════════ --}}
         <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
 
+            {{-- Focus banner — what should worry me right now --}}
+            @if($banner['level'] === 'critical' || $banner['level'] === 'warning')
+                <div style="background:{{ $banner['level'] === 'critical' ? 'var(--alg-neg-soft)' : 'var(--alg-warn-soft)' }};border:1px solid {{ $banner['level'] === 'critical' ? 'var(--alg-neg)' : 'var(--alg-warn)' }};color:{{ $banner['level'] === 'critical' ? 'var(--alg-neg)' : 'var(--alg-warn)' }};padding:9px 14px;display:flex;align-items:center;gap:10px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;font-weight:500;border-radius:4px;">
+                    <span style="font-size:14px;">{{ $banner['level'] === 'critical' ? '⚠' : '🔥' }}</span>
+                    <span style="flex:1;">
+                        @if($banner['overdue'] > 0)
+                            Tienes <strong>{{ $banner['overdue'] }}</strong> {{ $banner['overdue'] === 1 ? 'tarea vencida' : 'tareas vencidas' }}@if($banner['dueTodayHigh'] > 0) y <strong>{{ $banner['dueTodayHigh'] }}</strong> de alta prioridad para hoy@endif.
+                        @else
+                            Tienes <strong>{{ $banner['dueTodayHigh'] }}</strong> {{ $banner['dueTodayHigh'] === 1 ? 'tarea de alta prioridad' : 'tareas de alta prioridad' }} para hoy.
+                        @endif
+                    </span>
+                    <button type="button"
+                            wire:click="setFilterPreset('{{ $banner['overdue'] > 0 ? 'overdue' : 'high_priority' }}')"
+                            style="padding:4px 11px;border:1px solid currentColor;background:transparent;color:inherit;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;border-radius:3px;letter-spacing:-0.005em;">
+                        Mostrar →
+                    </button>
+                </div>
+            @elseif($banner['level'] === 'good')
+                <div style="background:var(--alg-pos-soft);border:1px solid var(--alg-pos);color:var(--alg-pos);padding:7px 14px;display:flex;align-items:center;gap:10px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;border-radius:4px;">
+                    <span style="font-size:13px;">✓</span>
+                    <span>Sin tareas vencidas ni alta prioridad para hoy. Buen día.</span>
+                </div>
+            @endif
+
             {{-- Toolbar: search · view toggle · group-by · new task --}}
             <div style="display:flex;align-items:center;gap:10px;background:var(--alg-surface);border:1px solid var(--alg-line);padding:8px 12px;flex-wrap:wrap;">
                 {{-- Search --}}
@@ -305,7 +329,12 @@
                                             @endif
                                         </div>
                                         @if($t->assignee)
-                                            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);">{{ $t->assignee }}</div>
+                                            @php $av = \App\Filament\Resources\TaskResource\Pages\ListTasks::avatarFor($t->assignee); @endphp
+                                            <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+                                                <span title="{{ $t->assignee }}"
+                                                      style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:{{ $av['bg'] }};color:{{ $av['fg'] }};font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:8.5px;font-weight:600;">{{ $av['initials'] }}</span>
+                                                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ explode('@', $t->assignee)[0] }}</span>
+                                            </div>
                                         @endif
                                     </div>
                                 @empty

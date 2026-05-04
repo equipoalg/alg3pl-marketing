@@ -460,6 +460,9 @@ class ListTasks extends Page
             $selected = Task::with('country')->find($this->selectedId);
         }
 
+        // Focus banner — count overdue + P0/P1 due today, scoped by country session
+        $banner = self::computeFocusBanner();
+
         return [
             'tasks'         => $tasks,
             'grouped'       => $grouped,
@@ -468,6 +471,70 @@ class ListTasks extends Page
             'presetCounts'  => $presetCounts,
             'totalShown'    => $tasks->count(),
             'selected'      => $selected,
+            'banner'        => $banner,
+        ];
+    }
+
+    /**
+     * Counts of "what should worry me right now":
+     *   - overdue: due_date < today AND status != done
+     *   - dueTodayHigh: due_date = today AND priority IN (P0, P1) AND status != done
+     *
+     * Returns ['overdue' => int, 'dueTodayHigh' => int, 'level' => 'critical'|'good'|'warning']
+     */
+    public static function computeFocusBanner(): array
+    {
+        $base = TaskResource::getEloquentQuery()->where('status', '!=', 'done');
+        $overdue      = (clone $base)->whereDate('due_date', '<', today())->count();
+        $dueTodayHigh = (clone $base)->whereDate('due_date', today())->whereIn('priority', ['P0', 'P1'])->count();
+
+        $level = match (true) {
+            $overdue > 0                        => 'critical',
+            $dueTodayHigh > 0                   => 'warning',
+            default                             => 'good',
+        };
+
+        return [
+            'overdue'      => $overdue,
+            'dueTodayHigh' => $dueTodayHigh,
+            'level'        => $level,
+        ];
+    }
+
+    /**
+     * Color-hashed avatar from an email — for the assignee chip.
+     * Returns ['initials', 'bg', 'fg'] suitable for inline style use.
+     */
+    public static function avatarFor(?string $email): array
+    {
+        if (! $email) {
+            return ['initials' => '?', 'bg' => 'var(--alg-surface-2)', 'fg' => 'var(--alg-ink-4)'];
+        }
+        // Initials: take chars before @ and split by . / _ / -
+        $local = explode('@', $email)[0];
+        $parts = preg_split('/[._\-+]/', $local) ?: [$local];
+        $initials = strtoupper(substr($parts[0] ?? '?', 0, 1));
+        if (count($parts) > 1) {
+            $initials .= strtoupper(substr($parts[1], 0, 1));
+        } else {
+            $initials .= strtoupper(substr($local, 1, 1));
+        }
+        // 8-color palette, indexed by hash of email
+        $palette = [
+            ['bg' => '#FEE2E2', 'fg' => '#9F1239'], // rose
+            ['bg' => '#FEF3C7', 'fg' => '#92400E'], // amber
+            ['bg' => '#D1FAE5', 'fg' => '#065F46'], // emerald
+            ['bg' => '#DBEAFE', 'fg' => '#1E3A8A'], // blue
+            ['bg' => '#E0E7FF', 'fg' => '#3730A3'], // indigo
+            ['bg' => '#EDE9FE', 'fg' => '#5B21B6'], // violet
+            ['bg' => '#FCE7F3', 'fg' => '#9D174D'], // pink
+            ['bg' => '#F1F5F9', 'fg' => '#334155'], // slate
+        ];
+        $idx = abs(crc32($email)) % count($palette);
+        return [
+            'initials' => $initials ?: '?',
+            'bg'       => $palette[$idx]['bg'],
+            'fg'       => $palette[$idx]['fg'],
         ];
     }
 }
