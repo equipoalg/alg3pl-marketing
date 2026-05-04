@@ -45,7 +45,10 @@ class CountrySeeder extends Seeder
                 'code' => 'ni',
                 'name' => 'Nicaragua',
                 'ga4_property_id' => '450300127',
-                'gsc_property_url' => 'https://alg3pl.com/ni/',
+                // GSC property uses /nic/ NOT /ni/ — that's how the verified property
+                // is registered in Search Console. Mismatched URLs cause 403 forbidden
+                // on syncQueryData (sync looked clean otherwise — discovered 2026-05-04).
+                'gsc_property_url' => 'https://alg3pl.com/nic/',
                 'website_url' => 'https://alg3pl.com/ni/',
                 'timezone' => 'America/Managua',
                 'currency' => 'NIO',
@@ -65,7 +68,8 @@ class CountrySeeder extends Seeder
                 'code' => 'pa',
                 'name' => 'Panama',
                 'ga4_property_id' => '453664557',
-                'gsc_property_url' => 'https://alg3pl.com/pa/',
+                // GSC property uses /pty/ NOT /pa/ — same gotcha as Nicaragua above.
+                'gsc_property_url' => 'https://alg3pl.com/pty/',
                 'website_url' => 'https://alg3pl.com/pa/',
                 'timezone' => 'America/Panama',
                 'currency' => 'USD',
