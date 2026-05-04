@@ -118,6 +118,14 @@
                         </div>
                     @elseif($groupBy === 'none')
                         @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $tasks, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel])
+                        {{-- Quick-add at the bottom of ungrouped list --}}
+                        <div x-data="{ title: '' }" style="padding:8px 16px;border-top:1px solid var(--alg-line);">
+                            <input type="text"
+                                   x-model="title"
+                                   x-on:keydown.enter="$wire.quickAdd(title, 'pending'); title=''"
+                                   placeholder="+ Nueva tarea (Enter para crear)"
+                                   style="width:100%;padding:6px 10px;border:1px dashed var(--alg-line);background:transparent;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);outline:none;border-radius:3px;">
+                        </div>
                     @else
                         @foreach($grouped as $groupKey => $rows)
                             @php
@@ -125,6 +133,9 @@
                                     'status'   => $statusLabel($groupKey),
                                     default    => $groupKey,
                                 };
+                                // Map group key → status for quick-add (only when grouping by status,
+                                // otherwise default to 'pending' since other groupings don't pre-set status)
+                                $quickAddStatus = $groupBy === 'status' ? $groupKey : 'pending';
                             @endphp
                             <details open style="border-bottom:1px solid var(--alg-line);">
                                 <summary style="padding:10px 16px;background:var(--alg-surface-2);cursor:pointer;display:flex;align-items:center;gap:10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:600;color:var(--alg-ink-2);text-transform:uppercase;letter-spacing:.08em;">
@@ -133,13 +144,70 @@
                                     <span style="color:var(--alg-ink-4);font-weight:500;">{{ count($rows) }}</span>
                                 </summary>
                                 @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $rows, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel])
+                                {{-- Quick-add inline at the foot of every group — pre-fills status when grouping by status --}}
+                                <div x-data="{ title: '' }" style="padding:6px 16px 10px;background:var(--alg-bg);">
+                                    <input type="text"
+                                           x-model="title"
+                                           x-on:keydown.enter="$wire.quickAdd(title, '{{ $quickAddStatus }}'); title=''"
+                                           placeholder="+ Nueva tarea en {{ $groupLabel }}"
+                                           style="width:100%;padding:5px 10px;border:1px dashed var(--alg-line);background:transparent;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink-3);outline:none;border-radius:3px;">
+                                </div>
                             </details>
                         @endforeach
                     @endif
                 </div>
 
             @else
-                {{-- ─────────────── KANBAN VIEW (4 cols by status) ─────────────── --}}
+                {{-- ─────────────── KANBAN VIEW (4 cols by status, DnD via SortableJS) ─────────────── --}}
+                {{-- SortableJS — loaded once for the page, re-init on Livewire morph --}}
+                <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+                <script>
+                    (function(){
+                        function initKanbanDnD() {
+                            document.querySelectorAll('[data-kanban-column]').forEach(col => {
+                                if (col._sortableInit) return;
+                                col._sortableInit = true;
+                                if (typeof Sortable === 'undefined') return; // not loaded yet — try again
+                                Sortable.create(col, {
+                                    group: 'kanban-tasks',
+                                    animation: 160,
+                                    ghostClass: 'alg-kanban-ghost',
+                                    dragClass: 'alg-kanban-drag',
+                                    onEnd: function (evt) {
+                                        const taskId = parseInt(evt.item.dataset.taskId, 10);
+                                        const newStatus = evt.to.dataset.kanbanColumn;
+                                        const oldStatus = evt.from.dataset.kanbanColumn;
+                                        if (taskId && newStatus && newStatus !== oldStatus) {
+                                            // Fire Livewire — backend updates DB; UI already moved by Sortable
+                                            window.Livewire.find(evt.to.closest('[wire\\:id]').getAttribute('wire:id'))
+                                                .call('moveTaskStatus', taskId, newStatus);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                        // Run on load + after Livewire morph (period button, search, etc.)
+                        if (typeof Sortable !== 'undefined') {
+                            initKanbanDnD();
+                        } else {
+                            window.addEventListener('load', initKanbanDnD);
+                        }
+                        document.addEventListener('livewire:initialized', () => {
+                            initKanbanDnD();
+                            window.Livewire?.hook('morph.updated', () => {
+                                // Reset sortable flag so it can rebind on the new DOM
+                                document.querySelectorAll('[data-kanban-column]').forEach(c => c._sortableInit = false);
+                                initKanbanDnD();
+                            });
+                        });
+                    })();
+                </script>
+                <style>
+                    .alg-kanban-ghost { opacity: 0.35; background: var(--alg-accent-soft) !important; }
+                    .alg-kanban-drag  { cursor: grabbing; transform: rotate(1deg); box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
+                    [data-kanban-column] { min-height: 60px; }
+                </style>
+
                 <div style="display:grid;grid-template-columns:repeat({{ count($kanbanColumns) }},1fr);gap:12px;align-items:flex-start;">
                     @foreach($kanbanColumns as $statusKey => $col)
                         <div style="background:var(--alg-surface);border:1px solid var(--alg-line);min-height:200px;display:flex;flex-direction:column;">
@@ -152,25 +220,26 @@
                                 </div>
                             </div>
 
-                            {{-- Quick-add input at top of pending column --}}
-                            @if($statusKey === 'pending')
-                                <div x-data="{ title: '' }" style="padding:8px 10px;border-bottom:1px solid var(--alg-line);">
-                                    <input type="text"
-                                           x-model="title"
-                                           x-on:keydown.enter="$wire.quickAdd(title, '{{ $statusKey }}'); title=''"
-                                           placeholder="+ Nueva tarea (Enter)"
-                                           style="width:100%;padding:6px 8px;border:1px dashed var(--alg-line);background:transparent;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink);outline:none;border-radius:3px;">
-                                </div>
-                            @endif
+                            {{-- Quick-add input at top of EVERY column (creates with that status pre-set) --}}
+                            <div x-data="{ title: '' }" style="padding:8px 10px;border-bottom:1px solid var(--alg-line);">
+                                <input type="text"
+                                       x-model="title"
+                                       x-on:keydown.enter="$wire.quickAdd(title, '{{ $statusKey }}'); title=''"
+                                       placeholder="+ Nueva en {{ strtolower($col['label']) }}"
+                                       style="width:100%;padding:6px 8px;border:1px dashed var(--alg-line);background:transparent;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink);outline:none;border-radius:3px;">
+                            </div>
 
-                            {{-- Cards --}}
-                            <div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;">
+                            {{-- Cards container — drag/drop target --}}
+                            <div data-kanban-column="{{ $statusKey }}"
+                                 style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;flex:1;">
                                 @forelse($col['tasks'] as $t)
                                     @php
                                         $pc = $priorityColor($t->priority);
                                         $isOverdue = $t->due_date && $t->due_date->isPast() && $t->status !== 'done';
                                     @endphp
-                                    <div class="alg-hover-lift" style="background:var(--alg-bg);border:1px solid var(--alg-line);border-left:3px solid {{ $pc['fg'] }};border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+                                    <div class="alg-hover-lift"
+                                         data-task-id="{{ $t->id }}"
+                                         style="background:var(--alg-bg);border:1px solid var(--alg-line);border-left:3px solid {{ $pc['fg'] }};border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;cursor:grab;">
                                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
                                             <a href="{{ \App\Filament\Resources\TaskResource::getUrl('edit', ['record' => $t]) }}"
                                                style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);font-weight:500;line-height:1.35;text-decoration:none;letter-spacing:-0.005em;">{{ $t->title }}</a>
@@ -190,24 +259,9 @@
                                         @if($t->assignee)
                                             <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);">{{ $t->assignee }}</div>
                                         @endif
-                                        {{-- Quick move dropdown --}}
-                                        @if($statusKey !== 'done')
-                                            <div style="display:flex;gap:4px;margin-top:2px;">
-                                                @foreach(['pending'=>'P','in_progress'=>'▶','blocked'=>'⛔','done'=>'✓'] as $newStatus => $glyph)
-                                                    @if($newStatus !== $statusKey)
-                                                        <button type="button"
-                                                                wire:click="moveTaskStatus({{ $t->id }}, '{{ $newStatus }}')"
-                                                                title="Mover a {{ $statusLabel($newStatus) }}"
-                                                                style="border:1px solid var(--alg-line);background:transparent;color:var(--alg-ink-4);width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;justify-content:center;">
-                                                            {{ $glyph }}
-                                                        </button>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        @endif
                                     </div>
                                 @empty
-                                    <div style="padding:24px 8px;text-align:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-5);letter-spacing:.04em;">vacío</div>
+                                    <div style="padding:24px 8px;text-align:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-5);letter-spacing:.04em;">arrastrá tareas aquí</div>
                                 @endforelse
                             </div>
                         </div>
