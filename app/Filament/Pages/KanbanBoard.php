@@ -47,9 +47,23 @@ class KanbanBoard extends Page
         return 'Kanban Board';
     }
 
+    /**
+     * Hide from the sidebar — Kanban is now a view INSIDE /admin/tasks.
+     * The page still lives at /admin/kanban for back-compat (old bookmarks),
+     * but mount() redirects users to the new home.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public function mount(): void
     {
         $this->countryFilter = session('country_filter', '');
+
+        // Back-compat: send users to the new tasks hub in kanban mode.
+        // Kept this page alive so existing bookmarks / external links don't 404.
+        redirect('/admin/tasks?view=kanban');
     }
 
     public function toggleMyTasks(): void

@@ -1,0 +1,220 @@
+<x-filament-panels::page>
+    @php
+        // Color helpers
+        $priorityColor = fn (?string $p) => match ($p) {
+            'P0' => ['bg' => 'var(--alg-neg-soft)',    'fg' => 'var(--alg-neg)'],
+            'P1' => ['bg' => 'var(--alg-warn-soft)',   'fg' => 'var(--alg-warn)'],
+            'P2' => ['bg' => 'var(--alg-accent-soft)', 'fg' => 'var(--alg-accent)'],
+            default => ['bg' => 'var(--alg-surface-2)', 'fg' => 'var(--alg-ink-4)'],
+        };
+        $statusColor = fn (?string $s) => match ($s) {
+            'done'        => ['bg' => 'var(--alg-pos-soft)',    'fg' => 'var(--alg-pos)'],
+            'in_progress' => ['bg' => 'var(--alg-accent-soft)', 'fg' => 'var(--alg-accent)'],
+            'blocked'     => ['bg' => 'var(--alg-neg-soft)',    'fg' => 'var(--alg-neg)'],
+            default       => ['bg' => 'var(--alg-surface-2)',   'fg' => 'var(--alg-ink-3)'],
+        };
+        $statusLabel = fn (?string $s) => match ($s) {
+            'pending'     => 'Pendiente',
+            'in_progress' => 'En progreso',
+            'blocked'     => 'Bloqueada',
+            'done'        => 'Completada',
+            default       => $s,
+        };
+    @endphp
+
+    {{-- Filament wraps in its own .fi-page; we add a 2-col layout INSIDE --}}
+    <style>
+        /* Suppress Filament's default page header so our toolbar is the only chrome */
+        .fi-page > .fi-header { display: none !important; }
+    </style>
+
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:flex-start;font-family:var(--alg-font);">
+
+        {{-- ════════════════════════ LEFT SIDEBAR — filter presets ════════════════════════ --}}
+        <aside style="position:sticky;top:14px;background:var(--alg-surface);border:1px solid var(--alg-line);">
+            <div style="padding:14px 16px 10px;border-bottom:1px solid var(--alg-line);">
+                <h3 style="margin:0;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;">Tareas</h3>
+                <p style="margin:3px 0 0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);letter-spacing:.04em;">{{ $totalShown }} visibles</p>
+            </div>
+            <nav style="display:flex;flex-direction:column;padding:6px 0;">
+                @foreach($presets as $key => $preset)
+                    @php $isActive = $filterPreset === $key; @endphp
+                    <button type="button"
+                            wire:click="setFilterPreset('{{ $key }}')"
+                            style="display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:8px;border:none;background:{{ $isActive ? 'var(--alg-surface-2)' : 'transparent' }};color:{{ $isActive ? 'var(--alg-ink)' : 'var(--alg-ink-2)' }};font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;font-weight:{{ $isActive ? '500' : '400' }};letter-spacing:-0.005em;padding:7px 14px;cursor:pointer;text-align:left;border-left:2px solid {{ $isActive ? 'var(--alg-accent)' : 'transparent' }};">
+                        <span style="font-size:11px;color:{{ $isActive ? 'var(--alg-accent)' : 'var(--alg-ink-4)' }};">{{ $preset['icon'] }}</span>
+                        <span>{{ $preset['label'] }}</span>
+                        <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);font-weight:500;">{{ $presetCounts[$key] ?? 0 }}</span>
+                    </button>
+                @endforeach
+            </nav>
+        </aside>
+
+        {{-- ════════════════════════ RIGHT MAIN ════════════════════════ --}}
+        <div style="display:flex;flex-direction:column;gap:14px;min-width:0;">
+
+            {{-- Toolbar: search · view toggle · group-by · new task --}}
+            <div style="display:flex;align-items:center;gap:10px;background:var(--alg-surface);border:1px solid var(--alg-line);padding:8px 12px;flex-wrap:wrap;">
+                {{-- Search --}}
+                <div style="position:relative;flex:1;min-width:200px;max-width:380px;">
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="var(--alg-ink-4)" stroke-width="1.5" stroke-linecap="round" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;">
+                        <circle cx="9" cy="9" r="6"/><path d="m17 17-3.5-3.5"/>
+                    </svg>
+                    <input type="text"
+                           wire:model.live.debounce.300ms="searchTerm"
+                           placeholder="Buscar tareas…"
+                           style="width:100%;padding:6px 10px 6px 28px;border:1px solid var(--alg-line);background:var(--alg-bg);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);outline:none;border-radius:4px;">
+                </div>
+
+                {{-- View toggle: Lista | Kanban --}}
+                <div style="display:inline-flex;background:var(--alg-surface-2);border:1px solid var(--alg-line);border-radius:5px;padding:1px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:500;letter-spacing:-0.005em;">
+                    <button type="button"
+                            wire:click="setViewMode('list')"
+                            title="Vista lista"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:none;background:{{ $viewMode === 'list' ? 'var(--alg-surface)' : 'transparent' }};color:{{ $viewMode === 'list' ? 'var(--alg-ink)' : 'var(--alg-ink-4)' }};border-radius:4px;cursor:pointer;font-family:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;">
+                        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"/></svg>
+                        Lista
+                    </button>
+                    <button type="button"
+                            wire:click="setViewMode('kanban')"
+                            title="Vista Kanban"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:none;background:{{ $viewMode === 'kanban' ? 'var(--alg-surface)' : 'transparent' }};color:{{ $viewMode === 'kanban' ? 'var(--alg-ink)' : 'var(--alg-ink-4)' }};border-radius:4px;cursor:pointer;font-family:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;">
+                        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="4" height="14" rx="1"/><rect x="9" y="3" width="4" height="9" rx="1"/><rect x="15" y="3" width="2" height="6" rx="1"/></svg>
+                        Kanban
+                    </button>
+                </div>
+
+                {{-- Group by (only relevant in list mode) --}}
+                @if($viewMode === 'list')
+                    <select wire:model.live="groupBy"
+                            style="padding:5px 9px;border:1px solid var(--alg-line);background:var(--alg-surface);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink-2);cursor:pointer;outline:none;border-radius:4px;">
+                        <option value="status">Agrupar por estado</option>
+                        <option value="priority">Agrupar por prioridad</option>
+                        <option value="category">Agrupar por categoría</option>
+                        <option value="country">Agrupar por país</option>
+                        <option value="assignee">Agrupar por asignado</option>
+                        <option value="none">Sin agrupar</option>
+                    </select>
+                @endif
+
+                <div style="flex:1;"></div>
+
+                {{-- New task --}}
+                <a href="{{ \App\Filament\Resources\TaskResource::getUrl('create') }}"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:6px 11px;background:var(--alg-ink);color:#FFFFFF;text-decoration:none;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;border-radius:4px;letter-spacing:-0.005em;">
+                    <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 4v12M4 10h12"/></svg>
+                    Nueva tarea
+                </a>
+            </div>
+
+            {{-- ════════════════════════ BODY: List view OR Kanban view ════════════════════════ --}}
+
+            @if($viewMode === 'list')
+                {{-- ─────────────── LIST VIEW (grouped table) ─────────────── --}}
+                <div style="background:var(--alg-surface);border:1px solid var(--alg-line);">
+                    @if($tasks->isEmpty())
+                        <div style="padding:48px;text-align:center;color:var(--alg-ink-4);font-size:13px;">
+                            No hay tareas en este filtro.
+                        </div>
+                    @elseif($groupBy === 'none')
+                        @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $tasks, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel])
+                    @else
+                        @foreach($grouped as $groupKey => $rows)
+                            @php
+                                $groupLabel = match ($groupBy) {
+                                    'status'   => $statusLabel($groupKey),
+                                    default    => $groupKey,
+                                };
+                            @endphp
+                            <details open style="border-bottom:1px solid var(--alg-line);">
+                                <summary style="padding:10px 16px;background:var(--alg-surface-2);cursor:pointer;display:flex;align-items:center;gap:10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:600;color:var(--alg-ink-2);text-transform:uppercase;letter-spacing:.08em;">
+                                    <span style="display:inline-block;width:0;height:0;border:4px solid transparent;border-left-color:var(--alg-ink-3);transform:rotate(0);transition:transform 120ms;"></span>
+                                    <span>{{ $groupLabel }}</span>
+                                    <span style="color:var(--alg-ink-4);font-weight:500;">{{ count($rows) }}</span>
+                                </summary>
+                                @include('filament.resources.task-resource.pages.partials.task-list-rows', ['rows' => $rows, 'priorityColor' => $priorityColor, 'statusColor' => $statusColor, 'statusLabel' => $statusLabel])
+                            </details>
+                        @endforeach
+                    @endif
+                </div>
+
+            @else
+                {{-- ─────────────── KANBAN VIEW (4 cols by status) ─────────────── --}}
+                <div style="display:grid;grid-template-columns:repeat({{ count($kanbanColumns) }},1fr);gap:12px;align-items:flex-start;">
+                    @foreach($kanbanColumns as $statusKey => $col)
+                        <div style="background:var(--alg-surface);border:1px solid var(--alg-line);min-height:200px;display:flex;flex-direction:column;">
+                            {{-- Column header --}}
+                            <div style="padding:10px 14px;border-bottom:1px solid var(--alg-line);display:flex;align-items:center;justify-content:space-between;background:var(--alg-surface-2);">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span style="width:8px;height:8px;border-radius:50%;background:{{ $col['color'] }};"></span>
+                                    <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;">{{ $col['label'] }}</span>
+                                    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);font-weight:500;">{{ count($col['tasks']) }}</span>
+                                </div>
+                            </div>
+
+                            {{-- Quick-add input at top of pending column --}}
+                            @if($statusKey === 'pending')
+                                <div x-data="{ title: '' }" style="padding:8px 10px;border-bottom:1px solid var(--alg-line);">
+                                    <input type="text"
+                                           x-model="title"
+                                           x-on:keydown.enter="$wire.quickAdd(title, '{{ $statusKey }}'); title=''"
+                                           placeholder="+ Nueva tarea (Enter)"
+                                           style="width:100%;padding:6px 8px;border:1px dashed var(--alg-line);background:transparent;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink);outline:none;border-radius:3px;">
+                                </div>
+                            @endif
+
+                            {{-- Cards --}}
+                            <div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;">
+                                @forelse($col['tasks'] as $t)
+                                    @php
+                                        $pc = $priorityColor($t->priority);
+                                        $isOverdue = $t->due_date && $t->due_date->isPast() && $t->status !== 'done';
+                                    @endphp
+                                    <div class="alg-hover-lift" style="background:var(--alg-bg);border:1px solid var(--alg-line);border-left:3px solid {{ $pc['fg'] }};border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+                                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+                                            <a href="{{ \App\Filament\Resources\TaskResource::getUrl('edit', ['record' => $t]) }}"
+                                               style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12.5px;color:var(--alg-ink);font-weight:500;line-height:1.35;text-decoration:none;letter-spacing:-0.005em;">{{ $t->title }}</a>
+                                            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;font-weight:700;color:{{ $pc['fg'] }};background:{{ $pc['bg'] }};padding:1px 5px;border-radius:2px;flex-shrink:0;">{{ $t->priority }}</span>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:8px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-4);">
+                                            @if($t->category)
+                                                <span style="text-transform:uppercase;letter-spacing:.06em;">{{ $t->category }}</span>
+                                            @endif
+                                            @if($t->due_date)
+                                                <span style="color:{{ $isOverdue ? 'var(--alg-neg)' : 'var(--alg-ink-4)' }};">{{ $t->due_date->format('d M') }}</span>
+                                            @endif
+                                            @if($t->country)
+                                                <span style="margin-left:auto;background:var(--alg-surface-2);padding:0 4px;border-radius:2px;color:var(--alg-ink-3);">{{ strtoupper($t->country->code) }}</span>
+                                            @endif
+                                        </div>
+                                        @if($t->assignee)
+                                            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);">{{ $t->assignee }}</div>
+                                        @endif
+                                        {{-- Quick move dropdown --}}
+                                        @if($statusKey !== 'done')
+                                            <div style="display:flex;gap:4px;margin-top:2px;">
+                                                @foreach(['pending'=>'P','in_progress'=>'▶','blocked'=>'⛔','done'=>'✓'] as $newStatus => $glyph)
+                                                    @if($newStatus !== $statusKey)
+                                                        <button type="button"
+                                                                wire:click="moveTaskStatus({{ $t->id }}, '{{ $newStatus }}')"
+                                                                title="Mover a {{ $statusLabel($newStatus) }}"
+                                                                style="border:1px solid var(--alg-line);background:transparent;color:var(--alg-ink-4);width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:10px;display:inline-flex;align-items:center;justify-content:center;">
+                                                            {{ $glyph }}
+                                                        </button>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @empty
+                                    <div style="padding:24px 8px;text-align:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-5);letter-spacing:.04em;">vacío</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+        </div>
+    </div>
+</x-filament-panels::page>
