@@ -69,14 +69,18 @@ class ConversionDashboard extends Page
         $countryId = session('country_filter') ? (int) session('country_filter') : null;
         [$start, $end] = $this->resolvePeriod();
 
-        // Base lead query for the period (scoped by country if active)
+        // Period base — used for time-bound KPIs (rate, won/lost en el período)
         $base = Lead::query()
             ->whereBetween('created_at', [$start, $end])
             ->when($countryId, fn ($q) => $q->where('country_id', $countryId));
 
-        // Funnel stages, ordered. We count leads created in the period that
-        // CURRENTLY sit in each stage (or have moved past it for the cumulative
-        // funnel viz).
+        // Snapshot base — used for the funnel viz. Shows the CURRENT pipeline
+        // state (every lead ever captured for this country) instead of only
+        // those created in the period. Otherwise a country with 50 long-cycle
+        // leads but only 2 created this month shows an almost-empty funnel.
+        $snapshot = Lead::query()
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId));
+
         $stageOrder = [
             'new'         => 'Nuevo',
             'contacted'   => 'Contactado',
@@ -86,16 +90,16 @@ class ConversionDashboard extends Page
             'won'         => 'Ganado',
         ];
 
-        // Count of leads currently in each stage (snapshot)
-        $stageCounts = (clone $base)
+        // Snapshot count of leads currently in each stage (funnel viz uses these)
+        $stageCounts = (clone $snapshot)
             ->selectRaw('status, COUNT(*) as c')
             ->groupBy('status')
             ->pluck('c', 'status');
 
-        // Cumulative funnel: at each stage, how many leads have made it AT LEAST
-        // that far (i.e. their current status is that stage OR a later one).
+        // Cumulative funnel from the snapshot: at each stage, count of leads
+        // whose current status is THAT stage or further along.
         $stageRank = ['new' => 0, 'contacted' => 1, 'qualified' => 2, 'proposal' => 3, 'negotiation' => 4, 'won' => 5];
-        $allLeads = (clone $base)->get(['status']);
+        $allLeads = (clone $snapshot)->get(['status']);
         $funnelStages = [];
         foreach ($stageOrder as $key => $label) {
             $r = $stageRank[$key];
@@ -153,8 +157,9 @@ class ConversionDashboard extends Page
             $weeklyLabels[] = $weekEnd->format('d M');
         }
 
-        // Breakdown by source — count + win rate
-        $bySource = (clone $base)
+        // Breakdown by source — uses the same SNAPSHOT (all leads of this country)
+        // so the table always reflects the real distribution, not just the period.
+        $bySource = (clone $snapshot)
             ->selectRaw("
                 COALESCE(NULLIF(source, ''), 'unknown') as source,
                 COUNT(*) as total,
@@ -174,11 +179,10 @@ class ConversionDashboard extends Page
                 return $r;
             });
 
-        // Breakdown by country (only when in Global view)
+        // Breakdown by country (only when in Global view) — also uses snapshot
         $byCountry = collect();
         if (! $countryId) {
             $byCountry = Lead::query()
-                ->whereBetween('created_at', [$start, $end])
                 ->join('countries', 'leads.country_id', '=', 'countries.id')
                 ->selectRaw("
                     countries.code as code,

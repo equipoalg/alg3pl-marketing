@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\SearchConsoleData;
+use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -63,7 +64,7 @@ class DashboardData
             'recentLeads'    => self::recentLeads($countryId),
             'campaigns'      => self::campaigns($countryId),
             'activity'       => self::activity($countryId),
-            'tasks'          => DashboardMockData::tasks(),     // tasks not modeled separately yet
+            'tasks'          => self::tasks($countryId),
             'byCountry'      => self::byCountry($start),
             '_dataSource'    => 'real',
         ];
@@ -302,6 +303,49 @@ class DashboardData
                     'spend' => '$' . number_format((float) ($c->budget ?? 0)),
                 ];
             })->toArray();
+    }
+
+    /**
+     * Pending/in-progress tasks for the dashboard's "Tareas y seguimiento" panel.
+     * Returns the 5 most-relevant unfinished tasks for this country (or all
+     * countries when global). Falls back to mock data when the table is empty
+     * so a fresh install still shows the panel populated.
+     */
+    public static function tasks(?int $countryId, int $limit = 5): array
+    {
+        $rows = Task::query()
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->orderByRaw("CASE priority
+                WHEN 'P0 — Critical' THEN 1
+                WHEN 'P1 — High' THEN 2
+                WHEN 'alta' THEN 1
+                WHEN 'media' THEN 2
+                ELSE 3 END")
+            ->orderByRaw('due_date IS NULL, due_date ASC')
+            ->limit($limit)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            // No real tasks yet — keep the panel non-empty during onboarding
+            return DashboardMockData::tasks();
+        }
+
+        return $rows->map(function (Task $t) {
+            // Normalize priority labels onto the 3-bucket palette the blade uses
+            $prio = strtolower((string) $t->priority);
+            $bucket = match (true) {
+                str_contains($prio, 'p0') || str_contains($prio, 'critical') || str_contains($prio, 'alta') => 'alta',
+                str_contains($prio, 'p1') || str_contains($prio, 'high')     || str_contains($prio, 'media') => 'media',
+                default => 'baja',
+            };
+            return [
+                'id'       => $t->id,
+                'title'    => $t->title,
+                'priority' => $bucket,
+                'due'      => $t->due_date?->translatedFormat('d M') ?? 'Sin fecha',
+            ];
+        })->toArray();
     }
 
     public static function activity(?int $countryId, int $limit = 6): array

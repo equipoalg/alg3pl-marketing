@@ -76,6 +76,14 @@ class SearchConsoleDashboard extends Page
     public function getViewData(): array
     {
         $countryId = session('country_filter') ? (int) session('country_filter') : null;
+
+        // When a kw drilldown landed here, widen the default period from 28d to
+        // 3 months so we don't hide rows just outside the recent window. Users
+        // can still explicitly switch back to 7d/28d.
+        if ($this->keywordFilter !== '' && $this->period === '28d') {
+            $this->period = '3m';
+        }
+
         [$start, $end] = $this->resolvePeriod();
 
         // Base query, scoped by country if selected

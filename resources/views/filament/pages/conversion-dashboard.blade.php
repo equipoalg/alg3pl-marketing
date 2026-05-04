@@ -68,8 +68,8 @@
         {{-- Funnel viz: decreasing bars by stage --}}
         <div style="background:var(--alg-surface);border:1px solid var(--alg-line);padding:18px 20px;">
             <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
-                <h3 style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--alg-ink);margin:0;letter-spacing:-0.005em;">Embudo acumulado</h3>
-                <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-4);margin:0;letter-spacing:.04em;">leads que alcanzaron al menos cada etapa</p>
+                <h3 style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--alg-ink);margin:0;letter-spacing:-0.005em;">Embudo del pipeline (snapshot actual)</h3>
+                <p style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-4);margin:0;letter-spacing:.04em;">todos los leads del país, no solo los del período</p>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;">
                 @foreach($funnelStages as $i => $s)
