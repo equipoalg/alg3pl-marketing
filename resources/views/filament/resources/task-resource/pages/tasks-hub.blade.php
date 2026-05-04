@@ -29,7 +29,39 @@
     </style>
 
     {{-- Grid: sidebar 220px | main flex | (right pane 420px when a task is selected) --}}
-    <div style="display:grid;grid-template-columns:220px 1fr {{ $selected ? '420px' : '' }};gap:18px;align-items:flex-start;font-family:var(--alg-font);">
+    {{-- Alpine wrapper: keyboard shortcuts (#10) + showShortcutsHelp toggle for the cheatsheet modal --}}
+    <div x-data="{
+            showHelp: false,
+            isTyping(e) {
+                const t = e.target;
+                return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
+            },
+            handle(e) {
+                if (this.isTyping(e)) return;
+                // Single-key shortcuts
+                if (e.key === '/' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.querySelector('input[wire\\:model\\.live\\.debounce\\.300ms=\'searchTerm\']')?.focus();
+                } else if (e.key === '?') {
+                    e.preventDefault();
+                    this.showHelp = !this.showHelp;
+                } else if (e.key === 'c' && !e.metaKey && !e.ctrlKey) {
+                    e.preventDefault();
+                    window.location.href = '{{ \App\Filament\Resources\TaskResource::getUrl('create') }}';
+                } else if (e.key === 'l') {
+                    e.preventDefault();
+                    $wire.setViewMode('list');
+                } else if (e.key === 'k') {
+                    e.preventDefault();
+                    $wire.setViewMode('kanban');
+                } else if (e.key === 'Escape' && {{ $selected ? 'true' : 'false' }}) {
+                    e.preventDefault();
+                    $wire.closeDetail();
+                }
+            }
+         }"
+         x-on:keydown.window="handle($event)"
+         style="display:grid;grid-template-columns:220px 1fr {{ $selected ? '420px' : '' }};gap:18px;align-items:flex-start;font-family:var(--alg-font);position:relative;">
 
         {{-- ════════════════════════ LEFT SIDEBAR — filter presets ════════════════════════ --}}
         <aside style="position:sticky;top:14px;background:var(--alg-surface);border:1px solid var(--alg-line);">
@@ -49,6 +81,37 @@
                     </button>
                 @endforeach
             </nav>
+
+            {{-- Saved views (per-user, persisted in users.preferences JSON) --}}
+            @if(! empty($savedViews))
+                <div style="border-top:1px solid var(--alg-line);padding:8px 0;">
+                    <p style="margin:0 14px 4px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.10em;color:var(--alg-ink-4);">Mis vistas</p>
+                    @foreach($savedViews as $idx => $view)
+                        <div style="display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:8px;padding:5px 14px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink-2);">
+                            <span style="color:var(--alg-ink-4);font-size:11px;">★</span>
+                            <button type="button" wire:click="loadView({{ $idx }})"
+                                    style="border:none;background:transparent;text-align:left;color:inherit;cursor:pointer;padding:0;font-family:inherit;font-size:inherit;letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $view['name'] }}</button>
+                            <button type="button" wire:click="deleteView({{ $idx }})"
+                                    wire:confirm="¿Eliminar la vista \"{{ $view['name'] }}\"?"
+                                    title="Eliminar"
+                                    style="border:none;background:transparent;color:var(--alg-ink-5);cursor:pointer;padding:0 2px;font-size:11px;line-height:1;">✕</button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Save current view --}}
+            <div x-data="{ open: false, name: '' }" style="border-top:1px solid var(--alg-line);padding:8px 14px;">
+                <button type="button" @click="open = !open"
+                        style="width:100%;border:1px dashed var(--alg-line);background:transparent;color:var(--alg-ink-4);cursor:pointer;padding:5px 8px;border-radius:3px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;letter-spacing:-0.005em;">
+                    💾 Guardar vista actual
+                </button>
+                <div x-show="open" x-cloak x-transition.opacity style="margin-top:6px;display:flex;gap:4px;">
+                    <input x-model="name" type="text" placeholder="Nombre…"
+                           x-on:keydown.enter="$wire.saveCurrentView(name); name=''; open=false"
+                           style="flex:1;padding:4px 7px;border:1px solid var(--alg-line);background:var(--alg-bg);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink);outline:none;border-radius:3px;">
+                </div>
+            </div>
         </aside>
 
         {{-- ════════════════════════ RIGHT MAIN ════════════════════════ --}}
@@ -123,6 +186,11 @@
                 @endif
 
                 <div style="flex:1;"></div>
+
+                {{-- Keyboard shortcuts hint --}}
+                <button type="button" @click="showHelp = true"
+                        title="Atajos de teclado (?)"
+                        style="border:1px solid var(--alg-line);background:var(--alg-surface);color:var(--alg-ink-4);width:24px;height:24px;border-radius:4px;cursor:pointer;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;display:inline-flex;align-items:center;justify-content:center;">?</button>
 
                 {{-- New task --}}
                 <a href="{{ \App\Filament\Resources\TaskResource::getUrl('create') }}"
@@ -360,6 +428,37 @@
                 'statusLabel'   => $statusLabel,
             ])
         @endif
+
+        {{-- ════════════════════════ KEYBOARD SHORTCUTS HELP MODAL ════════════════════════ --}}
+        <div x-show="showHelp" x-cloak x-transition.opacity
+             @click.self="showHelp = false"
+             @keydown.escape.window="showHelp = false"
+             style="position:fixed;inset:0;background:rgba(12,10,9,0.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;">
+            <div style="background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:8px;box-shadow:0 24px 48px rgba(0,0,0,0.30);padding:22px 26px;min-width:340px;max-width:480px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
+                    <h3 style="margin:0;font-size:14px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;">Atajos de teclado</h3>
+                    <button type="button" @click="showHelp = false"
+                            style="border:none;background:transparent;color:var(--alg-ink-4);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;">×</button>
+                </div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:10px 14px;font-size:12.5px;align-items:center;">
+                    @php
+                        $shortcuts = [
+                            '/'      => 'Buscar tareas',
+                            'c'      => 'Crear nueva tarea',
+                            'l'      => 'Cambiar a vista Lista',
+                            'k'      => 'Cambiar a vista Kanban',
+                            'Esc'    => 'Cerrar panel de detalle',
+                            '?'      => 'Mostrar/ocultar esta ayuda',
+                        ];
+                    @endphp
+                    @foreach($shortcuts as $key => $action)
+                        <kbd style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 7px;background:var(--alg-bg);border:1px solid var(--alg-line);border-bottom:2px solid var(--alg-line-2);border-radius:4px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:600;color:var(--alg-ink-2);">{{ $key }}</kbd>
+                        <span style="color:var(--alg-ink-3);">{{ $action }}</span>
+                    @endforeach
+                </div>
+                <p style="margin:14px 0 0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-5);letter-spacing:.04em;">Los atajos se desactivan mientras escribís en un input.</p>
+            </div>
+        </div>
 
     </div>
 

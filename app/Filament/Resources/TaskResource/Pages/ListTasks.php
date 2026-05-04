@@ -304,6 +304,62 @@ class ListTasks extends Page
         Notification::make()->title("$count tareas eliminadas")->success()->send();
     }
 
+    /* ───── Saved views (persisted per-user in JSON preferences) ───── */
+
+    /**
+     * Snapshot the current filter+group+search+chips combo and save it under
+     * a user-supplied name. Stored at users.preferences->task_views[].
+     */
+    public function saveCurrentView(string $name): void
+    {
+        $name = trim($name);
+        if ($name === '') return;
+        $user = auth()->user();
+        if (! $user) return;
+
+        $existing = $user->pref('task_views', []);
+        $existing[] = [
+            'name'     => $name,
+            'view'     => $this->viewMode,
+            'preset'   => $this->filterPreset,
+            'group'    => $this->groupBy,
+            'search'   => $this->searchTerm,
+            'priority' => $this->priorityFilter,
+            'cat'      => $this->categoryFilter,
+            'due'      => $this->dueFilter,
+        ];
+        $user->setPrefs(['task_views' => array_values($existing)]);
+        Notification::make()->title("Vista \"$name\" guardada")->success()->send();
+    }
+
+    /** Restore a saved view by index. */
+    public function loadView(int $index): void
+    {
+        $user = auth()->user();
+        if (! $user) return;
+        $views = $user->pref('task_views', []);
+        if (! isset($views[$index])) return;
+        $v = $views[$index];
+        $this->viewMode       = $v['view']     ?? 'list';
+        $this->filterPreset   = $v['preset']   ?? 'all';
+        $this->groupBy        = $v['group']    ?? 'status';
+        $this->searchTerm     = $v['search']   ?? '';
+        $this->priorityFilter = $v['priority'] ?? '';
+        $this->categoryFilter = $v['cat']      ?? '';
+        $this->dueFilter      = $v['due']      ?? '';
+    }
+
+    public function deleteView(int $index): void
+    {
+        $user = auth()->user();
+        if (! $user) return;
+        $views = $user->pref('task_views', []);
+        if (! isset($views[$index])) return;
+        unset($views[$index]);
+        $user->setPrefs(['task_views' => array_values($views)]);
+        Notification::make()->title('Vista eliminada')->success()->send();
+    }
+
     public function mount(): void
     {
         // If URL has ?selected=N on first load, populate edit fields too
@@ -463,6 +519,9 @@ class ListTasks extends Page
         // Focus banner — count overdue + P0/P1 due today, scoped by country session
         $banner = self::computeFocusBanner();
 
+        // User-saved views (from users.preferences JSON)
+        $savedViews = auth()->user()?->pref('task_views', []) ?? [];
+
         return [
             'tasks'         => $tasks,
             'grouped'       => $grouped,
@@ -472,6 +531,7 @@ class ListTasks extends Page
             'totalShown'    => $tasks->count(),
             'selected'      => $selected,
             'banner'        => $banner,
+            'savedViews'    => $savedViews,
         ];
     }
 
