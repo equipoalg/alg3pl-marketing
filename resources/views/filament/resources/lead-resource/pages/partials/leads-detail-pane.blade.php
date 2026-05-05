@@ -198,11 +198,38 @@
     </div>
 
     {{-- Footer actions --}}
-    <div style="padding:11px 18px;border-top:1px solid var(--alg-line);display:flex;align-items:center;gap:8px;background:var(--alg-bg);">
+    <div style="padding:11px 18px;border-top:1px solid var(--alg-line);display:flex;align-items:center;gap:8px;background:var(--alg-bg);flex-wrap:wrap;">
         <button type="button" wire:click="saveLead"
                 style="padding:7px 14px;background:var(--alg-ink);color:#FFFFFF;border:none;cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;border-radius:4px;letter-spacing:-0.005em;">
             Guardar
         </button>
+
+        {{-- Snooze dropdown — current state shown if snoozed --}}
+        <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;">
+            @php $isSnoozed = $selected->snoozed_until && $selected->snoozed_until->isFuture(); @endphp
+            <button type="button" @click="open = !open"
+                    title="{{ $isSnoozed ? 'Snoozed hasta ' . $selected->snoozed_until->translatedFormat('d M H:i') : 'Snooze este lead' }}"
+                    style="padding:7px 12px;background:{{ $isSnoozed ? 'var(--alg-warn-soft)' : 'var(--alg-surface)' }};color:{{ $isSnoozed ? 'var(--alg-warn)' : 'var(--alg-ink-2)' }};border:1px solid var(--alg-line);cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;border-radius:4px;">
+                ⏰ {{ $isSnoozed ? 'Snoozed' : 'Snooze' }}
+            </button>
+            <div x-show="open" x-cloak x-transition.opacity
+                 style="position:absolute;bottom:calc(100% + 4px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.14);padding:4px;z-index:50;display:flex;flex-direction:column;gap:1px;min-width:180px;">
+                @foreach(['1h' => 'En 1 hora', '3h' => 'En 3 horas', 'tomorrow' => 'Mañana 9 AM', 'monday' => 'Próximo lunes 9 AM', 'week' => 'En 1 semana'] as $when => $lbl)
+                    <button type="button" wire:click="snoozeSelected('{{ $when }}')" @click="open = false"
+                            style="padding:6px 11px;border:none;background:transparent;color:var(--alg-ink-2);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;text-align:left;cursor:pointer;border-radius:3px;"
+                            onmouseover="this.style.background='var(--alg-surface-2)'"
+                            onmouseout="this.style.background='transparent'">{{ $lbl }}</button>
+                @endforeach
+                @if($isSnoozed)
+                    <div style="height:1px;background:var(--alg-line);margin:3px 0;"></div>
+                    <button type="button" wire:click="unsnoozeSelected" @click="open = false"
+                            style="padding:6px 11px;border:none;background:transparent;color:var(--alg-neg);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;text-align:left;cursor:pointer;border-radius:3px;"
+                            onmouseover="this.style.background='var(--alg-neg-soft)'"
+                            onmouseout="this.style.background='transparent'">Quitar snooze</button>
+                @endif
+            </div>
+        </div>
+
         <a href="/admin/leads?view=inbox&selected={{ $selected->id }}"
            style="padding:7px 12px;background:var(--alg-surface);color:var(--alg-ink-2);border:1px solid var(--alg-line);text-decoration:none;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;border-radius:4px;">
             Abrir bandeja

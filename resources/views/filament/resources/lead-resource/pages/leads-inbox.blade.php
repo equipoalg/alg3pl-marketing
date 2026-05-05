@@ -176,10 +176,11 @@
             {{-- Folder pills (Outlook-style: Todos / Sin leer / Hot / Pinned) --}}
             <div style="display:flex;gap:0;padding:0;border-bottom:1px solid var(--alg-line);background:var(--alg-bg);">
                 @foreach([
-                    'all'    => ['Todos',   $folderCounts['all']],
-                    'unread' => ['Sin leer', $folderCounts['unread']],
-                    'hot'    => ['Hot',     $folderCounts['hot']],
-                    'pinned' => ['Pinned',  $folderCounts['pinned']],
+                    'all'     => ['Todos',   $folderCounts['all']],
+                    'unread'  => ['Sin leer', $folderCounts['unread']],
+                    'hot'     => ['Hot',     $folderCounts['hot']],
+                    'pinned'  => ['Pinned',  $folderCounts['pinned']],
+                    'snoozed' => ['Snoozed', $folderCounts['snoozed'] ?? 0],
                 ] as $key => $tile)
                     @php [$lbl, $count] = $tile; $isActive = $folder === $key; @endphp
                     <button type="button"

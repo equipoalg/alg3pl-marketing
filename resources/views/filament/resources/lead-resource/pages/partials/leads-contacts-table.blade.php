@@ -56,6 +56,11 @@
                         $score = $l->score ?? 0;
                         $temp = $score >= 80 ? ['var(--alg-warn-soft)', 'var(--alg-warn)', '★ HOT'] : ($score >= 50 ? ['var(--alg-accent-soft)', 'var(--alg-accent)', $score] : ['var(--alg-surface-2)', 'var(--alg-ink-4)', $score ?: '—']);
                         $rowBg = ($isChecked || $isActive) ? 'var(--alg-accent-soft)' : 'transparent';
+                        // Stalled = no activity in 14+ days AND status is in pipeline (not won/lost)
+                        // latest_activity_at viene de withMax() en getViewData. Si null, usa created_at como fallback.
+                        $lastTouch = $l->latest_activity_at ? \Carbon\Carbon::parse($l->latest_activity_at) : $l->created_at;
+                        $daysSince = $lastTouch ? $lastTouch->diffInDays(now()) : 0;
+                        $isStalled = $daysSince >= 14 && in_array($l->status, ['contacted', 'qualified', 'proposal', 'negotiation'], true);
                     @endphp
                     <tr style="cursor:pointer;border-bottom:1px solid var(--alg-line);transition:background 100ms ease;background:{{ $rowBg }};"
                         onmouseover="if(!this.dataset.locked)this.style.background='var(--alg-surface-2)'"
@@ -88,9 +93,10 @@
                         </td>
                         {{-- Status — click pill to change inline (no slide-over) --}}
                         <td style="padding:11px 12px;" onclick="event.stopPropagation()">
-                            <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;display:inline-block;">
-                                <button type="button" @click="open = !open"
-                                        style="display:inline-block;font-size:9.5px;font-weight:500;color:{{ $pillFg }};background:{{ $pillBg }};padding:2px 7px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;border:none;cursor:pointer;">{{ $statuses[$l->status] ?? $l->status }} ▾</button>
+                            <div style="display:flex;align-items:center;gap:5px;">
+                                <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;display:inline-block;">
+                                    <button type="button" @click="open = !open"
+                                            style="display:inline-block;font-size:9.5px;font-weight:500;color:{{ $pillFg }};background:{{ $pillBg }};padding:2px 7px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;border:none;cursor:pointer;">{{ $statuses[$l->status] ?? $l->status }} ▾</button>
                                 <div x-show="open" x-cloak x-transition.opacity
                                      style="position:absolute;top:calc(100% + 3px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,0.10);padding:3px;z-index:20;display:flex;flex-direction:column;gap:1px;min-width:140px;">
                                     @foreach($statuses as $stKey => $stLabel)
@@ -102,7 +108,12 @@
                                             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{{ $cs[1] }};"></span>{{ $stLabel }}
                                         </button>
                                     @endforeach
+                                    </div>
                                 </div>
+                                @if($isStalled)
+                                    <span title="Sin actividad hace {{ (int) $daysSince }} días"
+                                          style="display:inline-flex;align-items:center;gap:3px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8.5px;font-weight:600;background:var(--alg-neg-soft);color:var(--alg-neg);padding:2px 5px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;">⏸ {{ (int) $daysSince }}d</span>
+                                @endif
                             </div>
                         </td>
                         {{-- Score --}}

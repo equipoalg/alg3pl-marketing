@@ -15,6 +15,7 @@ class Lead extends Model
         'landing_page', 'utm_source', 'utm_medium', 'utm_campaign',
         'score', 'status', 'assigned_to', 'notes', 'estimated_value',
         'email_verified_at', 'verification_token', 'unsubscribed_at',
+        'snoozed_until',
     ];
 
     protected $casts = [
@@ -22,6 +23,7 @@ class Lead extends Model
         'estimated_value' => 'decimal:2',
         'email_verified_at' => 'datetime',
         'unsubscribed_at' => 'datetime',
+        'snoozed_until' => 'datetime',
     ];
 
     public function country(): BelongsTo

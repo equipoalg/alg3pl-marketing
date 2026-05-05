@@ -306,6 +306,39 @@ class ListLeads extends Page
         $lead->tags()->detach($tagId);
     }
 
+    /* ───── Snooze / Follow-up reminder ───── */
+
+    /**
+     * Snooze el lead seleccionado hasta una fecha futura.
+     * Acepta presets relativos: 1h, 3h, tomorrow, monday, week.
+     */
+    public function snoozeSelected(string $when): void
+    {
+        if (! $this->selectedId) return;
+        $until = match ($when) {
+            '1h'       => now()->addHour(),
+            '3h'       => now()->addHours(3),
+            'tomorrow' => now()->addDay()->setTime(9, 0),
+            'monday'   => now()->next('Monday')->setTime(9, 0),
+            'week'     => now()->addWeek()->setTime(9, 0),
+            default    => null,
+        };
+        if (! $until) return;
+        Lead::where('id', $this->selectedId)->update(['snoozed_until' => $until]);
+        \Filament\Notifications\Notification::make()
+            ->title('Snooze activado')
+            ->body('Vuelve el ' . $until->translatedFormat('d M H:i'))
+            ->success()->send();
+        $this->selectedId = null; // close the slide-over so the lead disappears
+    }
+
+    public function unsnoozeSelected(): void
+    {
+        if (! $this->selectedId) return;
+        Lead::where('id', $this->selectedId)->update(['snoozed_until' => null]);
+        \Filament\Notifications\Notification::make()->title('Snooze removido')->success()->send();
+    }
+
     public function nextLead(): void
     {
         $list = $this->buildQuery()->pluck('id')->all();
@@ -393,6 +426,17 @@ class ListLeads extends Page
             $q->whereIn('id', array_merge($this->pinnedIds, [0]));
         } elseif ($this->folder === 'hot') {
             $q->where('score', '>=', 80);
+        } elseif ($this->folder === 'snoozed') {
+            // Folder Snoozed: leads aún en estado snooze (snoozed_until > now())
+            $q->where('snoozed_until', '>', now());
+        }
+
+        // Por default (cualquier folder excepto 'snoozed'), ocultar los leads
+        // que están durmiendo. Si snoozed_until pasó, vuelven al inbox automáticamente.
+        if ($this->folder !== 'snoozed') {
+            $q->where(function ($qq) {
+                $qq->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now());
+            });
         }
 
         if ($this->statusFilter !== '') {
@@ -433,7 +477,13 @@ class ListLeads extends Page
 
     public function getViewData(): array
     {
-        $leads = $this->buildQuery()->with('country')->limit(500)->get();
+        // Cargar leads + last activity timestamp en una sola query (subSelect)
+        // para poder marcar "Stalled" sin N+1.
+        $leads = $this->buildQuery()
+            ->with('country')
+            ->withMax('activities as latest_activity_at', 'created_at')
+            ->limit(500)
+            ->get();
 
         // Group by date bucket: Hoy / Ayer / Esta semana / Anterior
         $now = now();
@@ -466,11 +516,17 @@ class ListLeads extends Page
         }
 
         // Sidebar folder counts (computed once)
+        // Note: counts excluyen leads snoozed activos para que el folder "Todos"
+        // no infle el número con leads que el usuario ya pospuso.
         $allQ = LeadResource::getEloquentQuery();
-        $totalAll = (clone $allQ)->count();
-        $totalUnread = (clone $allQ)->whereNotIn('id', array_merge($this->readIds, [0]))->count();
-        $totalHot = (clone $allQ)->where('score', '>=', 80)->count();
-        $totalPinned = empty($this->pinnedIds) ? 0 : (clone $allQ)->whereIn('id', $this->pinnedIds)->count();
+        $awakeQ = (clone $allQ)->where(function ($qq) {
+            $qq->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now());
+        });
+        $totalAll     = (clone $awakeQ)->count();
+        $totalUnread  = (clone $awakeQ)->whereNotIn('id', array_merge($this->readIds, [0]))->count();
+        $totalHot     = (clone $awakeQ)->where('score', '>=', 80)->count();
+        $totalPinned  = empty($this->pinnedIds) ? 0 : (clone $awakeQ)->whereIn('id', $this->pinnedIds)->count();
+        $totalSnoozed = (clone $allQ)->where('snoozed_until', '>', now())->count();
 
         $selected = null;
         if ($this->selectedId) {
@@ -520,6 +576,7 @@ class ListLeads extends Page
                 'unread'  => $totalUnread,
                 'hot'     => $totalHot,
                 'pinned'  => $totalPinned,
+                'snoozed' => $totalSnoozed,
             ],
             'statuses'      => self::statusOptions(),
         ];
