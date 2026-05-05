@@ -40,6 +40,15 @@ class ListLeads extends Page
     #[Url(as: 'selected')]
     public ?int $selectedId = null;
 
+    /**
+     * Active rendering mode.
+     *   - 'contacts' (default): tabular CRM-style — avatar + name + company + email + status + score
+     *   - 'companies': leads agrupados por su columna `company` (freetext)
+     *   - 'inbox': layout master/detail Outlook-like (legacy, accesible via toggle)
+     */
+    #[Url(as: 'view')]
+    public string $viewMode = 'contacts';
+
     /** Status filter — URL-bound so /admin/leads?status=won lands pre-filtered. */
     #[Url(as: 'status')]
     public string $statusFilter = '';
@@ -82,6 +91,8 @@ class ListLeads extends Page
         }
         if ($this->selectedId) {
             $this->markRead($this->selectedId);
+            // Pre-fill form fields if URL had ?selected=N (so slide-over is editable on first paint).
+            $this->hydrateEditForm();
         }
     }
 
@@ -102,11 +113,124 @@ class ListLeads extends Page
         return [];
     }
 
+    public function setViewMode(string $value): void
+    {
+        if (in_array($value, ['inbox', 'contacts', 'companies'], true)) {
+            $this->viewMode = $value;
+        }
+    }
+
     public function selectLead(int $id): void
     {
         $this->selectedId = $id;
         $this->replyText = '';
         $this->markRead($id);
+        // Hydrate the slide-over form so the contacts/companies views can edit inline.
+        $this->hydrateEditForm();
+    }
+
+    public function closeLead(): void
+    {
+        $this->selectedId = null;
+    }
+
+    /**
+     * Color-hashed avatar from email — used by the contacts/companies tables.
+     * Returns ['initials', 'bg', 'fg']. 8-color palette indexed by crc32(email).
+     */
+    public static function avatarFor(?string $email, ?string $fallbackName = null): array
+    {
+        if (! $email && ! $fallbackName) {
+            return ['initials' => '?', 'bg' => 'var(--alg-surface-2)', 'fg' => 'var(--alg-ink-4)'];
+        }
+        $key = $email ?: $fallbackName;
+        if ($email) {
+            $local = explode('@', $email)[0];
+            $parts = preg_split('/[._\-+]/', $local) ?: [$local];
+            $initials = strtoupper(substr($parts[0] ?? '?', 0, 1));
+            if (count($parts) > 1) {
+                $initials .= strtoupper(substr($parts[1], 0, 1));
+            } else {
+                $initials .= strtoupper(substr($local, 1, 1));
+            }
+        } else {
+            $words = preg_split('/\s+/', trim($fallbackName)) ?: [$fallbackName];
+            $initials = strtoupper(substr($words[0] ?? '?', 0, 1));
+            if (count($words) > 1) {
+                $initials .= strtoupper(substr($words[1], 0, 1));
+            }
+        }
+        $palette = [
+            ['bg' => '#FEE2E2', 'fg' => '#9F1239'],
+            ['bg' => '#FEF3C7', 'fg' => '#92400E'],
+            ['bg' => '#D1FAE5', 'fg' => '#065F46'],
+            ['bg' => '#DBEAFE', 'fg' => '#1E3A8A'],
+            ['bg' => '#E0E7FF', 'fg' => '#3730A3'],
+            ['bg' => '#EDE9FE', 'fg' => '#5B21B6'],
+            ['bg' => '#FCE7F3', 'fg' => '#9D174D'],
+            ['bg' => '#F1F5F9', 'fg' => '#334155'],
+        ];
+        $idx = abs(crc32($key)) % count($palette);
+        return [
+            'initials' => $initials ?: '?',
+            'bg'       => $palette[$idx]['bg'],
+            'fg'       => $palette[$idx]['fg'],
+        ];
+    }
+
+    /** Save inline edits from the slide-over (contacts/companies views). */
+    public string $editName = '';
+    public string $editEmail = '';
+    public ?string $editPhone = null;
+    public ?string $editCompany = null;
+    public ?string $editNotes = null;
+    public ?string $editStatus = null;
+
+    public function hydrateEditForm(): void
+    {
+        if (! $this->selectedId) return;
+        $lead = Lead::find($this->selectedId);
+        if (! $lead) return;
+        $this->editName    = (string) $lead->name;
+        $this->editEmail   = (string) $lead->email;
+        $this->editPhone   = $lead->phone;
+        $this->editCompany = $lead->company;
+        $this->editNotes   = $lead->notes;
+        $this->editStatus  = $lead->status;
+    }
+
+    public function updatedSelectedId($value): void
+    {
+        if ($value) $this->hydrateEditForm();
+    }
+
+    public function saveLead(): void
+    {
+        if (! $this->selectedId) return;
+        $lead = Lead::find($this->selectedId);
+        if (! $lead) return;
+        $lead->update([
+            'name'    => trim($this->editName) ?: $lead->name,
+            'email'   => trim($this->editEmail) ?: $lead->email,
+            'phone'   => $this->editPhone,
+            'company' => $this->editCompany,
+            'notes'   => $this->editNotes,
+            'status'  => in_array($this->editStatus, array_keys($this->statusOptions()), true) ? $this->editStatus : $lead->status,
+        ]);
+        \Filament\Notifications\Notification::make()->title('Lead guardado')->success()->send();
+    }
+
+    public static function statusOptions(): array
+    {
+        return [
+            'new'         => 'Nuevos',
+            'contacted'   => 'Contactados',
+            'qualified'   => 'Calificados',
+            'proposal'    => 'Propuesta',
+            'negotiation' => 'Negociación',
+            'won'         => 'Ganados',
+            'lost'        => 'Perdidos',
+        ];
     }
 
     public function nextLead(): void
@@ -284,8 +408,31 @@ class ListLeads extends Page
             ])->find($this->selectedId);
         }
 
+        // Companies grouping — only computed when needed (saves work for inbox/contacts views).
+        // Each entry: name, count, latest_at, breakdown_by_status, countries, total_estimated_value.
+        $companies = collect();
+        if ($this->viewMode === 'companies') {
+            $companies = $leads->groupBy(fn ($l) => trim((string) $l->company) ?: '— Sin empresa —')
+                ->map(function ($group, $name) {
+                    return [
+                        'name'      => $name,
+                        'count'     => $group->count(),
+                        'latest'    => $group->max('created_at'),
+                        'leads'     => $group,
+                        'statuses'  => $group->groupBy('status')->map->count()->toArray(),
+                        'countries' => $group->pluck('country.code')->filter()->unique()->values()->toArray(),
+                        'value'     => (float) $group->sum('estimated_value'),
+                    ];
+                })
+                ->sortByDesc('count')
+                ->values();
+        }
+
         return [
-            'grouped'      => $grouped,
+            'leads'        => $leads, // flat collection — used by contacts table
+            'grouped'      => $grouped, // date-bucket grouping — used by inbox view
+            'companies'    => $companies, // groupBy(company) — used by companies view
+            'viewMode'     => $this->viewMode,
             'totalShown'   => $leads->count(),
             'selected'     => $selected,
             'folderCounts' => [
@@ -294,15 +441,7 @@ class ListLeads extends Page
                 'hot'     => $totalHot,
                 'pinned'  => $totalPinned,
             ],
-            'statuses'     => [
-                'new'         => 'Nuevos',
-                'contacted'   => 'Contactados',
-                'qualified'   => 'Calificados',
-                'proposal'    => 'Propuesta',
-                'negotiation' => 'Negociación',
-                'won'         => 'Ganados',
-                'lost'        => 'Perdidos',
-            ],
+            'statuses'     => self::statusOptions(),
         ];
     }
 }

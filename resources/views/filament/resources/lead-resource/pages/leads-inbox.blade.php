@@ -82,15 +82,20 @@
     <div style="display:flex;align-items:center;gap:10px;padding:0 16px;height:48px;border-bottom:1px solid var(--alg-line);background:var(--alg-surface);flex-shrink:0;">
         @php
             $titleByStatus = [
-                'won'         => 'Contactos · Ganados',
-                'lost'        => 'Contactos · Perdidos',
-                'qualified'   => 'Contactos · Calificados',
-                'proposal'    => 'Contactos · En propuesta',
-                'negotiation' => 'Contactos · En negociación',
-                'contacted'   => 'Contactos · Contactados',
-                'new'         => 'Contactos · Nuevos',
+                'won'         => 'Ganados',
+                'lost'        => 'Perdidos',
+                'qualified'   => 'Calificados',
+                'proposal'    => 'En propuesta',
+                'negotiation' => 'En negociación',
+                'contacted'   => 'Contactados',
+                'new'         => 'Nuevos',
             ];
-            $toolbarTitle = $titleByStatus[$statusFilter] ?? 'Bandeja de entrada';
+            $viewModeLabels = [
+                'contacts'  => 'Contactos',
+                'companies' => 'Empresas',
+                'inbox'     => 'Bandeja',
+            ];
+            $toolbarTitle = ($viewModeLabels[$viewMode] ?? 'Contactos') . ($statusFilter ? ' · ' . ($titleByStatus[$statusFilter] ?? $statusFilter) : '');
         @endphp
         <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--alg-ink);letter-spacing:-0.005em;flex-shrink:0;">{{ $toolbarTitle }}</span>
         <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--alg-ink-4);letter-spacing:.04em;flex-shrink:0;">· {{ $totalShown }}</span>
@@ -111,6 +116,16 @@
             <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-5);background:var(--alg-surface-2);padding:1px 5px;border-radius:3px;border:1px solid var(--alg-line);">/</span>
         </div>
 
+        {{-- View mode toggle: Contactos · Empresas · Bandeja --}}
+        <div style="display:inline-flex;background:var(--alg-surface-2);border:1px solid var(--alg-line);border-radius:5px;padding:1px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:500;letter-spacing:-0.005em;flex-shrink:0;">
+            @foreach(['contacts' => 'Contactos', 'companies' => 'Empresas', 'inbox' => 'Bandeja'] as $vm => $vmLabel)
+                @php $isVm = $viewMode === $vm; @endphp
+                <button type="button" wire:click="setViewMode('{{ $vm }}')"
+                        title="Vista {{ $vmLabel }}"
+                        style="padding:4px 10px;border:none;background:{{ $isVm ? 'var(--alg-surface)' : 'transparent' }};color:{{ $isVm ? 'var(--alg-ink)' : 'var(--alg-ink-4)' }};border-radius:4px;cursor:pointer;font-family:inherit;font-size:inherit;font-weight:inherit;">{{ $vmLabel }}</button>
+            @endforeach
+        </div>
+
         {{-- Status filter pill --}}
         <select wire:model.live="statusFilter"
                 style="padding:5px 8px;border:1px solid var(--alg-line);background:var(--alg-surface);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink-2);cursor:pointer;outline:none;">
@@ -129,8 +144,29 @@
     </div>
 
     {{-- ════════════════════════════════════════════════
-         BODY: 2 columns (folders+list 380px | reading flex)
+         BODY — branch by viewMode:
+           contacts  → tabular CRM con slide-over al click
+           companies → leads agrupados por company (freetext)
+           inbox     → layout master/detail original (Outlook-like)
     ════════════════════════════════════════════════ --}}
+
+    @if($viewMode === 'contacts')
+        <div style="flex:1;display:flex;min-height:0;">
+            <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
+                @include('filament.resources.lead-resource.pages.partials.leads-contacts-table')
+            </div>
+            @if($selected)
+                @include('filament.resources.lead-resource.pages.partials.leads-detail-pane')
+            @endif
+        </div>
+    @elseif($viewMode === 'companies')
+        <div style="flex:1;display:flex;min-height:0;">
+            <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
+                @include('filament.resources.lead-resource.pages.partials.leads-companies-grouped')
+            </div>
+        </div>
+    @else
+    {{-- viewMode === 'inbox' (legacy master/detail layout below) --}}
     <div style="flex:1;display:flex;min-height:0;">
 
         {{-- ───── LEFT: folders + list ───── --}}
@@ -474,5 +510,6 @@
         </div>
 
     </div>
+    @endif {{-- end viewMode branch --}}
 </div>
 </x-filament-panels::page>
