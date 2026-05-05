@@ -268,9 +268,34 @@ class ListLeads extends Page
     {
         if (empty($this->selectedLeadIds)) return;
         if (! array_key_exists($status, self::statusOptions())) return;
-        Lead::whereIn('id', $this->selectedLeadIds)->update(['status' => $status]);
-        $count = count($this->selectedLeadIds);
         $label = self::statusOptions()[$status];
+        $userId = auth()->id();
+        $now = now();
+
+        // Capturar status anterior de cada lead para el audit trail
+        $previousStatuses = Lead::whereIn('id', $this->selectedLeadIds)
+            ->pluck('status', 'id');
+
+        Lead::whereIn('id', $this->selectedLeadIds)->update(['status' => $status]);
+
+        // Registrar en lead_activities (1 row por lead) usando insert batch
+        $activityRows = [];
+        foreach ($this->selectedLeadIds as $leadId) {
+            $prev = $previousStatuses[$leadId] ?? '?';
+            $activityRows[] = [
+                'lead_id'     => $leadId,
+                'user_id'     => $userId,
+                'type'        => 'status_change',
+                'description' => "Status cambiado: $prev → $status (bulk action)",
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ];
+        }
+        if (! empty($activityRows)) {
+            LeadActivity::insert($activityRows);
+        }
+
+        $count = count($this->selectedLeadIds);
         $this->selectedLeadIds = [];
         Notification::make()->title("$count leads marcados como $label")->success()->send();
     }
@@ -281,18 +306,43 @@ class ListLeads extends Page
         $userId = auth()->id();
         if (! $userId) return;
         Lead::whereIn('id', $this->selectedLeadIds)->update(['assigned_to' => $userId]);
+
+        // Audit trail: registrar la asignación en lead_activities
+        $now = now();
+        $userName = auth()->user()?->name ?? 'usuario';
+        $rows = array_map(fn ($id) => [
+            'lead_id'     => $id,
+            'user_id'     => $userId,
+            'type'        => 'assignment',
+            'description' => "Asignado a $userName (bulk action)",
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ], $this->selectedLeadIds);
+        LeadActivity::insert($rows);
+
         $count = count($this->selectedLeadIds);
         $this->selectedLeadIds = [];
         Notification::make()->title("$count leads asignados a ti")->success()->send();
     }
 
-    /** Inline status change — un solo lead, sin abrir slide-over. Silent (high-frequency). */
+    /**
+     * Inline status change — un solo lead, sin abrir slide-over.
+     * Silent (no toast porque es high-frequency), pero SÍ se loggea para audit trail.
+     */
     public function setLeadStatus(int $id, string $status): void
     {
         if (! array_key_exists($status, self::statusOptions())) return;
         $lead = Lead::find($id);
         if (! $lead) return;
+        $previous = $lead->status;
+        if ($previous === $status) return; // no-op si igual
         $lead->update(['status' => $status]);
+        LeadActivity::create([
+            'lead_id'     => $id,
+            'user_id'     => auth()->id(),
+            'type'        => 'status_change',
+            'description' => "Status cambiado: $previous → $status (inline pill)",
+        ]);
     }
 
     /* ───── Tags (slide-over) ───── */
@@ -560,12 +610,19 @@ class ListLeads extends Page
 
     /* ───── Quick actions (hover en row) ───── */
 
-    /** Marca rápido como contactado sin abrir slide-over. */
+    /** Marca rápido como contactado sin abrir slide-over. Loggea el cambio en activities. */
     public function quickMarkContacted(int $id): void
     {
         $lead = Lead::find($id);
         if (! $lead) return;
+        $previous = $lead->status;
         $lead->update(['status' => 'contacted']);
+        LeadActivity::create([
+            'lead_id'     => $id,
+            'user_id'     => auth()->id(),
+            'type'        => 'status_change',
+            'description' => "Status cambiado: $previous → contacted (quick action)",
+        ]);
         Notification::make()->title('Marcado como contactado')->success()->send();
     }
 

@@ -116,8 +116,13 @@
                                     </div>
                                 </div>
                                 @if($isStalled)
+                                    {{-- Stalled badge — usamos SVG inline en vez de emoji ⏸ que no
+                                         renderiza bien en muchos browsers (se veía como "!!"). --}}
                                     <span title="Sin actividad hace {{ (int) $daysSince }} días"
-                                          style="display:inline-flex;align-items:center;gap:3px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8.5px;font-weight:600;background:var(--alg-neg-soft);color:var(--alg-neg);padding:2px 5px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;">⏸ {{ (int) $daysSince }}d</span>
+                                          style="display:inline-flex;align-items:center;gap:3px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8.5px;font-weight:600;background:var(--alg-neg-soft);color:var(--alg-neg);padding:2px 5px;border-radius:2px;letter-spacing:.04em;text-transform:uppercase;">
+                                        <svg width="8" height="8" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="3.5" height="10" rx="0.5"/><rect x="9.5" y="3" width="3.5" height="10" rx="0.5"/></svg>
+                                        Stalled {{ (int) $daysSince }}d
+                                    </span>
                                 @endif
                             </div>
                         </td>
