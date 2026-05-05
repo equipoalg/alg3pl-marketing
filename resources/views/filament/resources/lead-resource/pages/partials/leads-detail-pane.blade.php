@@ -234,6 +234,17 @@
            style="padding:7px 12px;background:var(--alg-surface);color:var(--alg-ink-2);border:1px solid var(--alg-line);text-decoration:none;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;border-radius:4px;">
             Abrir bandeja
         </a>
+
+        {{-- Convert to Cliente — solo visible cuando el lead está won (escalación a post-venta) --}}
+        @if($selected->status === 'won')
+            <button type="button" wire:click="convertSelectedToClient"
+                    wire:confirm="¿Convertir este lead en Cliente? Se creará una Cuenta nueva en /admin/clients."
+                    title="Crear Cliente con datos pre-llenados desde este lead"
+                    style="padding:7px 12px;background:var(--alg-pos-soft);color:var(--alg-pos);border:1px solid var(--alg-pos);cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:600;border-radius:4px;letter-spacing:-0.005em;">
+                🏆 Convertir a Cliente
+            </button>
+        @endif
+
         <div style="flex:1;"></div>
         <a href="{{ \App\Filament\Resources\LeadResource::getUrl('edit', ['record' => $selected]) }}"
            title="Editor completo"

@@ -3,6 +3,11 @@
      Click on row body cells → wire:click="selectLead($id)" abre slide-over derecho.
      Click on checkbox → wire:click.stop="toggleSelectedLead($id)" para bulk.
      Click on status pill → dropdown Alpine para cambio inline. --}}
+{{-- Hover quick-actions: hide date, show 3 action buttons (pin/contacted/open) --}}
+<style>
+    tbody tr:hover .alg-row-date { display: none !important; }
+    tbody tr:hover .alg-row-hover-actions { display: inline-flex !important; }
+</style>
 @php
     use App\Filament\Resources\LeadResource\Pages\ListLeads;
     $statusColors = [
@@ -128,9 +133,24 @@
                                 <span style="color:var(--alg-ink-5);">—</span>
                             @endif
                         </td>
-                        {{-- Created at --}}
-                        <td style="padding:11px 18px 11px 12px;text-align:right;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-4);white-space:nowrap;letter-spacing:.04em;" wire:click="selectLead({{ $l->id }})">
-                            {{ $l->created_at->format('d M') }}
+                        {{-- Created at + hover quick-actions --}}
+                        <td style="padding:11px 18px 11px 12px;text-align:right;white-space:nowrap;position:relative;" onclick="event.stopPropagation()">
+                            @php $isPinned = in_array($l->id, $pinnedIds ?? [], true); @endphp
+                            <div class="alg-row-hover-actions"
+                                 style="display:none;align-items:center;gap:4px;justify-content:flex-end;">
+                                <button type="button" wire:click="quickTogglePin({{ $l->id }})"
+                                        title="{{ $isPinned ? 'Quitar pin' : 'Pin' }}"
+                                        style="border:1px solid var(--alg-line);background:var(--alg-surface);color:{{ $isPinned ? 'var(--alg-warn)' : 'var(--alg-ink-4)' }};cursor:pointer;width:24px;height:24px;border-radius:3px;font-size:11px;line-height:1;">📌</button>
+                                @if($l->status !== 'contacted' && $l->status !== 'won' && $l->status !== 'lost')
+                                    <button type="button" wire:click="quickMarkContacted({{ $l->id }})"
+                                            title="Marcar como contactado"
+                                            style="border:1px solid var(--alg-line);background:var(--alg-surface);color:var(--alg-pos);cursor:pointer;width:24px;height:24px;border-radius:3px;font-size:11px;line-height:1;">✓</button>
+                                @endif
+                                <button type="button" wire:click="selectLead({{ $l->id }})"
+                                        title="Abrir detalle"
+                                        style="border:1px solid var(--alg-line);background:var(--alg-surface);color:var(--alg-ink-3);cursor:pointer;width:24px;height:24px;border-radius:3px;font-size:11px;line-height:1;">→</button>
+                            </div>
+                            <span class="alg-row-date" style="display:inline-block;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-4);letter-spacing:.04em;">{{ $l->created_at->format('d M') }}</span>
                         </td>
                     </tr>
                 @endforeach

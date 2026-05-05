@@ -558,6 +558,76 @@ class ListLeads extends Page
         Notification::make()->title('Vista eliminada')->success()->send();
     }
 
+    /* ───── Quick actions (hover en row) ───── */
+
+    /** Marca rápido como contactado sin abrir slide-over. */
+    public function quickMarkContacted(int $id): void
+    {
+        $lead = Lead::find($id);
+        if (! $lead) return;
+        $lead->update(['status' => 'contacted']);
+        Notification::make()->title('Marcado como contactado')->success()->send();
+    }
+
+    /** Toggle pin de un lead específico. Reusa pinnedIds (session-backed). */
+    public function quickTogglePin(int $id): void
+    {
+        if (in_array($id, $this->pinnedIds, true)) {
+            $this->pinnedIds = array_values(array_filter($this->pinnedIds, fn ($i) => $i !== $id));
+        } else {
+            $this->pinnedIds[] = $id;
+        }
+        session(['inbox_pinned_ids' => $this->pinnedIds]);
+    }
+
+    /* ───── Convert lead → Cliente (escalación post-venta) ───── */
+
+    /**
+     * Cuando un lead llega a status='won', escalarlo a un Client (Cuenta).
+     * Pre-llena Client.company_name, country, primary_contact_*, assigned_to
+     * desde el Lead. Crea con status='active' para que aparezca en "Clientes activos".
+     */
+    public function convertSelectedToClient(): void
+    {
+        if (! $this->selectedId) return;
+        $lead = Lead::find($this->selectedId);
+        if (! $lead) return;
+        if ($lead->status !== 'won') {
+            Notification::make()->title('Solo leads ganados se pueden convertir')->warning()->send();
+            return;
+        }
+
+        // Si ya hay un Client con el mismo company_name + country, no duplicar
+        $companyName = trim((string) $lead->company) ?: $lead->name;
+        $existing = \App\Models\Client::where('company_name', $companyName)
+            ->where('country_id', $lead->country_id)
+            ->first();
+        if ($existing) {
+            Notification::make()
+                ->title('Ya existe una Cuenta para esta empresa')
+                ->body($existing->company_name . ' (#' . $existing->id . ')')
+                ->warning()->send();
+            return;
+        }
+
+        $client = \App\Models\Client::create([
+            'country_id'           => $lead->country_id,
+            'assigned_to'          => $lead->assigned_to,
+            'company_name'         => $companyName,
+            'tier'                 => 'smb',
+            'status'               => 'active',
+            'primary_contact_name' => $lead->name,
+            'primary_contact_email'=> $lead->email,
+            'primary_contact_phone'=> $lead->phone,
+            'health_score'         => 70,
+        ]);
+
+        Notification::make()
+            ->title('Cliente creado')
+            ->body($client->company_name . ' — agregado al pipeline post-venta')
+            ->success()->send();
+    }
+
     public function getViewData(): array
     {
         // Cargar leads + last activity timestamp en una sola query (subSelect)
