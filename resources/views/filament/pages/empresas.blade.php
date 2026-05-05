@@ -37,6 +37,7 @@
 
         {{-- Status filter --}}
         <select wire:model.live="statusFilter"
+                title="Filtrar por estado de leads"
                 style="padding:5px 9px;border:1px solid var(--alg-line);background:var(--alg-surface);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink-2);cursor:pointer;outline:none;border-radius:4px;">
             <option value="">Cualquier estado</option>
             @foreach($statuses as $key => $label)
@@ -44,7 +45,27 @@
             @endforeach
         </select>
 
-        @if($search !== '' || $statusFilter !== '')
+        {{-- Country filter --}}
+        <select wire:model.live="countryFilter"
+                title="Filtrar por país"
+                style="padding:5px 9px;border:1px solid var(--alg-line);background:var(--alg-surface);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink-2);cursor:pointer;outline:none;border-radius:4px;">
+            <option value="">Todos los países</option>
+            @foreach($countries as $country)
+                <option value="{{ $country->id }}">{{ $country->name }} ({{ strtoupper($country->code) }})</option>
+            @endforeach
+        </select>
+
+        {{-- Smart sort --}}
+        <select wire:model.live="sortBy"
+                title="Ordenar empresas"
+                style="padding:5px 9px;border:1px solid var(--alg-line);background:var(--alg-surface);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink-2);cursor:pointer;outline:none;border-radius:4px;">
+            <option value="count_desc">↓ Más leads</option>
+            <option value="value_desc">$ Mayor valor</option>
+            <option value="latest">↻ Última actividad</option>
+            <option value="stalled">⏸ Estancadas (con leads abiertos)</option>
+        </select>
+
+        @if($search !== '' || $statusFilter !== '' || $countryFilter || $sortBy !== 'count_desc')
             <button type="button" wire:click="clearFilters"
                     style="padding:4px 9px;border:none;background:transparent;color:var(--alg-ink-4);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11px;cursor:pointer;text-decoration:underline;">
                 × limpiar

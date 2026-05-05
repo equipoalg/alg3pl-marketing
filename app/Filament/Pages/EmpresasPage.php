@@ -38,6 +38,17 @@ class EmpresasPage extends Page
     #[Url(as: 'status')]
     public string $statusFilter = '';
 
+    /** Country filter (ID). Empty = todos los países. */
+    #[Url(as: 'country')]
+    public ?int $countryFilter = null;
+
+    /**
+     * Sort order. Valid values:
+     *   count_desc (default) | value_desc | latest | stalled
+     */
+    #[Url(as: 'sort')]
+    public string $sortBy = 'count_desc';
+
     /** Selected company name (for the slide-over right pane). */
     #[Url(as: 'selected')]
     public ?string $selectedEmpresa = null;
@@ -74,6 +85,8 @@ class EmpresasPage extends Page
     {
         $this->search = '';
         $this->statusFilter = '';
+        $this->countryFilter = null;
+        $this->sortBy = 'count_desc';
     }
 
     public function selectEmpresa(string $name): void
@@ -149,10 +162,17 @@ class EmpresasPage extends Page
     public function getViewData(): array
     {
         // Country scope from the global sidebar selector — same as everywhere else.
-        $base = LeadResource::getEloquentQuery()->with('country');
+        $base = LeadResource::getEloquentQuery()
+            ->with('country')
+            // Cargar latest_activity con sub-query para el sort 'stalled' sin N+1
+            ->withMax('activities as latest_activity_at', 'created_at');
 
         if ($this->statusFilter !== '') {
             $base->where('status', $this->statusFilter);
+        }
+
+        if ($this->countryFilter) {
+            $base->where('country_id', $this->countryFilter);
         }
 
         // Apply search to company name BEFORE we group, so the agg only includes
@@ -166,21 +186,31 @@ class EmpresasPage extends Page
         // Group by trimmed company (freetext). Empty/null falls into "Sin empresa".
         $companies = $leads->groupBy(fn ($l) => trim((string) $l->company) ?: '— Sin empresa —')
             ->map(function ($group, $name) {
+                // Latest activity across all leads de la empresa (para sort 'stalled')
+                $latestActivity = $group->map(fn ($l) => $l->latest_activity_at ?: $l->created_at)->max();
                 return [
-                    'name'       => $name,
-                    'count'      => $group->count(),
-                    'latest'     => $group->max('created_at'),
-                    'leads'      => $group,
-                    'statuses'   => $group->groupBy('status')->map->count()->toArray(),
-                    'countries'  => $group->pluck('country.code')->filter()->unique()->values()->toArray(),
-                    'value'      => (float) $group->sum('estimated_value'),
-                    // Has at least one "won" lead → mark this company as a customer
-                    'has_won'    => $group->where('status', 'won')->isNotEmpty(),
-                    'has_open'   => $group->whereNotIn('status', ['won', 'lost'])->isNotEmpty(),
+                    'name'            => $name,
+                    'count'           => $group->count(),
+                    'latest'          => $group->max('created_at'),
+                    'latest_activity' => $latestActivity,
+                    'leads'           => $group,
+                    'statuses'        => $group->groupBy('status')->map->count()->toArray(),
+                    'countries'       => $group->pluck('country.code')->filter()->unique()->values()->toArray(),
+                    'value'           => (float) $group->sum('estimated_value'),
+                    'has_won'         => $group->where('status', 'won')->isNotEmpty(),
+                    'has_open'        => $group->whereNotIn('status', ['won', 'lost'])->isNotEmpty(),
                 ];
-            })
-            ->sortByDesc('count')
-            ->values();
+            });
+
+        // Smart sort
+        $companies = match ($this->sortBy) {
+            'value_desc' => $companies->sortByDesc('value'),
+            'latest'     => $companies->sortByDesc('latest'),
+            // Stalled = empresas con leads abiertos cuyo último touch es el más viejo
+            'stalled'    => $companies->filter(fn ($c) => $c['has_open'])->sortBy('latest_activity'),
+            default      => $companies->sortByDesc('count'),
+        };
+        $companies = $companies->values();
 
         // Resolve selected empresa for slide-over rendering
         $selected = null;
@@ -194,6 +224,8 @@ class EmpresasPage extends Page
             'totalLeads'       => $leads->count(),
             'selected'         => $selected,
             'expandedEmpresas' => $this->expandedEmpresas,
+            'sortBy'           => $this->sortBy,
+            'countries'        => \App\Models\Country::orderBy('name')->get(['id', 'code', 'name']),
             'statuses'         => [
                 'new'         => 'Nuevos',
                 'contacted'   => 'Contactados',
