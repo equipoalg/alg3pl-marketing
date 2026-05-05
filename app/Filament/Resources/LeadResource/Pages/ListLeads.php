@@ -76,6 +76,9 @@ class ListLeads extends Page
     /** @var array<int> */
     public array $pinnedIds = [];
 
+    /** Multi-select bulk state — IDs marcados via checkbox en la vista Contactos. */
+    public array $selectedLeadIds = [];
+
     public function mount(): void
     {
         // Hydrate session-backed state
@@ -231,6 +234,58 @@ class ListLeads extends Page
             'won'         => 'Ganados',
             'lost'        => 'Perdidos',
         ];
+    }
+
+    /* ───── Bulk actions (Contactos view) — operate on $selectedLeadIds ───── */
+
+    public function toggleSelectedLead(int $id): void
+    {
+        if (in_array($id, $this->selectedLeadIds, true)) {
+            $this->selectedLeadIds = array_values(array_filter($this->selectedLeadIds, fn ($i) => $i !== $id));
+        } else {
+            $this->selectedLeadIds[] = $id;
+        }
+    }
+
+    public function clearSelectedLeads(): void
+    {
+        $this->selectedLeadIds = [];
+    }
+
+    public function selectAllVisible(): void
+    {
+        $this->selectedLeadIds = $this->buildQuery()->limit(500)->pluck('id')->all();
+    }
+
+    public function bulkSetStatus(string $status): void
+    {
+        if (empty($this->selectedLeadIds)) return;
+        if (! array_key_exists($status, self::statusOptions())) return;
+        Lead::whereIn('id', $this->selectedLeadIds)->update(['status' => $status]);
+        $count = count($this->selectedLeadIds);
+        $label = self::statusOptions()[$status];
+        $this->selectedLeadIds = [];
+        Notification::make()->title("$count leads marcados como $label")->success()->send();
+    }
+
+    public function bulkAssignToMe(): void
+    {
+        if (empty($this->selectedLeadIds)) return;
+        $userId = auth()->id();
+        if (! $userId) return;
+        Lead::whereIn('id', $this->selectedLeadIds)->update(['assigned_to' => $userId]);
+        $count = count($this->selectedLeadIds);
+        $this->selectedLeadIds = [];
+        Notification::make()->title("$count leads asignados a ti")->success()->send();
+    }
+
+    /** Inline status change — un solo lead, sin abrir slide-over. Silent (high-frequency). */
+    public function setLeadStatus(int $id, string $status): void
+    {
+        if (! array_key_exists($status, self::statusOptions())) return;
+        $lead = Lead::find($id);
+        if (! $lead) return;
+        $lead->update(['status' => $status]);
     }
 
     public function nextLead(): void

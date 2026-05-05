@@ -513,4 +513,7 @@
     </div>
     @endif {{-- end viewMode branch --}}
 </div>
+
+{{-- Floating bulk-action bar — shows when leads are checked in Contactos view --}}
+@include('filament.resources.lead-resource.pages.partials.leads-bulk-bar')
 </x-filament-panels::page>
