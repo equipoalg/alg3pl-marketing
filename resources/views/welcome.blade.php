@@ -199,10 +199,15 @@
     const ctx = canvas.getContext('2d');
 
     let W, H, cols, rows, dots;
-    const GAP = 22;
-    const BASE = 1.0;
-    const MAX_R = 4;
-    const REACH = 100;
+    // Densidad x50 — GAP de 22 → 3 (1/√50 ≈ 1/7 del espaciado original
+    // → ~50× la cantidad de puntos por pantalla).
+    const GAP = 3;
+    // BASE chico para que la altísima densidad no genere un fondo sólido.
+    const BASE = 0.3;
+    // Radio máximo en hover bumped — la onda se siente mucho más dramática.
+    const MAX_R = 8;
+    // Radio de influencia del cursor — antes 100, ahora 220 para campo más wide.
+    const REACH = 220;
     // Subtle olive/warm dots on bone background
     const COLOR = [14, 14, 12];
 
@@ -223,7 +228,7 @@
                     x: c * GAP,
                     y: r * GAP,
                     radius: BASE,
-                    alpha: 0.08
+                    alpha: 0.05
                 });
             }
         }
@@ -240,17 +245,24 @@
 
             if (dist < REACH) {
                 const t = 1 - dist / REACH;
-                const ease = t * t;
+                // Cubic easing — la onda crece mucho más rápido cerca del cursor
+                const ease = t * t * t;
 
-                d.x += (d.ox - dx * 0.04 - d.x) * 0.12;
-                d.y += (d.oy - dy * 0.04 - d.y) * 0.12;
-                d.radius += ((BASE + (MAX_R - BASE) * ease) - d.radius) * 0.18;
-                d.alpha += ((0.08 + 0.55 * ease) - d.alpha) * 0.18;
+                // Displacement amplificado 4× (era 0.04 → 0.18). Los puntos
+                // ahora se "huyen" del cursor con fuerza notoria.
+                d.x += (d.ox - dx * 0.18 - d.x) * 0.22;
+                d.y += (d.oy - dy * 0.18 - d.y) * 0.22;
+                // Spring strength más alto (0.18 → 0.28) — más responsivo.
+                d.radius += ((BASE + (MAX_R - BASE) * ease) - d.radius) * 0.28;
+                // Alpha hover pico bumped (0.55 → 0.92) — los puntos cerca
+                // del cursor casi negros, los lejos quedan en 0.05 etéreo.
+                d.alpha += ((0.05 + 0.92 * ease) - d.alpha) * 0.28;
             } else {
-                d.x += (d.ox - d.x) * 0.07;
-                d.y += (d.oy - d.y) * 0.07;
-                d.radius += (BASE - d.radius) * 0.07;
-                d.alpha += (0.08 - d.alpha) * 0.07;
+                // Recovery más rápido — el "rastro" se disipa más vivo.
+                d.x += (d.ox - d.x) * 0.12;
+                d.y += (d.oy - d.y) * 0.12;
+                d.radius += (BASE - d.radius) * 0.12;
+                d.alpha += (0.05 - d.alpha) * 0.12;
             }
 
             ctx.beginPath();
