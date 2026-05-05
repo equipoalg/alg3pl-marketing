@@ -38,6 +38,13 @@ class EmpresasPage extends Page
     #[Url(as: 'status')]
     public string $statusFilter = '';
 
+    /** Selected company name (for the slide-over right pane). */
+    #[Url(as: 'selected')]
+    public ?string $selectedEmpresa = null;
+
+    /** Set of empresa names that are inline-expanded (chevron ▾). Session-only. */
+    public array $expandedEmpresas = [];
+
     public static function getNavigationIcon(): string { return 'heroicon-o-building-office'; }
     public static function getNavigationGroup(): string { return 'CRM'; }
     public static function getNavigationSort(): int { return 2; }
@@ -67,6 +74,76 @@ class EmpresasPage extends Page
     {
         $this->search = '';
         $this->statusFilter = '';
+    }
+
+    public function selectEmpresa(string $name): void
+    {
+        $this->selectedEmpresa = $name;
+    }
+
+    public function closeEmpresa(): void
+    {
+        $this->selectedEmpresa = null;
+    }
+
+    public function toggleExpand(string $name): void
+    {
+        if (in_array($name, $this->expandedEmpresas, true)) {
+            $this->expandedEmpresas = array_values(array_filter($this->expandedEmpresas, fn ($n) => $n !== $name));
+        } else {
+            $this->expandedEmpresas[] = $name;
+        }
+    }
+
+    /**
+     * Convertir empresa → Cliente directamente desde Empresas page.
+     * Crea un Client con company_name=$name, primary contact = lead más reciente,
+     * country = el más común dentro del grupo.
+     */
+    public function convertEmpresaToClient(string $name): void
+    {
+        $name = trim($name);
+        if ($name === '' || $name === '— Sin empresa —') {
+            \Filament\Notifications\Notification::make()->title('Empresa inválida')->warning()->send();
+            return;
+        }
+
+        // Anti-duplicado: si ya existe un Client con ese company_name, no duplicar
+        $existing = \App\Models\Client::where('company_name', $name)->first();
+        if ($existing) {
+            \Filament\Notifications\Notification::make()
+                ->title('Ya existe Cliente')
+                ->body("$name — Cliente #{$existing->id}")
+                ->warning()->send();
+            return;
+        }
+
+        // Buscar el lead más reciente con esta empresa para usarlo como primary contact
+        $repLead = Lead::where('company', $name)
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (! $repLead) {
+            \Filament\Notifications\Notification::make()->title('No se encontraron leads para esta empresa')->warning()->send();
+            return;
+        }
+
+        $client = \App\Models\Client::create([
+            'country_id'            => $repLead->country_id,
+            'assigned_to'           => $repLead->assigned_to,
+            'company_name'          => $name,
+            'tier'                  => 'smb',
+            'status'                => 'active',
+            'primary_contact_name'  => $repLead->name,
+            'primary_contact_email' => $repLead->email,
+            'primary_contact_phone' => $repLead->phone,
+            'health_score'          => 70,
+        ]);
+
+        \Filament\Notifications\Notification::make()
+            ->title('Cliente creado')
+            ->body("$name — agregado a /admin/clients")
+            ->success()->send();
     }
 
     public function getViewData(): array
@@ -105,10 +182,18 @@ class EmpresasPage extends Page
             ->sortByDesc('count')
             ->values();
 
+        // Resolve selected empresa for slide-over rendering
+        $selected = null;
+        if ($this->selectedEmpresa) {
+            $selected = $companies->firstWhere('name', $this->selectedEmpresa);
+        }
+
         return [
             'companies'        => $companies,
             'totalCompanies'   => $companies->count(),
             'totalLeads'       => $leads->count(),
+            'selected'         => $selected,
+            'expandedEmpresas' => $this->expandedEmpresas,
             'statuses'         => [
                 'new'         => 'Nuevos',
                 'contacted'   => 'Contactados',
