@@ -69,6 +69,13 @@ class ListLeads extends Page
     #[Url(as: 'q')]
     public string $search = '';
 
+    /**
+     * Sort order — URL-bound. Valid values:
+     *   recent (default), score_desc, value_desc, stalled_first
+     */
+    #[Url(as: 'sort')]
+    public string $sortBy = 'recent';
+
     public string $replyText = '';
 
     /** @var array<int> */
@@ -471,8 +478,84 @@ class ListLeads extends Page
 
         // Pinned-first ordering: case statement that buckets pinned to 0, others to 1
         $pinnedCsv = empty($this->pinnedIds) ? '0' : implode(',', array_map('intval', $this->pinnedIds));
-        return $q->orderByRaw("CASE WHEN id IN ($pinnedCsv) THEN 0 ELSE 1 END")
-            ->orderBy('created_at', 'desc');
+        $q->orderByRaw("CASE WHEN id IN ($pinnedCsv) THEN 0 ELSE 1 END");
+
+        // Smart sort — fallback a recent
+        return match ($this->sortBy) {
+            'score_desc'    => $q->orderByDesc('score')->orderByDesc('created_at'),
+            'value_desc'    => $q->orderByDesc('estimated_value')->orderByDesc('created_at'),
+            // Stalled first: leads sin activity reciente Y en pipeline activo
+            'stalled_first' => $q->orderByRaw("CASE WHEN status IN ('contacted','qualified','proposal','negotiation') THEN 0 ELSE 1 END")
+                                 ->orderBy('updated_at', 'asc'),
+            default         => $q->orderBy('created_at', 'desc'),
+        };
+    }
+
+    public function setSortBy(string $value): void
+    {
+        if (in_array($value, ['recent', 'score_desc', 'value_desc', 'stalled_first'], true)) {
+            $this->sortBy = $value;
+        }
+    }
+
+    /* ───── Saved views (per-user, persisted en users.preferences) ───── */
+
+    public const SAVED_VIEW_NAME_MAX = 40;
+    public const SAVED_VIEW_MAX_COUNT = 20;
+
+    public function saveCurrentView(string $name): void
+    {
+        $name = trim($name);
+        if ($name === '') return;
+        if (mb_strlen($name) > self::SAVED_VIEW_NAME_MAX) {
+            $name = mb_substr($name, 0, self::SAVED_VIEW_NAME_MAX);
+        }
+        $user = auth()->user();
+        if (! $user) return;
+
+        $existing = $user->pref('lead_views', []);
+        // Dedup por nombre
+        $existing = array_values(array_filter($existing, fn ($v) => ($v['name'] ?? '') !== $name));
+        $existing[] = [
+            'name'   => $name,
+            'view'   => $this->viewMode,
+            'status' => $this->statusFilter,
+            'period' => $this->periodFilter,
+            'folder' => $this->folder,
+            'q'      => $this->search,
+            'sort'   => $this->sortBy,
+        ];
+        if (count($existing) > self::SAVED_VIEW_MAX_COUNT) {
+            $existing = array_slice($existing, -self::SAVED_VIEW_MAX_COUNT);
+        }
+        $user->setPrefs(['lead_views' => array_values($existing)]);
+        Notification::make()->title("Vista \"$name\" guardada")->success()->send();
+    }
+
+    public function loadLeadView(int $index): void
+    {
+        $user = auth()->user();
+        if (! $user) return;
+        $views = $user->pref('lead_views', []);
+        if (! isset($views[$index])) return;
+        $v = $views[$index];
+        $this->viewMode      = $v['view']   ?? 'contacts';
+        $this->statusFilter  = $v['status'] ?? '';
+        $this->periodFilter  = $v['period'] ?? '';
+        $this->folder        = $v['folder'] ?? 'all';
+        $this->search        = $v['q']      ?? '';
+        $this->sortBy        = $v['sort']   ?? 'recent';
+    }
+
+    public function deleteLeadView(int $index): void
+    {
+        $user = auth()->user();
+        if (! $user) return;
+        $views = $user->pref('lead_views', []);
+        if (! isset($views[$index])) return;
+        unset($views[$index]);
+        $user->setPrefs(['lead_views' => array_values($views)]);
+        Notification::make()->title('Vista eliminada')->success()->send();
     }
 
     public function getViewData(): array
@@ -563,6 +646,9 @@ class ListLeads extends Page
             $availableTags = \App\Models\Tag::orderBy('name')->get(['id', 'name', 'color']);
         }
 
+        // User-saved views (per-user, JSON in preferences)
+        $savedViews = auth()->user()?->pref('lead_views', []) ?? [];
+
         return [
             'leads'         => $leads, // flat collection — used by contacts table
             'grouped'       => $grouped, // date-bucket grouping — used by inbox view
@@ -579,6 +665,8 @@ class ListLeads extends Page
                 'snoozed' => $totalSnoozed,
             ],
             'statuses'      => self::statusOptions(),
+            'sortBy'        => $this->sortBy,
+            'savedViews'    => $savedViews,
         ];
     }
 }

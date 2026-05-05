@@ -136,6 +136,53 @@
             @endforeach
         </select>
 
+        {{-- Smart sort --}}
+        <select wire:model.live="sortBy"
+                title="Ordenar por"
+                style="padding:5px 8px;border:1px solid var(--alg-line);background:var(--alg-surface);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink-2);cursor:pointer;outline:none;">
+            <option value="recent">↓ Más recientes</option>
+            <option value="score_desc">★ Score desc</option>
+            <option value="value_desc">$ Valor desc</option>
+            <option value="stalled_first">⏸ Estancados primero</option>
+        </select>
+
+        {{-- Saved views dropdown --}}
+        <div x-data="{ open: false, name: '' }" @click.outside="open = false" style="position:relative;">
+            <button type="button" @click="open = !open"
+                    title="Vistas guardadas"
+                    style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border:1px solid var(--alg-line);background:var(--alg-surface);color:var(--alg-ink-2);cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;border-radius:4px;">
+                💾 Vistas
+                @if(count($savedViews) > 0)<span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-4);">· {{ count($savedViews) }}</span>@endif
+            </button>
+            <div x-show="open" x-cloak x-transition.opacity
+                 style="position:absolute;top:calc(100% + 4px);right:0;min-width:240px;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.10);padding:6px;z-index:30;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;">
+                @if(count($savedViews) > 0)
+                    @foreach($savedViews as $idx => $sv)
+                        <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:4px;font-size:12.5px;color:var(--alg-ink-2);"
+                             onmouseover="this.style.background='var(--alg-surface-2)'"
+                             onmouseout="this.style.background='transparent'">
+                            <span style="color:var(--alg-ink-4);font-size:11px;">📌</span>
+                            <button type="button" wire:click="loadLeadView({{ $idx }})" @click="open = false"
+                                    style="flex:1;border:none;background:transparent;text-align:left;color:inherit;cursor:pointer;font-family:inherit;font-size:inherit;letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;">{{ $sv['name'] }}</button>
+                            <button type="button" wire:click="deleteLeadView({{ $idx }})"
+                                    wire:confirm="¿Eliminar la vista &quot;{{ $sv['name'] }}&quot;?"
+                                    title="Eliminar"
+                                    style="border:none;background:transparent;color:var(--alg-ink-5);cursor:pointer;padding:0 2px;font-size:11px;line-height:1;">✕</button>
+                        </div>
+                    @endforeach
+                    <div style="height:1px;background:var(--alg-line);margin:5px 0;"></div>
+                @endif
+                <div style="display:flex;gap:4px;padding:4px 8px 2px;">
+                    <input x-model="name" type="text" placeholder="Guardar vista actual…" maxlength="40"
+                           x-on:keydown.enter="$wire.saveCurrentView(name); name=''"
+                           style="flex:1;padding:5px 8px;border:1px solid var(--alg-line);background:var(--alg-bg);font-family:inherit;font-size:11.5px;color:var(--alg-ink);outline:none;border-radius:3px;">
+                </div>
+                @if(count($savedViews) === 0)
+                    <p style="margin:6px 8px 2px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:var(--alg-ink-5);letter-spacing:.04em;">Aún sin vistas guardadas</p>
+                @endif
+            </div>
+        </div>
+
         {{-- Actions --}}
         <a href="{{ \App\Filament\Resources\LeadResource::getUrl('create') }}"
            style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:var(--alg-ink);color:#FFFFFF;text-decoration:none;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:500;letter-spacing:-0.005em;border-radius:4px;flex-shrink:0;">
