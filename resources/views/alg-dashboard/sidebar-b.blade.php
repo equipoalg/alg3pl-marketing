@@ -9,7 +9,8 @@
     $dockItems = [
         ['Dashboard',           'i-home',     '/admin/dashboard',       '#3B82F6', '#1E40AF'],
         ['Bandeja de entrada',  'i-inbox',    '/admin/leads',           '#06B6D4', '#0E7490'],
-        ['Cuentas',             'i-building', '/admin/clients',         '#8B5CF6', '#5B21B6'],
+        ['Empresas',            'i-building', '/admin/empresas',        '#0891B2', '#155E75'],
+        ['Clientes',            'i-users',    '/admin/clients',         '#8B5CF6', '#5B21B6'],
         ['Kanban Board',        'i-kanban',   '/admin/kanban',          '#F59E0B', '#B45309'],
         ['Seguimiento',         'i-check',    '/admin/tasks',           '#10B981', '#047857'],
         ['Tags',                'i-tag',      '/admin/tags',            '#EC4899', '#9D174D'],
@@ -69,6 +70,10 @@
         </symbol>
         <symbol id="i-grid" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="6" height="6" rx="1.2"/><rect x="11" y="3" width="6" height="6" rx="1.2"/><rect x="3" y="11" width="6" height="6" rx="1.2"/><rect x="11" y="11" width="6" height="6" rx="1.2"/>
+        </symbol>
+        {{-- Users group — for "Clientes" (customers/people, vs i-building which is empresas) --}}
+        <symbol id="i-users" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7" cy="7" r="2.5"/><path d="M2 16c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5"/><circle cx="14" cy="8" r="2"/><path d="M12 14c.5-1.4 2-2.4 3.5-2.4 2 0 3.5 1.6 3.5 3.6"/>
         </symbol>
     </defs>
 </svg>

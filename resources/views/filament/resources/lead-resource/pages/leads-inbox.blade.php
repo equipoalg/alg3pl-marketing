@@ -116,9 +116,10 @@
             <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-5);background:var(--alg-surface-2);padding:1px 5px;border-radius:3px;border:1px solid var(--alg-line);">/</span>
         </div>
 
-        {{-- View mode toggle: Contactos · Empresas · Bandeja --}}
+        {{-- View mode toggle: Bandeja · Contactos · Empresas (orden por workflow:
+             primero atender mensajes, luego ver datos, luego ver agrupado por empresa) --}}
         <div style="display:inline-flex;background:var(--alg-surface-2);border:1px solid var(--alg-line);border-radius:5px;padding:1px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;font-weight:500;letter-spacing:-0.005em;flex-shrink:0;">
-            @foreach(['contacts' => 'Contactos', 'companies' => 'Empresas', 'inbox' => 'Bandeja'] as $vm => $vmLabel)
+            @foreach(['inbox' => 'Bandeja', 'contacts' => 'Contactos', 'companies' => 'Empresas'] as $vm => $vmLabel)
                 @php $isVm = $viewMode === $vm; @endphp
                 <button type="button" wire:click="setViewMode('{{ $vm }}')"
                         title="Vista {{ $vmLabel }}"

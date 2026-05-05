@@ -23,9 +23,9 @@ class ClientResource extends Resource
     public static function getNavigationIcon(): string { return 'heroicon-o-building-office-2'; }
     public static function getNavigationGroup(): string { return 'CRM'; }
     public static function getNavigationSort(): int { return 1; }
-    public static function getNavigationLabel(): string { return 'Cuentas'; }
-    public static function getModelLabel(): string { return 'cuenta'; }
-    public static function getPluralModelLabel(): string { return 'Cuentas'; }
+    public static function getNavigationLabel(): string { return 'Clientes'; }
+    public static function getModelLabel(): string { return 'cliente'; }
+    public static function getPluralModelLabel(): string { return 'Clientes'; }
     public static function getNavigationBadge(): ?string
     {
         $count = static::getEloquentQuery()->count();

@@ -76,7 +76,7 @@
             <div style="display:grid;grid-template-columns:auto auto auto auto 1fr;gap:0;align-items:stretch;">
                 @foreach([
                     ['Leads totales',    '2,847', '+12.4%', 'pos'],
-                    ['Cuentas activas',  '142',   '+3.6%',  'pos'],
+                    ['Clientes activos', '142',   '+3.6%',  'pos'],
                     ['Campañas activas', '8',     '3 prog.','ink'],
                     ['Conversión',       '4.8%',  '+0.6pts','pos'],
                 ] as [$lbl, $val, $delta, $deltaColor])

@@ -171,13 +171,13 @@
                 @php
                     // KPI hrefs land on the EXACT subset the card represents:
                     //   Leads totales      → bandeja filtrada al rango actual ($timeRange)
-                    //   Cuentas activas    → /admin/clients   con tableFilter status=active (Filament v3 native)
+                    //   Clientes activos   → /admin/clients   con tableFilter status=active (Filament v3 native)
                     //   Campañas activas   → /admin/campaigns con tableFilter status=active
                     //   Conversión         → ConversionDashboard (página dedicada al análisis)
                     $rangeForLink = $timeRange ?? '30d';
                     $tiles = [
                         ['Leads totales',    (int) ($kpiLeads['value'] ?? 0),      0, '',  $kpiLeads['delta']      ?? 0, $kpiLeads['sub']      ?? null, '/admin/leads?view=contacts&period=' . urlencode($rangeForLink),    'Ver los contactos captados en este rango'],
-                        ['Cuentas activas',  (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients?tableFilters[status][value]=active',  'Ver cuentas con status active'],
+                        ['Clientes activos', (int) ($kpiCuentas['value'] ?? 0),    0, '',  $kpiCuentas['delta']    ?? 0, $kpiCuentas['sub']    ?? null, '/admin/clients?tableFilters[status][value]=active',  'Ver clientes con status active'],
                         ['Campañas activas', (int) ($kpiCampanas['value'] ?? 0),   0, '',  $kpiCampanas['delta']   ?? 0, $kpiCampanas['sub']   ?? null, '/admin/campaigns?tableFilters[status][value]=active', 'Ver campañas activas'],
                         ['Conversión',       $convNumeric,                         1, '%', $kpiConversion['delta'] ?? 0, $kpiConversion['sub'] ?? null, '/admin/conversion', 'Ver análisis de conversión'],
                     ];

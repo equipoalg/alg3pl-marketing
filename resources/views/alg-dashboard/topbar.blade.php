@@ -9,7 +9,8 @@
         '/admin/dashboard'     => 'Dashboard',
         '/admin/leads'         => 'Bandeja de entrada',
         '/admin/kanban'        => 'Kanban',
-        '/admin/clients'       => 'Cuentas',
+        '/admin/empresas'      => 'Empresas',
+        '/admin/clients'       => 'Clientes',
         '/admin/tags'          => 'Tags',
         '/admin/tasks'         => 'Seguimiento',
         '/admin/campaigns'     => 'Campañas',
@@ -220,7 +221,8 @@
                 @foreach([
                     ['Dashboard', '🏠', '/admin/dashboard'],
                     ['Bandeja', '📥', '/admin/leads'],
-                    ['Cuentas', '🏢', '/admin/clients'],
+                    ['Empresas', '🏢', '/admin/empresas'],
+                    ['Clientes', '👥', '/admin/clients'],
                     ['Kanban', '📋', '/admin/kanban'],
                     ['Tareas', '✅', '/admin/tasks'],
                     ['Tags', '🏷️', '/admin/tags'],
@@ -286,7 +288,7 @@
              x-transition:enter-end="opacity-100 transform scale-100">
             <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--alg-line);">
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--alg-ink-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="m17 17-3.5-3.5"/></svg>
-                <input type="text" placeholder="Buscar leads, cuentas, campañas, ajustes…"
+                <input type="text" placeholder="Buscar leads, empresas, clientes, campañas, ajustes…"
                        x-ref="searchInput"
                        x-init="$watch('searchOpen', v => { if (v) $nextTick(() => $refs.searchInput.focus()) })"
                        style="flex:1;border:0;outline:none;font-size:15px;color:var(--alg-ink);background:transparent;font-family:inherit;letter-spacing:-0.01em;">
@@ -297,7 +299,8 @@
                 @foreach([
                     ['🏠 Dashboard', '/admin/dashboard'],
                     ['📥 Bandeja de entrada', '/admin/leads'],
-                    ['🏢 Cuentas', '/admin/clients'],
+                    ['🏢 Empresas', '/admin/empresas'],
+                    ['👥 Clientes', '/admin/clients'],
                     ['📈 Tráfico (GA4)', '/admin/analytics'],
                     ['🔍 Search Console', '/admin/search-console'],
                     ['⚙️ Opciones', '/admin/settings'],
