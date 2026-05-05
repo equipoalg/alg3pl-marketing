@@ -19,8 +19,7 @@
     </style>
 
     @php
-        use App\Filament\Resources\ClientResource\Pages\ListClients;
-
+        // Use FQN inline en vez de `use` (que no es permitido dentro de un Blade component slot)
         $statusColors = [
             'active'   => ['var(--alg-pos-soft)',     'var(--alg-pos)'],
             'prospect' => ['var(--alg-accent-soft)',  'var(--alg-accent)'],
@@ -202,7 +201,7 @@
                     <tbody>
                         @foreach($clients as $c)
                             @php
-                                $av = ListClients::avatarFor($c->company_name);
+                                $av = \App\Filament\Resources\ClientResource\Pages\ListClients::avatarFor($c->company_name);
                                 [$pillBg, $pillFg] = $statusColors[$c->status] ?? ['var(--alg-surface-2)', 'var(--alg-ink-3)'];
                                 $isActive = $selectedId === $c->id;
                                 $isChecked = in_array($c->id, $selectedIds ?? [], true);
@@ -326,7 +325,7 @@
     {{-- ═══════════ Slide-over derecho ═══════════ --}}
     @if($selected)
         @php
-            $selAv = ListClients::avatarFor($selected->company_name);
+            $selAv = \App\Filament\Resources\ClientResource\Pages\ListClients::avatarFor($selected->company_name);
             [$selPillBg, $selPillFg] = $statusColors[$selected->status] ?? ['var(--alg-surface-2)', 'var(--alg-ink-3)'];
             $selHealth = $selected->health_score ?? 0;
             $selHealthColor = $selHealth >= 70 ? 'var(--alg-pos)' : ($selHealth >= 40 ? 'var(--alg-warn)' : 'var(--alg-neg)');
