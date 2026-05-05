@@ -83,6 +83,103 @@
             </div>
         </div>
 
+        {{-- Tags chips — relación tags() ya cargada en getViewData --}}
+        <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--alg-line);">
+            <p style="margin:0 0 8px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.10em;color:var(--alg-ink-4);">Tags</p>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">
+                @forelse($selected->tags as $tag)
+                    @php
+                        $tagBg = $tag->color ?: 'var(--alg-surface-2)';
+                        $tagFg = $tag->color ? '#FFFFFF' : 'var(--alg-ink-2)';
+                    @endphp
+                    <span style="display:inline-flex;align-items:center;gap:4px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11px;font-weight:500;padding:2px 7px 2px 8px;border-radius:10px;background:{{ $tagBg }};color:{{ $tagFg }};">
+                        {{ $tag->name }}
+                        <button type="button" wire:click="detachTagFromSelected({{ $tag->id }})"
+                                title="Quitar tag"
+                                style="background:transparent;border:none;color:inherit;opacity:0.7;cursor:pointer;padding:0 0 0 2px;font-size:11px;line-height:1;">×</button>
+                    </span>
+                @empty
+                    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-5);letter-spacing:.04em;">— sin tags —</span>
+                @endforelse
+
+                {{-- Add tag dropdown --}}
+                @php
+                    $currentTagIds = $selected->tags->pluck('id')->all();
+                    $addable = ($availableTags ?? collect())->whereNotIn('id', $currentTagIds);
+                @endphp
+                @if($addable->count() > 0)
+                    <div x-data="{ open: false }" @click.outside="open = false" style="position:relative;">
+                        <button type="button" @click="open = !open"
+                                style="display:inline-flex;align-items:center;gap:3px;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11px;padding:2px 7px;border:1px dashed var(--alg-line);background:transparent;color:var(--alg-ink-4);border-radius:10px;cursor:pointer;">
+                            + tag
+                        </button>
+                        <div x-show="open" x-cloak x-transition.opacity
+                             style="position:absolute;top:calc(100% + 4px);left:0;background:var(--alg-surface);border:1px solid var(--alg-line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.10);padding:4px;z-index:10;display:flex;flex-direction:column;gap:1px;min-width:140px;max-height:240px;overflow-y:auto;">
+                            @foreach($addable as $tag)
+                                <button type="button" wire:click="attachTagToSelected({{ $tag->id }})" @click="open = false"
+                                        style="display:flex;align-items:center;gap:6px;padding:5px 9px;border:none;background:transparent;cursor:pointer;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-ink-2);text-align:left;border-radius:3px;"
+                                        onmouseover="this.style.background='var(--alg-surface-2)'"
+                                        onmouseout="this.style.background='transparent'">
+                                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{{ $tag->color ?: 'var(--alg-ink-4)' }};"></span>{{ $tag->name }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Activity timeline — usa la relación activities() ya cargada en getViewData --}}
+        @if($selected->activities && $selected->activities->count() > 0)
+            <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--alg-line);">
+                <p style="margin:0 0 10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.10em;color:var(--alg-ink-4);">Historial</p>
+                <div style="display:flex;flex-direction:column;gap:0;">
+                    @foreach($selected->activities as $i => $activity)
+                        @php
+                            $iconByType = [
+                                'note'         => '📝',
+                                'call'         => '📞',
+                                'email'        => '✉',
+                                'meeting'      => '👥',
+                                'status_change'=> '↔',
+                                'created'      => '+',
+                            ];
+                            $icon = $iconByType[$activity->type] ?? '·';
+                            $isLast = $i === $selected->activities->count() - 1;
+                        @endphp
+                        <div style="display:flex;gap:10px;align-items:flex-start;position:relative;">
+                            {{-- Vertical timeline line --}}
+                            @if(! $isLast)
+                                <div style="position:absolute;left:11px;top:24px;bottom:-8px;width:1px;background:var(--alg-line);"></div>
+                            @endif
+                            {{-- Icon dot --}}
+                            <div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--alg-surface-2);border:1px solid var(--alg-line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--alg-ink-3);z-index:1;">{{ $icon }}</div>
+                            {{-- Content --}}
+                            <div style="flex:1;padding-bottom:12px;min-width:0;">
+                                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                                    <span style="font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink);font-weight:500;letter-spacing:-0.005em;">
+                                        {{ $activity->user?->name ?? 'Sistema' }}
+                                        <span style="color:var(--alg-ink-4);font-weight:400;">— {{ $activity->type }}</span>
+                                    </span>
+                                    <span title="{{ $activity->created_at->toDateTimeString() }}"
+                                          style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:var(--alg-ink-5);white-space:nowrap;letter-spacing:.04em;">{{ $activity->created_at->diffForHumans() }}</span>
+                                </div>
+                                @if($activity->description)
+                                    <p style="margin:2px 0 0;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:12px;color:var(--alg-ink-2);line-height:1.4;">{{ $activity->description }}</p>
+                                @endif
+                                @if($activity->outcome)
+                                    <p style="margin:2px 0 0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-3);letter-spacing:.04em;">→ {{ $activity->outcome }}</p>
+                                @endif
+                                @if($activity->next_action)
+                                    <p style="margin:4px 0 0;font-family:'Geist',ui-sans-serif,system-ui,sans-serif;font-size:11.5px;color:var(--alg-warn);">⏰ {{ $activity->next_action }}{{ $activity->next_action_date ? ' · ' . $activity->next_action_date->format('d M') : '' }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Read-only meta --}}
         <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--alg-line);display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--alg-ink-4);letter-spacing:.04em;">
             @if($selected->source)

@@ -288,6 +288,24 @@ class ListLeads extends Page
         $lead->update(['status' => $status]);
     }
 
+    /* ───── Tags (slide-over) ───── */
+
+    public function attachTagToSelected(int $tagId): void
+    {
+        if (! $this->selectedId) return;
+        $lead = Lead::find($this->selectedId);
+        if (! $lead) return;
+        $lead->tags()->syncWithoutDetaching([$tagId]);
+    }
+
+    public function detachTagFromSelected(int $tagId): void
+    {
+        if (! $this->selectedId) return;
+        $lead = Lead::find($this->selectedId);
+        if (! $lead) return;
+        $lead->tags()->detach($tagId);
+    }
+
     public function nextLead(): void
     {
         $list = $this->buildQuery()->pluck('id')->all();
@@ -483,20 +501,27 @@ class ListLeads extends Page
                 ->values();
         }
 
+        // Available tags for the slide-over chip picker (only loaded when we have a selected lead)
+        $availableTags = collect();
+        if ($selected) {
+            $availableTags = \App\Models\Tag::orderBy('name')->get(['id', 'name', 'color']);
+        }
+
         return [
-            'leads'        => $leads, // flat collection — used by contacts table
-            'grouped'      => $grouped, // date-bucket grouping — used by inbox view
-            'companies'    => $companies, // groupBy(company) — used by companies view
-            'viewMode'     => $this->viewMode,
-            'totalShown'   => $leads->count(),
-            'selected'     => $selected,
-            'folderCounts' => [
+            'leads'         => $leads, // flat collection — used by contacts table
+            'grouped'       => $grouped, // date-bucket grouping — used by inbox view
+            'companies'     => $companies, // groupBy(company) — used by companies view
+            'viewMode'      => $this->viewMode,
+            'totalShown'    => $leads->count(),
+            'selected'      => $selected,
+            'availableTags' => $availableTags,
+            'folderCounts'  => [
                 'all'     => $totalAll,
                 'unread'  => $totalUnread,
                 'hot'     => $totalHot,
                 'pinned'  => $totalPinned,
             ],
-            'statuses'     => self::statusOptions(),
+            'statuses'      => self::statusOptions(),
         ];
     }
 }
