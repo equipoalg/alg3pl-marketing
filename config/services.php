@@ -38,7 +38,24 @@ return [
 
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY'),
-        'model'   => env('ANTHROPIC_MODEL', 'claude-haiku-4-5'),
+        'model'   => env('ANTHROPIC_MODEL', 'claude-3-5-haiku-20241022'),
+        'base_url' => env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com'),
+    ],
+
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com'),
+    ],
+
+    'ai' => [
+        'provider' => env('AI_PROVIDER', env('ONUX_AI_PROVIDER', 'openai')),
+    ],
+
+    'qwen' => [
+        'api_key' => env('QWEN_API_KEY', env('DASHSCOPE_API_KEY')),
+        'base_url' => env('QWEN_BASE_URL', 'https://dashscope-us.aliyuncs.com/compatible-mode/v1'),
+        'model' => env('QWEN_MODEL', 'qwen-plus'),
     ],
 
     'google_ads' => [
@@ -57,6 +74,32 @@ return [
 
     'webhook' => [
         'fluent_forms_secret' => env('WEBHOOK_FLUENT_FORMS_SECRET'),
+    ],
+
+    'whatsapp' => [
+        'provider' => env('WHATSAPP_PROVIDER', 'meta'),
+        'api_token' => env('WHATSAPP_API_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN', env('WHATSAPP_VERIFY_TOKEN')),
+        'graph_version' => env('WHATSAPP_GRAPH_VERSION', 'v25.0'),
+        'd360_api_key' => env('WHATSAPP_360DIALOG_API_KEY', env('D360_API_KEY')),
+        'd360_api_base' => env('WHATSAPP_360DIALOG_API_BASE', 'https://waba-v2.360dialog.io'),
+        'twilio_account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'twilio_auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'twilio_whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        'twilio_messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID'),
+        'twilio_status_callback_url' => env('TWILIO_STATUS_CALLBACK_URL'),
+        'twilio_webhook_url' => env('TWILIO_WEBHOOK_URL'),
+        'twilio_validate_webhook' => env('TWILIO_VALIDATE_WEBHOOK', false),
+        'twilio_content_templates' => json_decode(env('TWILIO_CONTENT_TEMPLATE_MAP', '[]'), true) ?: [],
+    ],
+
+    'onux' => [
+        'whatsapp_alert_numbers' => env('ONUX_WHATSAPP_ALERT_NUMBERS', ''),
+        'whatsapp_alert_group_ids' => env('ONUX_WHATSAPP_ALERT_GROUP_IDS', ''),
+        'whatsapp_allowed_numbers' => env('ONUX_WHATSAPP_ALLOWED_NUMBERS', ''),
+        'whatsapp_allowed_group_ids' => env('ONUX_WHATSAPP_ALLOWED_GROUP_IDS', ''),
+        'whatsapp_allow_sandbox_participants' => env('ONUX_WHATSAPP_ALLOW_SANDBOX_PARTICIPANTS', false),
     ],
 
 ];
